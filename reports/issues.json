@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T19:42:38+00:00",
+  "generated_at": "2026-11-15T20:08:55+00:00",
   "drought_week": "2026-11-10",
   "counts": {
     "Critical": 0,
@@ -243,7 +243,7 @@
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-15T19:30",
+      "as_of": "2026-11-15T20:00",
       "rule": 9
     },
     {
