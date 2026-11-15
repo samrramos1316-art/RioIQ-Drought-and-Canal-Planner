@@ -3,11 +3,12 @@
   index.html: the intro page of RioIQ. In order:
 
     1. The title page and the river from source to sea (built by js/opening.js).
-    2. Texas: three stops on one live map (js/landing.js): the drought, the leak, the fix.
-    3. The people this is about: three real, sourced stories.
-    4. How it works, what it does not claim, and the way into the platform.
+    2. The people this is about: three real, sourced stories.
+    3. Texas: three stops on one live map (js/landing.js): the drought, the leak, the fix,
+       ending with the way into the platform.
+    4. How it works and what it does not claim.
 
-  Numbers in part 2 are filled in by js/landing.js from data/core.js, so they always match
+  Numbers in part 3 are filled in by js/landing.js from data/core.js, so they always match
   the pipeline's latest run. Facts and quotes from named reports carry their source.
 -->
 <html lang="en">
@@ -26,7 +27,7 @@
   <link rel="preload" as="image" href="photos/opening-santa-elena.jpg">
 </head>
 <body>
-  <!-- The Texas map (fixed behind part 2), the film grain over it, and the light that follows the pointer. -->
+  <!-- The Texas map (fixed behind part 3), the film grain over it, and the light that follows the pointer. -->
   <canvas id="map" aria-hidden="true"></canvas>
   <div id="glow" aria-hidden="true"></div>
   <div id="grain" aria-hidden="true"></div>
@@ -41,43 +42,9 @@
   <!-- ============ 1. Title page, then the river from source to sea (js/opening.js) ============ -->
   <section class="opening" id="top" aria-label="The Rio Grande, from source to sea"></section>
 
-  <!-- ============ 2. Texas, on one live map ============ -->
-  <main id="texas">
-    <section class="beat" data-beat="0">
-      <div class="copy">
-        <p class="tag">Texas this week</p>
-        <p class="num"><span data-count id="nDrought">0</span><small>of 254</small></p>
-        <p class="say">Texas counties are in drought. The two reservoirs that feed every farm and town from Del Rio to Brownsville are <b id="nRes"></b> full.</p>
-        <p class="src">U.S. Drought Monitor, week of <span id="week"></span>; Texas Water Development Board</p>
-      </div>
-    </section>
-
-    <section class="beat right" data-beat="1">
-      <div class="copy backed">
-        <p class="tag">The leak</p>
-        <p class="num"><span data-count id="nGal">0</span><small>million gallons a day</small></p>
-        <p class="say">can soak into the ground from the canals that carry that water to the fields. That is about <b id="nPools"></b> Olympic pools, every day the canals run.</p>
-        <p class="caveat">An upper estimate from published leak rates. Our own test could not confirm the model's volumes.</p>
-        <p class="src">It treats all <span id="nKm"></span> km of rankable canal as unlined. Leak rates: Fipps, Texas A&amp;M, 1998</p>
-      </div>
-    </section>
-
-    <section class="beat" data-beat="2">
-      <div class="copy scrim">
-        <p class="tag">The fix</p>
-        <p class="num">$<span data-count id="nSeal" data-digits="2">0</span><small>million</small></p>
-        <p class="say">of sealant covers every one of those canals once. RioIQ puts them in an order, from the published leak rate of the soil under each canal and the chance of drought. The order shows the method; it is not a tested ranking.</p>
-        <p class="src">Sealant price: U.S. Bureau of Reclamation. Materials only; not yet field-tested on the Rio Grande.</p>
-        <div class="go">
-          <a class="btn" href="app.html?step=sim">See what sealing saves</a>
-          <a class="btn line" href="app.html">Open the platform</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ============ 3. The people this is about ============ -->
-  <section class="people">
+  <!-- ============ 2. The people this is about ============
+       A solid section: it covers the fixed map until the reader scrolls on to part 3. -->
+  <section class="people" id="people">
     <p class="tag">Who is at the end of the canal</p>
     <h2>Water that leaks out on the way never reaches <em>them.</em></h2>
     <div class="stories">
@@ -115,8 +82,43 @@
       </article>
     </div>
     <p class="mission">Sealing a canal cannot make it rain. It can make sure the water that is released reaches a field or a tap, instead of the bed of a ditch. <b>RioIQ exists to get the most out of every gallon Texas has left.</b></p>
-    <div class="go"><a class="btn" href="app.html?step=sim">See what sealing saves</a><a class="btn line" href="app.html">Open the platform</a></div>
+    <div class="go"><a class="btn line" href="#texas">Texas this week &darr;</a></div>
   </section>
+
+  <!-- ============ 3. Texas, on one live map ============ -->
+  <main id="texas">
+    <section class="beat" data-beat="0">
+      <div class="copy">
+        <p class="tag">Texas this week</p>
+        <p class="num"><span data-count id="nDrought">0</span><small>of 254</small></p>
+        <p class="say">Texas counties are in drought. The two reservoirs that feed every farm and town from Del Rio to Brownsville are <b id="nRes"></b> full.</p>
+        <p class="src">U.S. Drought Monitor, week of <span id="week"></span>; Texas Water Development Board</p>
+      </div>
+    </section>
+
+    <section class="beat right" data-beat="1">
+      <div class="copy backed">
+        <p class="tag">The leak</p>
+        <p class="num"><span data-count id="nGal">0</span><small>million gallons a day</small></p>
+        <p class="say">can soak into the ground from Texas Rio Grande irrigation canals, El Paso to Brownsville. That is about <b id="nPools"></b> Olympic pools, every day the canals run.</p>
+        <p class="caveat">An upper estimate from published leak rates. Our own test could not confirm the model's volumes.</p>
+        <p class="src">It treats all <span id="nKm"></span> km of rankable canal, in every district, as unlined. Leak rates: Fipps, Texas A&amp;M, 1998</p>
+      </div>
+    </section>
+
+    <section class="beat" data-beat="2">
+      <div class="copy scrim">
+        <p class="tag">The fix</p>
+        <p class="num">$<span data-count id="nSeal" data-digits="2">0</span><small>million</small></p>
+        <p class="say">of sealant covers every one of those canals once. RioIQ puts them in an order, from the published leak rate of the soil under each canal and the chance of drought. The order shows the method; it is not a tested ranking.</p>
+        <p class="src">Sealant price: U.S. Bureau of Reclamation. Materials only; not yet field-tested on the Rio Grande.</p>
+        <div class="go">
+          <a class="btn" href="app.html?step=sim">See what sealing saves</a>
+          <a class="btn line" href="app.html">Open the platform</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <!-- ============ 4. How it works, and what it does not claim ============ -->
   <section class="after">

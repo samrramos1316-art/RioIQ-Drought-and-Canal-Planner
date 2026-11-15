@@ -57,10 +57,10 @@ def run_losses(counties):
         return {"source": SOURCE, "years": list(LOSS_YEARS), "causes_included": [], "total_usd": 0,
                 "by_year": [], "by_county": [], "note": "The loss file was not downloaded, so there is nothing to report."}
     table = pd.read_csv(LOSSES_CSV, dtype={"fips": str})
-    drought = table[table["cause"].str.contains("Drought", case=False)]
+    drought = table[table["cause"].str.contains("Drought", case=False, na=False)]   # a row with no cause is not a drought row
     # "Failure of Irrigation Supply" is a separate cause in the files. It is closely related
     # (no water in the canal), but it is NOT in the total. It is reported on its own line.
-    irrigation = table[table["cause"].str.contains("Irrigation Supply", case=False)]
+    irrigation = table[table["cause"].str.contains("Irrigation Supply", case=False, na=False)]
     by_year = drought.groupby("year")["indemnity"].sum().reindex(range(LOSS_YEARS[0], LOSS_YEARS[1] + 1), fill_value=0)
     by_county = drought.groupby("fips")["indemnity"].sum()
     names = counties.drop_duplicates("fips").set_index("fips")

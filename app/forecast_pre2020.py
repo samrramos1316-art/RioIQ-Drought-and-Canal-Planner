@@ -84,7 +84,7 @@ def main(force=False):
         "liveWeek": str(panel["date"].max().date()),
         "live": live,
         # every monthly forecast from 2020 on: {county: [[date, chance, what happened (1/0/None)], ...]}
-        "monthly": {fips: [[str(r.date.date()), round(float(r.p), 2), None if pd.isna(r.y_season) else int(r.y_season)]
+        "monthly": {fips: [[str(r.date.date()), round(float(r.p), 4), None if pd.isna(r.y_season) else int(r.y_season)]
                            for r in rows.itertuples()] for fips, rows in texas.groupby("fips")},
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

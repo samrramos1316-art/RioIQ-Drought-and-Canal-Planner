@@ -6,14 +6,15 @@
       1 Risk profile   what is the drought risk here, and which canals leak
       2 Budget plan    given a budget and a drought severity, exactly which canals to seal,
                        what it costs, how long it takes and how much water it keeps
-      3 Simulation     from today forward: one district, doing nothing against acting early
+      3 Simulation     one district or several, doing nothing against acting on the forecast
 
   The map is drawn by js/scanmap.js on a <canvas>. It opens with a "scan" that builds the
-  picture one layer at a time. On the Simulation step you pick a district and a scenario on
-  the map, and then js/twin.js draws that district twice, side by side.
+  picture one layer at a time. On the Simulation step the state view picks districts by
+  tapping them on the map (or ticking them in the list), and then js/twin.js draws them
+  twice, side by side.
 
-  The first visit asks who you are: a district manager (pick your district) or a state
-  agency (all of Texas). There is no sign-in. All logic is in js/platform.js.
+  Every visit starts by asking who you are: the state (all of Texas) or one district.
+  There is no sign-in. All logic is in js/platform.js.
 -->
 <html lang="en">
 <head>
@@ -30,7 +31,7 @@
 <body class="app">
   <div class="strip">A student hackathon project (Veritas AI, AI + Climate track). Not a government website. No sign-in. No personal data is collected.</div>
 
-  <header class="topbar">
+  <header class="topbar" id="topbar">
     <a class="brand" href="index.html" title="Back to the intro">
       <img src="logo/rioiq-logo-animated.svg" alt="RioIQ" width="376" height="150" style="height:30px;width:auto;display:block">
     </a>
@@ -46,7 +47,7 @@
       <!-- The two canvases are pictures: a screen reader is told what each one is. Everything on
            the map can also be reached from the lists and tables in the panel on the right. -->
       <canvas id="map" role="img" aria-label="Map of Texas: drought by county, the Rio Grande, irrigation districts and canals. The same districts and canals are listed in the panel."></canvas>
-      <canvas id="twin" role="img" aria-label="Simulation picture: one district shown twice, without and with canal sealing. The figures are in the panel."></canvas>
+      <canvas id="twin" role="img" aria-label="Simulation picture: the chosen districts shown twice, doing nothing and sealing canals when the forecast warns. The figures are in the panel."></canvas>
       <div id="vig" class="mapOnly"></div><div class="cine t"></div><div class="cine b"></div>
       <div id="bar"></div>
       <!-- Map controls -->
@@ -64,11 +65,13 @@
       <div id="zoom" class="mapOnly"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
       <div id="coords" class="mapOnly"></div>
       <div id="tip"></div>
-      <!-- Simulation: the three sub-step chips, the prompt, the scenario cards and the play bar -->
+      <!-- Simulation. While districts are being chosen: a one-line prompt and a Run button on the map.
+           While the result plays: a back button, four scenario buttons and the play bar. -->
       <div id="simSteps"></div>
-      <div id="simPrompt"></div>
+      <div id="simPrompt" aria-hidden="true"></div>
+      <button class="sbtn main" id="simGo" tabindex="0" hidden></button>
       <div id="simCases" class="simOnly"></div>
-      <div id="simBar" class="simOnly"><button class="sbtn main" id="simPlay">Play</button><button class="sbtn" id="simSkip">Skip to the end</button><input type="range" id="simSeek" min="0" max="1" value="0" aria-label="Week"><span id="simDate"></span></div>
+      <div id="simBar" class="simOnly"><button class="sbtn main" id="simPlay">Play</button><button class="sbtn" id="simSkip" title="Skip to the end">End</button><input type="range" id="simSeek" min="0" max="1" value="0" aria-label="Week"><span id="simDate"></span></div>
     </section>
     <aside class="panel">
       <nav class="stepper" id="stepper" aria-label="Steps">
@@ -82,26 +85,20 @@
     </aside>
   </main>
 
-  <!-- The first-visit chooser. -->
-  <div class="onboard" id="onboard">
-    <div class="wrap">
-      <div class="eyebrow">Get started</div>
-      <h1>Who is this for?</h1>
-      <p class="lead">There is no sign-in, so the platform asks each visit. Pick the state view, or pick your district from the list.</p>
+  <!-- The chooser, shown on every visit: the state view, or one district from the list.
+       tabindex -1: the page moves the keyboard focus here when it opens, so Tab starts inside it.
+       tabindex 0 on its buttons: Safari only puts a button in the Tab order if it asks. -->
+  <div class="onboard" id="onboard" role="dialog" aria-modal="true" aria-labelledby="onboardTitle" tabindex="-1">
+    <div class="sheet">
+      <p class="kicker">RioIQ platform</p>
+      <h1 id="onboardTitle">Who is this for?</h1>
       <div class="roles">
-        <button class="role" id="roleDistrict">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg>
-          <b>Irrigation district</b>
-          <span>Your district's canals, drought risk, budget plan and simulation. Choose it below.</span>
-        </button>
-        <button class="role" id="roleState">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg>
-          <b>State agency or researcher</b>
-          <span>All of Texas: every district compared, one budget split between them.</span>
-        </button>
+        <button class="role" id="roleState" tabindex="0"><b>State of Texas</b><span>Every district, compared.</span><i aria-hidden="true">&rarr;</i></button>
+        <button class="role" id="roleDistrict" tabindex="0"><b>One irrigation district</b><span>Find yours in the list.</span><i aria-hidden="true">&darr;</i></button>
       </div>
       <div class="pick" id="pick">
-        <input id="pickSearch" type="search" placeholder="Search for your district or county" aria-label="Search districts">
+        <label for="pickSearch">Irrigation districts</label>
+        <input id="pickSearch" type="search" placeholder="Search district or county">
         <div class="pickList" id="pickList"></div>
       </div>
     </div>

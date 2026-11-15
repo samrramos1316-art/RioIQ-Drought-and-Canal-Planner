@@ -332,3 +332,130 @@ Run once, as declared. The result is in `reports/frozen/round3/ponding.json`. No
 - **Seepage-only tests alone.** Too few to say anything: for the permeability model a third of the bootstrap draws had no variation in the model rate and were skipped, so that interval is not reliable and is not used.
 - **Lined against unlined (not tested).** The 38 lined tests had a higher median loss (1.94) than the 16 unlined ones (1.25). Most lined tests were on old, cracked concrete. This matters for the website's assumption that every canal is bare earth: an old lining does not mean a canal holds water.
 - **What follows.** Nothing is refitted. The website keeps the texture table, keeps "upper estimate" on every volume, and now says that measured tests on 16 canals came in at roughly half the table's rate.
+
+## Round 5: a three-month outlook, tested on eight more unseen rivers (declared Nov 15, 2026, before any of those counties was loaded or scored)
+
+**Why.** The 6-month outlook is right in about 78% of forecasts and no change to the model has moved that: six months of weather is not in any input. A shorter horizon is more forecastable, and one horizon matches the decision exactly: a sealant application lasts about 90 days, so "will the next 13 weeks hold a drought season?" is the question a district faces each time it decides whether to seal again. This adds a forecast for that question. It does not replace version 1, and the 6-month results stay as reported.
+
+**The answer it predicts.** 1 if the next 13 weeks contain 8 or more weeks in a row at D2 or worse, otherwise 0. The same rule as the 6-month outlook with a 13-week window.
+
+**The model.** The general model of round 4 with nothing changed but the answer: the version 1 forest settings (80 trees, depth 10, at least 20 rows per leaf, seed 0), the same 47 inputs, trained on the 436 development counties by the same forward chaining (for each test year 2008 to 2025, only rows whose 13-week answer was known before 1 January of that year). Two warning lines are reported and neither is chosen on data: 0.25 (the break-even line for a miss costing three false alarms) and 0.50 (the line at which a forecast simply says the likelier outcome, which is the one plain accuracy is about).
+
+**What development showed (602 used counties; not blind).**
+
+| | Rio Grande (31 counties) | Six rivers of round 4 (166) |
+|---|---|---|
+| Base rate of a yes | 38.5% | 28.6% |
+| Right, model at 0.25 | 87.4% | 88.3% |
+| Right, model at 0.50 | 87.6% | 88.6% |
+| Right, "D2 or worse now" | 88.1% | 88.5% |
+| Right, "D1 or worse now" | 78.2% | 78.7% |
+| AUC | 0.937 | 0.944 |
+| Cost at 0.25 minus "D2 now" | -66 (-147 to 8) | -169 (-375 to 24) |
+| Cost at 0.25 minus "D1 now" | -235 (-558 to 52) | -1,668 (-2,559 to -731) |
+
+So on used data the model is right about 87 to 88 times in 100, and so is the rule "the county is in severe drought now". The version 1 recipe (Rio Grande rows, 34 inputs) gave nearly the same figures (87.0% and 86.4% at 0.25).
+
+**The new holdout.** Every county whose centre is within 50 km of the Red, North Platte, South Platte, Green, Yellowstone, Sacramento, San Joaquin or Humboldt river (same map file, same lower-48 box, same distance rule), minus the 602 counties already used in rounds 1 to 4. The file may hold more than one river of a given name; every one inside the box counts. No such county has been loaded for any purpose. Scored rows: monthly issue rows 2008 to 2025 whose full 52-week future was known by 2026-11-10.
+
+**What is reported.** Share of forecasts right, precision, recall and AUC, at both lines, beside "D2 or worse now", "D1 or worse now" and never warning, with the lowest and highest single-year accuracy. Two declared comparisons, each with a year-block interval (10,000 draws, seed 0; single years primary, pairs beside it): cost at the 0.25 line minus the cost of "D2 or worse now", and minus "D1 or worse now". A comparison is a win only if its primary interval lies wholly below zero.
+
+**Predictions, written before the result.** The model will be right in 85 to 90 of 100 forecasts. It will tie "D2 or worse now" and beat "D1 or worse now".
+
+**Limits, stated now.** New places, not new time. The horizon was chosen after seeing that six months could not be improved, and after seeing the figures above on used counties; only the new holdout is blind. A three-month warning gives a district less time to act than a six-month one.
+
+**Once.** Scored one time. After any number from the new holdout is seen only a crash may be fixed.
+
+## Round 5 result: the three-month outlook is right 90 times in 100 on eight unseen rivers, and ties the rule "severe drought now" (written Nov 15, 2026, after the new holdout was scored once)
+
+Scored one time, as declared. The result is in `reports/frozen/round3/quarter.json`. Nothing was rerun.
+
+- **Accuracy on places never seen.** 136 counties along the Red, North Platte, South Platte, Green, Yellowstone, Sacramento, San Joaquin and Humboldt rivers; 29,240 forecasts over 18 years; a drought season followed in 23.9% of them. The model was right in **90.4%** of forecasts at both warning lines. Its worst single year was 83.3% and its best 96.9% (at the 0.25 line). AUC 0.957. At 0.25, 76.5% of warnings were followed by a drought season and 86.6% of drought seasons had been warned about.
+- **It ties the rule "D2 or worse now".** That rule was right in 90.7% of the same forecasts. On cost the model is at 4,666 against 4,718: -52, interval -200 to 64 (pairs of years: -241 to 69). Not separated. The model was ahead in 6 of 18 years.
+- **It beats the rule "D1 or worse now".** 4,666 against 6,476: -1,810, interval -2,437 to -1,153 (pairs: -2,462 to -1,109). A win by the declared rule, ahead in 16 of 18 years. That rule is right in only 79.8% of forecasts at this horizon, because a county in moderate drought often does not reach eight severe weeks within three months.
+- **The predictions.** "Right in 85 to 90 of 100": it was 90.4, just above the range. "Ties D2 now, beats D1 now": both held.
+- **On the Rio Grande (not blind).** 87.4% right at 0.25 and 87.6% at 0.50, AUC 0.937, against 88.1% for "D2 now". Cost 1,336 against 1,402: -66, interval -147 to 8. Not separated.
+- **What this means.** Three months ahead, the forecast is right about nine times in ten on places it never saw, and about 87 times in 100 on the Rio Grande. A county's current drought class already tells most of that story, so the model does not beat the best simple rule here either. What changes with the horizon is which rule is the best one: at six months it is "D1 now", at three months it is "D2 now". The model matches the better rule at each horizon without being told which to use, and gives a probability.
+- **What follows.** The website shows the three-month chance beside the six-month one. Version 1 and every earlier result stay as reported. This week's three-month chances for the 31 Rio Grande counties are in `reports/live/quarter.json` (issued 2026-11-03; not a scored result).
+
+**A note on the climate file.** `data/round4/climate_counties.csv.gz` and `climate_normals.csv` were cut again from the same NOAA files (dated 2026-11-05) to add the 136 new counties. The rows of the 602 counties already in them are unchanged: a dry run before the scoring reproduced the round-4 development figures exactly.
+
+## Corrections found in the code audit (written Nov 15, 2026; no frozen file is changed and nothing is re-scored)
+
+Every Python file in the pipeline was read in full and its numbers recomputed independently. No frozen headline number was wrong: the costs 1912, 2324, 2382 and 3133, the 14.0-week error, the AUC of 0.868, the round-3 intervals, the allocation means and the round-4 holdout were all reproduced exactly. An experiment that scrambled every drought class after a chosen date confirmed that no input for an earlier date changed. The audit did find the following, stated here so that no reader is misled.
+
+- **The El Nino input looks about a week ahead.** An outlook issued in the first week of a month uses the El Nino value for the season that ended the month before, which NOAA publishes around the 5th to the 10th. The frozen limits already say this. The audit measured it: with one more month of lag the 6-month cost on the Rio Grande is 2,434 with seed 0 (frozen: 2,324), 2,392 with seed 1 (2,453) and 2,407 with seed 2 (2,407). The change is inside the spread between seeds, so the verdict "ties the D1 rule" stands, but the seed-0 figure of 2,324 is on the favourable side of that spread. Version 1 is not changed. The general model of rounds 4 and 5 uses the same input and carries the same caveat.
+- **Budget ranking against rule B is unsettled, not a win.** Counties with equal rank were funded lowest county code first, as declared. Rule A is tied at the funding cut in 48 of 90 year-by-budget cells. With ties broken the other way the forecast's lead over rule B is +0.028, interval -0.002 to 0.075; with ties scored at their expected value it is +0.024, interval 0.001 to 0.060; as frozen it is +0.020, interval 0.001 to 0.046. Two of three clear zero and one does not. These are the checker's figures, computed after the result, in `reports/frozen/round3/allocation_errata.json`. The README now says "unsettled".
+- **One interval in the measured-canal check is invalid.** In `ponding.json` the permeability model's interval for the seepage-only tests (0.55 to 0.854) does not contain its own estimate (0.548): eight of those nine tests share one model rate. The earlier section already said it was not used. An erratum is filed and the code now gives no interval in that case. The primary result (16 tests, 0.58, interval 0.23 to 0.78) was reproduced and is unaffected.
+- **Two leak models were run together in one sentence.** The rank agreement of 0.58 belongs to the permeability model, whose level is about 14 times too high. The "about half the rate" belongs to the texture table, which is the one the website ranks canals with, and whose rank agreement (0.25, interval -0.23 to 0.63) is not shown to be above zero. The README now states both pairs.
+- **NOAA's missing-rain code was read as rain.** `climate.py` skipped values below -90, but the rain file marks a missing month with -9.99. The saved climate file held 1,476 such rows, all for November and December 2026. No scored row used them (the newest month any scored forecast reads is September 2025, and the forecast issued on 2026-11-03 reads September 2026). The reader is fixed, the file was cut again, and a dry run reproduced the round-4 development figures exactly (2,598, 2,324, 2,382).
+- **Rounding moved forecasts across the warning line on the website.** Chances were rounded to two or three decimals before being compared with 0.25, so 0.2496 became a warning. It flipped 15 of 3,010 packed monthly forecasts and made the risk panel count 10 counties over the line when 9 were. The site build now never rounds a value across the line, and the pre-2020 model's monthly values are packed to four decimals (803 warnings, matching its table; they gave 810 before).
+- **The inputs of rounds 4 and 5 had no hash check.** `data/round4/` now has its own list (`data/round4.sha256`), checked in CI, and the three scripts refuse to score if a file differs from it.
+- **A mislabelled field.** `leaky_soil_km` in the district table counted only canals that were on leaky soil and had a forecast warning. It now counts canals on leaky soil. It is not shown on the website.
+- **A sentence in the frozen limits is out of date.** "Weather inputs were not tested" was true when written. The frozen file is left as it is; the website shows the corrected sentence.
+- **The holdout accuracy needs its neighbour.** On the six rivers of round 4 the general model was right in 79.4% of forecasts and "D1 now" in 75.9%, but "D2 now" was right in 81.0%. Accuracy was never the declared outcome there, and the README now gives all three.
+
+**Not confirmed, for a person to check.** Whether the $35.66 a month in `config.py` is the full feed cost (as the comment says) or the payment rate, which is 60% of it; if the latter, the damage figure on the map is 40% too low. Whether the live 4-week alert should keep the 0.36 threshold that was picked for the forest trained on 2000 to 2014, now that the live forest is trained on all years.
+
+## Round 6: can the forecast beat the best simple rule? Area inputs, tested on 693 western counties never used (declared Nov 15, 2026, before any of those counties was loaded or scored)
+
+**Why.** In every test so far the forecast has tied the best simple rule. The reason is structural: the model and the rule read the same single number, the worst drought class anywhere in the county. The Drought Monitor also publishes, each week, the share of every county's area in each class. A county with severe drought over 3% of its area and one with 100% look identical to the rule and to the model so far. This round gives the model those shares.
+
+**The new inputs (19), all from the same weekly map and known on the issue date.**
+- For the county itself (14): the share of its area at D1 or worse, D2 or worse, D3 or worse; a coverage index (the five cumulative shares added up, 0 to 5); the D2 share 4 and 13 weeks ago; the index 4, 13 and 26 weeks ago; the index averaged over 13 and 26 weeks; the D2 share averaged over 8 weeks; the D1 share averaged over 13 weeks; the change in the index over 4 weeks.
+- For its neighbours (5): the average D2 share and the average index over all counties within 150 km, now and 4 weeks ago, and the neighbours' index minus the county's own.
+
+**What development showed (the 738 counties already used; not blind). Three-month outlook, cost at the 0.25 line minus the cost of "D2 or worse now":**
+
+| Model | Rio Grande | Six rivers (round 4) | Eight rivers (round 5) | Six + eight together |
+|---|---|---|---|---|
+| Round 5 model (47 inputs) | -66 (-147 to 8) | -169 (-375 to 24) | -52 (-200 to 64) | -221 (-473 to 20) |
+| + own-county area, version 1 forest | -146 (-223 to -72) | -217 (-466 to 15) | -45 (-194 to 98) | |
+| + own-county area, larger forest | -168 (-267 to -74) | -287 (-588 to -34) | -87 (-237 to 50) | -374 (-722 to -58) |
+| + neighbours' area, larger forest | -172 (-261 to -86) | -294 (-591 to -31) | -172 (-322 to -28) | -466 (-832 to -131) |
+| the same, trained on every used county except the group scored | -183 (-290 to -82) | -327 (-674 to -27) | -272 (-624 to -5) | -599 (-1,128 to -121) |
+
+Also tried and not chosen: regularised gradient boosting with the area inputs (worse than the rule), an average of forest and boosting, and a warning line picked from past years in place of 0.25 (no steady gain). For the 6-month outlook the area inputs changed little (Rio Grande +155 against the "D1 now" rule, not separated), so this round is about the three-month outlook only.
+
+**The model that will be scored (called E).** The three-month answer of round 5 (8 straight weeks at D2 or worse inside the next 13 weeks). A forest of 300 trees, depth 14, at least 10 rows per leaf, square-root inputs per split, seed 0. Inputs: the 47 of rounds 4 and 5 plus the 19 above (66). Trained on all 738 used counties by forward chaining: for each test year 2008 to 2025, only rows whose 13-week answer was known before 1 January of that year. Warning line 0.25, fixed.
+
+**The blind set.** Every county in Arizona, California, Colorado, Idaho, Kansas, Montana, Nebraska, Nevada, New Mexico, North Dakota, Oklahoma, Oregon, South Dakota, Texas, Utah, Washington and Wyoming that has a complete drought record and was not used in rounds 1 to 5: 693 counties (the count comes from the map alone). None has been loaded with its outcomes for any purpose. These counties are not along one river, so the input that averages the class "along the same river" averages over the listed counties of the same state instead. Scored rows: monthly issue rows 2008 to 2025 whose full 52-week future was known by 2026-11-10.
+
+**Primary outcome, and what counts as a win.** Cost of model E minus cost of "D2 or worse now" over all 693 counties, with a year-block bootstrap (10,000 draws, seed 0). Single-year blocks are primary; pairs of years are printed beside it. A win only if the primary interval lies wholly below zero.
+
+**Also reported.** The same against "D1 or worse now". Share of forecasts right, precision, recall and AUC for the model and both rules. The round-5 model (47 inputs, trained on the 436) on the same counties, to show what the area inputs add. Per state. The Rio Grande figures (not blind).
+
+**Prediction, written before the result.** The model will cost 3 to 6% less than "D2 or worse now", and the interval will probably, not certainly, clear zero. Plain accuracy will stay near 90%: the gain is in fewer missed drought seasons for the same number of false alarms, not in a higher share right.
+
+**Limits, stated now.** New places, not new time. The design was picked from about a dozen variants on used counties, and the last two columns of the table are from counties used to choose it. The Rio Grande figures can never be blind. A gain of a few percent in cost is real if it holds, and it is small.
+
+**Once.** Scored one time. After any number from the blind set is seen only a crash may be fixed.
+
+## Round 6 result: with area inputs the forecast beats the best simple rule on 693 unseen counties (written Nov 15, 2026, after the blind set was scored once)
+
+Scored one time, as declared. The result is in `reports/frozen/round3/edge.json`, produced from commit e2339d6 with no uncommitted source change. Nothing was rerun.
+
+- **The primary result is a win.** On 693 western counties never used before (148,995 forecasts, 18 years; a drought season followed in 25.7% of them), model E cost 23,583 against 24,955 for "D2 or worse now": **-1,372, interval -2,386 to -420** with single-year blocks and -2,582 to -195 with pairs of years. Both lie wholly below zero. That is 5.5% less cost. The model was ahead in 13 of the 18 years, and its cost was lower than the rule's in every one of the 17 states (from -2.1% in Texas to -16.5% in Wyoming).
+- **Where the gain comes from.** The model missed 3,938 drought seasons where the rule missed 5,270: a quarter fewer. It paid for that with more false alarms (11,769 against 9,145). At three false alarms to one miss that trade is worth making, which is what the cost says.
+- **Plain accuracy did not rise, as predicted.** The model was right in 89.5% of forecasts and the rule in 90.3%. Precision 74.5% against 78.3%; recall 89.7% against 86.2%. AUC 0.957. Anyone who values a false alarm as much as a missed drought would prefer the rule; anyone who thinks a missed drought is worse would prefer the model.
+- **Against "D1 or worse now":** -11,147, interval -13,406 to -8,836. Ahead in all 18 years.
+- **What the area inputs add.** Model E against the round-5 model on the same counties: -744, interval -1,379 to -153 (pairs: -1,489 to -2). The area inputs and the larger training set are a real part of the gain.
+- **A second finding.** The round-5 model (47 inputs, no area) was also ahead of "D2 now" on this larger blind set: -628, interval -1,037 to -242. On the 136 counties of round 5 the same model was not separated (-52, -200 to 64). With five times as many counties the small lead is visible. So part of the edge was already there and too small to see.
+- **On the Rio Grande (not blind).** Model E cost 1,219 against 1,402: -183, interval -290 to -82, which is 13% less. It missed 196 drought seasons against 304. Right in 87.6% of forecasts (the rule: 88.1%). These counties were used to choose the design, so this is not evidence by itself; the blind result above is.
+- **The prediction.** "3 to 6% less cost, the interval probably clear of zero, accuracy near 90%": 5.5%, clear of zero, 89.5%.
+- **What this does and does not show.** It shows that three months ahead, a forecast that sees how much of a county is in drought warns better than the best rule built on the county's single worst class, on places it never saw. It does not show a gain six months ahead: there the area inputs changed little in development and no test of them was declared. The edge is about one part in twenty of the cost. It is real and it is small.
+- **What follows.** Model E becomes the three-month outlook the website shows. Version 1 stays the six-month outlook, and every earlier result stays as reported. This week's three-month chances from model E are in `reports/live/edge.json` (issued 2026-11-03; not a scored result).
+
+## Round 6, checked: an adversarial audit of the win (written Nov 15, 2026; nothing is re-scored and no frozen file is changed)
+
+A second reviewer was asked to break the round-6 result. A full rebuild with the 300-tree forest reproduced `edge.json` exactly (23,583 against 24,955, every year, every state, Rio Grande 1,219). No leakage, contamination or scoring error was found. The figures below are the reviewer's, computed after the result; they are descriptive and were not declared.
+
+- **No simple rule built from the same area data comes close.** On the blind rows: "D2 or worse now" 24,955; "any D2 area" 25,092; "D2 over 10% of the area" 30,845; "D2 over 50%" 42,667; the best coverage-index threshold, picked on the blind rows themselves, 29,687. Fourteen two-condition rules were tried after the fact on the blind rows; the best costs 24,814 and the model still beats it by -1,231 (interval -2,083 to -449). So "beats the best simple rule" does not rest on a weak rule.
+- **The edge does not rest on the El Nino timing or on NOAA's revised record.** A 300-tree forest on map-derived inputs only (48 inputs: no El Nino, no NOAA climate) costs 23,576 on the blind set: -1,379 (interval -2,299 to -479).
+- **The win depends on the cost rule.** With the warning line at the break-even point for each ratio, model against "D2 now": at 1 to 1 (line 0.50) -357, interval -1,004 to 342, a tie; at 2 to 1 (line 0.33) -191, interval -553 to 144, a tie; at 3 to 1 (line 0.25) -1,372, interval -2,386 to -420, a win; at 5 to 1 (line 0.17) -5,836, interval -8,587 to -3,100, a win. The 3 to 1 ratio and the 0.25 line are in the project's first commit and were never changed, so they were not picked to produce this result. The fair statement is: the model wins when a missed drought season costs three false alarms or more, and ties when it costs two or fewer.
+- **A sentence above is too hard on the model.** "Anyone who values a false alarm as much as a missed drought would prefer the rule" is true only with the line left at 0.25. With the line moved to 0.50, as it should be at equal costs, the model is right in 90.6% of forecasts against the rule's 90.3%, and the two tie.
+- **A sentence above is too kind to the prediction.** The prediction said the gain would come from "fewer missed drought seasons for the same number of false alarms". Misses fell by 1,332 but false alarms rose by 2,624. That part of the prediction was wrong.
+- **"What the area inputs add: -744" mixes three changes.** Model E differs from the round-5 model in its inputs, its forest size and its training counties (738 against 436). The -744 is model E against the round-5 model, not the area inputs alone.
+- **The gain does not come from blind counties sitting next to training counties.** By distance to the nearest used county, the cost change against the rule is -7.1% within 50 km, -5.1% at 50 to 100 km, -5.7% at 100 to 150 km, -5.3% at 150 to 300 km and -4.7% beyond 300 km. On the 181 counties beyond 150 km alone the interval crosses zero (-312, -739 to 67): there are too few rows to say.
+- **How strong the evidence is.** Dropping the best year (2021) leaves -1,041, interval -1,912 to -242; dropping the best two leaves -738, interval -1,430 to -75. A plain sign test on 13 of 18 years gives p = 0.096; a signed-rank test gives p = 0.018. The percentile interval is known to run a little narrow with 18 years. It is a win by the rule declared in advance, and not an overwhelming one.
+- **Order of commits.** Declaration 509b25e (12:50), code e2339d6 (12:56), result 0e440f1 (13:05). The result file names e2339d6 with no uncommitted source change. Git cannot prove nobody looked at blind outcomes before the declaration; the code that loads them did not exist before it.

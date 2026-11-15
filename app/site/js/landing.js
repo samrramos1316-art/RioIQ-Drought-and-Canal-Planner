@@ -30,7 +30,9 @@
   const inDrought = HG.texas.filter((c) => c.dm != null && c.dm >= 2).length;            // D1 or worse
   const amistadFalcon = (HG.river.find((c) => c.reservoir === "Amistad-Falcon") || {}).reservoirPct;
   const test = SIM.pre2020 && SIM.pre2020.test.preSeason;
-  // Water that can leak in a day from every rankable canal inside a district, if all run full:
+  // Water that can leak in a day from every rankable canal inside a district, if all run full.
+  // This is every Texas Rio Grande district, El Paso and Hudspeth included (they draw on
+  // Elephant Butte, not on Amistad and Falcon), and the page's sentence says so:
   // length x wetted width x the leak rate of the soil under it (gallons per square foot per day).
   const a = HG.plan.assumptions, FEET_PER_KM = 3280.84;
   let leakGallons = 0, leakKm = 0;
@@ -39,12 +41,22 @@
   $("nDrought").dataset.to = inDrought; $("nRes").textContent = amistadFalcon + "%"; $("week").textContent = niceDate(HG.week);
   $("nGal").dataset.to = Math.round(leakGallons / 1e6); $("nPools").textContent = num(Math.round(leakGallons / GALLONS_IN_AN_OLYMPIC_POOL / 10) * 10); $("nKm").textContent = num(leakKm);
   $("nSeal").dataset.to = HG.plan.cost_to_treat_everything_usd / 1e6;
+  // The three-month forecast's one scored test (HG.quarter.test). It is said to beat its best
+  // simple rule only if the whole interval of the cost gap is below zero. Lower cost is not a
+  // higher share right, so the sentence gives both.
+  const q = HG.quarter && HG.quarter.test, share = (v) => num(v * 100, 1) + "%";
+  const quarterSentence = q && q.costGapHigh < 0
+    ? " A second forecast, three months ahead, beat the best simple rule on cost by " + num(Math.abs(q.costChange) * 100, 1) + "% on " + num(q.counties) +
+      " unseen counties: it missed " + num(q.missed) + " drought seasons against " + num(q.missedRule) + ", with " + num(q.falseAlarms) + " false alarms against " + num(q.falseAlarmsRule) +
+      ". Its share right was lower, " + share(q.shareRight) + " against " + share(q.shareRightRule) + "."
+    : "";
   $("howForecast").textContent = "A random forest reads the weekly Drought Monitor and the El Niño index." +
-    (test ? " Frozen at the end of 2019 and tested on the years since, its January to March warnings caught " + test.forecast.caught + " of " + test.forecast.droughtSeasons + " drought seasons." : "");
+    (test ? " Frozen at the end of 2019 and tested on the years since, its January to March warnings caught " + test.forecast.caught + " of " + test.forecast.droughtSeasons + " drought seasons." : "") +
+    quarterSentence;
   $("howRank").textContent = num(HG.canals.length) + " canal segments, each matched to the soil under it. Leak rate times drought chance gives the sealing order, with a cost, a crew time and the water kept for every one.";
   $("limitModel").textContent = test
-    ? "The forecast is accurate but not special: the simple rule \"already in moderate drought\" caught " + test.d1Rule.caught + " of the same " + test.d1Rule.droughtSeasons + " seasons. We show both."
-    : "The forecast only narrowly matches the simple rule \"already in moderate drought\".";
+    ? "The six-month forecast is accurate but not special: the simple rule \"already in moderate drought\" caught " + test.d1Rule.caught + " of the same " + test.d1Rule.droughtSeasons + " seasons. We show both."
+    : "The six-month forecast only narrowly matches the simple rule \"already in moderate drought\".";
 
   /* Numbers count up the first time their beat comes into view. */
   function countUp(el) {
@@ -131,19 +143,19 @@
   const SIDE = [1, -1, 1];      // +1 = map on the right (text on the left)
   const HIGH = [0.32, 0.32, 0.27];   // on a phone: how far down the screen the map's middle sits. The last beat has the most text, so its map sits higher.
 
-  /* Scroll position as a beat number: 0 at the top of the hero, 5 at the last beat. */
+  /* Scroll position as a beat number: 0 at the first Texas stop, 2 at the last. */
   const beats = Array.from(document.querySelectorAll(".beat"));
   const main = document.getElementById("texas");
   function readScroll() {
-    // A beat's offsetTop is measured from the top of <main>, not of the page (the opening sits
-    // above it), so the same amount is taken off the scroll position before the two are compared.
+    // A beat's offsetTop is measured from the top of <main>, not of the page (the opening and the
+    // stories sit above it), so the same amount is taken off the scroll position before the two are compared.
     const mid = scrollY + innerHeight / 2 - main.offsetTop;
     let b = 0;
     beats.forEach((el, i) => { const top = el.offsetTop, c = top + el.offsetHeight / 2; if (mid >= c) b = i; });
     const here = beats[b], next = beats[b + 1];
     if (next) { const c0 = here.offsetTop + here.offsetHeight / 2, c1 = next.offsetTop + next.offsetHeight / 2; b += Math.max(0, Math.min(1, (mid - c0) / (c1 - c0))); }
     beat = b;
-    // The map is only on screen between the end of the opening and the stories section.
+    // The map is only on screen while <main> is: after the stories, and before "How it works".
     onScreen = scrollY + innerHeight > main.offsetTop && scrollY < main.offsetTop + main.offsetHeight;
   }
   addEventListener("scroll", readScroll, { passive: true }); readScroll();
@@ -168,7 +180,7 @@
   /* ---------- One frame ---------- */
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; clock += dt;
-    if (!onScreen) { requestAnimationFrame(frame); return; }           // nothing to draw while the opening or the stories are showing
+    if (!onScreen) { requestAnimationFrame(frame); return; }           // nothing to draw while the opening, the stories or the last section cover the map
     // Camera: glide between the two beats we are between, holding still near each one.
     const i = Math.min(CAMERA.length - 2, Math.floor(beat)), u = smooth(beat - i, 0.2, 0.8);
     const a = fit(CAMERA[i], SIDE[i], HIGH[i]), b = fit(CAMERA[i + 1], SIDE[i + 1], HIGH[i + 1]);

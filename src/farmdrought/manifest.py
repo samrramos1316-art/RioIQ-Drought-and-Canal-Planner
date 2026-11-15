@@ -119,8 +119,18 @@ def guard_scored_writer(output, force=False, frozen_metrics=None):
 # beside it: (the folder, its list), both relative to the repo root.
 FROZEN_LIST = Path("reports") / "frozen.sha256"
 PROSPECTIVE_LIST = Path("reports") / "prospective.sha256"
+# data/round4 holds the inputs added for rounds 4 and 5 (the NOAA climate cut, the measured
+# canal tests). They are not in data/manifest.json, which describes exactly what version 1 was
+# scored on, so they get a hash list of their own, checked the same way.
+ROUND4_LIST = Path("data") / "round4.sha256"
 APPEND_ONLY = {"frozen": (Path("reports") / "frozen", FROZEN_LIST),
-               "prospective": (Path("reports") / "prospective", PROSPECTIVE_LIST)}
+               "prospective": (Path("reports") / "prospective", PROSPECTIVE_LIST),
+               "round4": (Path("data") / "round4", ROUND4_LIST)}
+
+
+def check_round4(root=ROOT):
+    """The round-4 and round-5 inputs under data/round4 against data/round4.sha256."""
+    return check_listed(root, *APPEND_ONLY["round4"])
 
 
 def listed_files(root, folder):
@@ -183,12 +193,12 @@ def add_new_prospective_files(root=ROOT):
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] in (["frozen"], ["prospective"]):
+    if sys.argv[1:] in (["frozen"], ["prospective"], ["round4"]):
         folder, list_path = APPEND_ONLY[sys.argv[1]]
         problems = check_listed(ROOT, folder, list_path)
         print("\n".join(problems) if problems else f"every file under {folder} matches {list_path}")
         sys.exit(1 if problems else 0)
-    if sys.argv[1:] in (["frozen-add"], ["prospective-add"]):
+    if sys.argv[1:] in (["frozen-add"], ["prospective-add"], ["round4-add"]):
         print("added:", ", ".join(add_new_listed(ROOT, *APPEND_ONLY[sys.argv[1][:-4]])) or "nothing new")
         sys.exit(0)
     if sys.argv[1:] == ["build"]:

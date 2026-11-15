@@ -117,6 +117,24 @@ def texas_counties(usdm, profiles, photo_files):
     return sorted(out, key=lambda c: c["name"])
 
 
+WARNING_LINE = 0.25   # the forecast warns at 0.25 or more (config.SEASON_THRESHOLD in the pipeline)
+
+
+def chance(value, digits):
+    """Round a forecast chance for the website WITHOUT moving it across the warning line.
+
+    Plain rounding turns 0.2496 into 0.25, and the site would then count a county that the
+    pipeline did not warn about as warned. When rounding would lift a value onto or over the
+    line, it is rounded down instead (0.2496 becomes 0.249 or 0.24).
+    """
+    value = float(value)
+    step = 10 ** -digits
+    shown = round(value, digits)
+    if value < WARNING_LINE <= shown:
+        shown = round(WARNING_LINE - step, digits)
+    return shown
+
+
 def river_counties(latest):
     """The 14 Texas counties on the Rio Grande, with this week's forecast."""
     rows = latest[(latest["state"] == "Texas") & (latest["river"] == "Rio Grande")]
@@ -125,7 +143,7 @@ def river_counties(latest):
         out.append({
             "fips": r.fips, "name": r.county, "lat": round(r.lat, 3), "lon": round(r.lon, 3),
             "cls": int(r.cls),                                   # same scale as "dm" above
-            "pSeason": round(float(r.p_season), 3),              # chance of a drought season in 6 months
+            "pSeason": chance(r.p_season, 3),              # chance of a drought season in 6 months
             "tier": r.season_tier,                               # Low, Watch or Warning
             "p4": round(float(r.p_model), 3),                    # chance of D2 within 4 weeks
             "weeks": round(float(r.weeks_model), 1),             # drought weeks expected in the next year
@@ -404,7 +422,7 @@ def weekly_history(usdm, fips_list):
     forecast, happened = {}, {}
     for fips, rows in outlook.groupby("fips"):
         rows = rows.set_index("date").reindex(weeks)
-        forecast[fips] = [None if pd.isna(v) else round(float(v), 2) for v in rows["p_season"]]
+        forecast[fips] = [None if pd.isna(v) else chance(v, 2) for v in rows["p_season"]]
         happened[fips] = [None if pd.isna(v) else int(v) for v in rows["y_season"]]
 
     # Reservoir storage as percent full, one reading a week. Amistad and Falcon are run as one system.
@@ -517,6 +535,14 @@ def seepage_summary(data, errata):
             "gaps": {name: {"diff": short(g["gap"]), "lo": short(g["lo"]), "hi": short(g["hi"])} for name, g in held["gaps"].items()}}
 
 
+# A row name in a frozen file that claims more than the row shows. The frozen file is never
+# edited, so the corrected name is swapped in here (reports/decision.md, "Round 6, checked").
+ROW_NAME_CORRECTIONS = {
+    "The same: what the area inputs add over the round-5 model (cost)":
+        "The same: model E minus the round-5 model (cost; differs in inputs, forest size and training counties)",
+}
+
+
 def frozen_summary(folder=FROZEN_ROUND3):
     """A few kilobytes about the frozen round-3 results, for the Sources step. Read only.
 
@@ -544,7 +570,7 @@ def frozen_summary(folder=FROZEN_ROUND3):
         if isinstance(data.get("site_summary"), list):
             # "stated" is the file's own verdict word; "lower" (True if a lower number is better) only if the file gives it
             extra.append({"file": path.stem, "what": data.get("what"), "rows": [
-                {"name": r.get("name"), "diff": short(r.get("value")), "lo": short(r.get("lo")), "hi": short(r.get("hi")),
+                {"name": ROW_NAME_CORRECTIONS.get(r.get("name"), r.get("name")), "diff": short(r.get("value")), "lo": short(r.get("lo")), "hi": short(r.get("hi")),
                  "n": r.get("n_years"), "stated": r.get("verdict"), "lower": r.get("lower_is_better")}
                 for r in data["site_summary"]]})
             continue
@@ -623,6 +649,55 @@ def reconciliation(canals, district_names, plan):
     }
 
 
+def quarter_outlook(reports=ROOT / "reports"):
+    """The three-month outlook (src/farmdrought/edge.py, model E), in short, for the website.
+
+    Two files are read and neither is changed:
+      reports/live/edge.json            this week's chance per Rio Grande county (not scored yet)
+      reports/frozen/round3/edge.json   the blind test on 693 unseen western counties, scored once
+    Returns None when either file is missing, so the site simply leaves the line out.
+    """
+    live, test = reports / "live" / "edge.json", reports / "frozen" / "round3" / "edge.json"
+    if not (live.exists() and test.exists()):
+        return None
+    live, test = load_json(live), load_json(test)
+    blind, rio = test["blind"], test["rio_grande_not_blind"]
+    model, rule = blind["policies"]["model E"], blind["policies"]["D2 now"]     # the rule: "severe drought now"
+    gap = test["primary"]["block1"]                                             # model cost minus the rule's cost
+    return {
+        "issued": live["issued"], "weeksAhead": live["weeks_ahead"],
+        "chance": {fips: chance(p, 3) for fips, p in live["counties"].items()},
+        "test": {
+            "forecasts": blind["rows"], "counties": blind["counties"], "auc": blind["auc"]["model E"],
+            "shareRight": model["share_right"], "shareRightRule": rule["share_right"],
+            "missed": model["missed"], "missedRule": rule["missed"],
+            "falseAlarms": model["false_alarms"], "falseAlarmsRule": rule["false_alarms"],
+            "cost": model["cost"], "costRule": rule["cost"],
+            # the cost gap with its interval: a win only because the whole interval is below zero
+            "costGap": short(gap["diff"]), "costGapLow": short(gap["lo"]), "costGapHigh": short(gap["hi"]),
+            "costChange": test["cost_change_against_d2_now"], "years": gap["n_years"],
+            "rioGrandeShareRight": rio["policies"]["model E"]["share_right"],
+            "rioGrandeCost": rio["policies"]["model E"]["cost"], "rioGrandeCostRule": rio["policies"]["D2 now"]["cost"],
+        },
+    }
+
+
+# One sentence in the frozen list of limits has been overtaken by later work. The frozen file is
+# never edited, so the website swaps in the corrected sentence here (reports/decision.md,
+# "Corrections found in the code audit").
+LIMIT_CORRECTIONS = {
+    "Weather inputs (rain, temperature, soil moisture) were not tested.":
+        "Weather inputs are not part of the system. Rain and temperature were tested in version 2, and rain, "
+        "temperature and a soil-moisture index were tested on rivers never used before (round 4). Neither helped "
+        "the 6-month outlook.",
+}
+
+
+def corrected_limits(limits):
+    """The limits list with any overtaken sentence replaced by its correction."""
+    return [LIMIT_CORRECTIONS.get(sentence, sentence) for sentence in limits]
+
+
 def write_js(path, variable, data):
     """Save data as a JavaScript file that sets one global variable."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -695,12 +770,13 @@ def build(out_dir=None):
         "forecastEffect": forecast_effect(plan, district_names),      # the plan with and without the forecast
         "frozen": frozen_summary(),                                    # the frozen round-3 results, in short
         "reconcile": reconciliation(canals, district_names, plan),     # modelled seepage against published figures
+        "quarter": quarter_outlook(),                                  # the three-month chance per county and its test
         "threshold": metrics["trigger"]["threshold"],
         "trigger": metrics["trigger"],
         "season": metrics["season"]["focus"],
         "trainYears": metrics.get("train_years"), "testYears": metrics.get("test_years"),
         "issues": optional("issues.json"),
-        "limits": metrics["limits"],
+        "limits": corrected_limits(metrics["limits"]),
         "reservoirNote": metrics["reservoir"].get("note"),
     }
     write_js(out_dir / "core.js", "HG", core)

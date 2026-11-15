@@ -1,0 +1,9 @@
+{
+  "erratum_for": "reports/frozen/round3/ponding.json",
+  "written": "2026-11-15",
+  "the_frozen_file_is_not_changed": true,
+  "what_is_wrong": "The block seepage_only -> permeability reports spearman 0.548 with an interval of 0.55 to 0.854 and passes: true. That interval does not contain its own estimate and must not be used. Eight of the nine seepage-only tests share one model rate (19.08), so the 'order' rests on a single test, and 3,501 of the 10,000 resamples had no order at all and were skipped.",
+  "what_to_read_instead": "No interval and no pass or fail for that block. The primary result (all 16 unlined tests, permeability: 0.578, interval 0.234 to 0.775) is not affected; a code review reproduced it, and dropping any one test leaves it between 0.51 and 0.63.",
+  "code_change": "ponding.rank_agreement now returns no interval when the model gives fewer than three different rates across the tests.",
+  "found_by": "code audit after the result was published; reports/decision.md already said this interval was not reliable and not used."
+}

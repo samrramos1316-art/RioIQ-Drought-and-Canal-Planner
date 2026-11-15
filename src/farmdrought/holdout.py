@@ -36,7 +36,7 @@ from farmdrought.climate import FEATURES_N, FEATURES_P, FEATURES_W, add_climate_
 from farmdrought.config import D2_CLASS, FOCUS_RIVER, FROZEN, ROOT, ROUND3, SCORE_THROUGH, SEASON_THRESHOLD, SEASON_WEEKS
 from farmdrought.drought import build_panel
 from farmdrought.evaluate import tally
-from farmdrought.manifest import add_new_frozen_files
+from farmdrought.manifest import add_new_frozen_files, check_round4
 from farmdrought.outlook import FEATURES_SEASON, chain, issue_rows, make_classifier
 from farmdrought.round3 import compare, cost_by_year, header, write_items
 
@@ -195,6 +195,10 @@ def holdout_item(table):
 def main():
     if (ROUND3 / OUTPUT).exists():
         write_items({OUTPUT: None})   # raises: already scored, and this test is run once
+    problems = check_round4()
+    if problems:
+        raise RuntimeError("an input under data/round4 differs from data/round4.sha256, so nothing was scored:\n  "
+                           + "\n  ".join(problems))
     with open(FROZEN / "metrics.json") as f:
         frozen = json.load(f)
     dev = development_table()

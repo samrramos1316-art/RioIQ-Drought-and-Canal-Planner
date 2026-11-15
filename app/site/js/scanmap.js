@@ -63,7 +63,7 @@
       const rings = c.rings.map(flat), box = boxOf(rings);
       return { c, fips: c.fips, name: c.name, cls: c.dm == null ? 0 : c.dm, rings, box, xy: [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2], river: U.riverByFips[c.fips] || null };
     }),
-    districts: HG.districts.map((d, i) => { const rings = d.rings.map(flat); return { d, i, rings, box: boxOf(rings) }; }),
+    districts: HG.districts.map((d, i) => { const rings = d.rings.map(flat), box = boxOf(rings); return { d, i, rings, box, size: (box[2] - box[0]) * (box[3] - box[1]) }; }),
     lakes: HG.lakes.map((l) => ({ name: l.name, pct: l.pct, xy: project(l.lon, l.lat) })),
     cities: CITIES.map(([name, lon, lat]) => ({ name, xy: project(lon, lat) })),
   };
@@ -80,6 +80,11 @@
   const TXBOX = boxOf(G.texas);
   const VIEW = { us: boxOf(G.states), texas: TXBOX, corridor: llBox(-106.8, 25.7, -97.0, 32.1), valley: llBox(-98.75, 25.8, -97.1, 26.75),
                  maverick: llBox(-100.75, 28.35, -100.2, 28.95), elpaso: llBox(-106.7, 31.1, -105.3, 32.05) };
+  // Where the Lower Valley's districts are: the view the Simulation step opens on to pick them.
+  // (A district counts if its box touches the Lower Valley view.)
+  const inValley = G.districts.filter((d) => d.box[2] >= VIEW.valley[0] && d.box[0] <= VIEW.valley[2] && d.box[3] >= VIEW.valley[1] && d.box[1] <= VIEW.valley[3]);
+  if (inValley.length) VIEW.districts = boxOf([].concat(...inValley.map((d) => d.rings)));
+  else VIEW.districts = VIEW.valley;
   // The three canal networks, named as a whole when the map is too far out to name canals.
   const NETWORKS = [["El Paso Valley", ["48141", "48229"], 14, -34], ["Eagle Pass", ["48323", "48271", "48465"], 16, 26],
                     ["Lower Rio Grande Valley", ["48061", "48215", "48489", "48427"], -250, 44]].map(([name, fips, dx, dy]) => {
@@ -115,7 +120,9 @@
     // Layer strengths. The scan animates these; after the scan they all sit at their end values.
     const S = { us: 0.2, dots: 0, sweep: -1, tx: 1, fill: 1, scanX: -1, rivers: 1, canals: 1, soil: 0, lev: 1, risk: 1, lakes: 1, reticle: 0, pulse: 0 };
     // What platform.js asked for: see set() below.
-    const want = { mode: "now", scope: -1, funded: null, county: null, canal: null, lakes: null };
+    // pick is the Simulation step's "choose districts" mode. In it, sel is the Set of chosen
+    // district numbers, ok the Set that can be chosen, and solo the Set that can only run alone.
+    const want = { mode: "now", scope: -1, funded: null, county: null, canal: null, lakes: null, pick: false, sel: null, ok: null, solo: null };
     let W = 0, H = 0, dpr = 1, kTexas = 1, hover = null, scanning = false, skip = false, flying = 0, lastNow = 0, dragFrom = null;
 
     /* Every colour comes from the stylesheet, so dark and light themes share this one drawing routine. */
@@ -225,7 +232,8 @@
 
       // Every Texas county. Fill = this week's Drought Monitor class, or the 6-month forecast tier.
       const shown = S.tx > 0.003 ? G.counties.filter((c) => inView(c.box)) : [];
-      const fillA = Math.max(0.12, 0.5 - 0.12 * Math.log2(Math.max(1, rel)));   // fills thin out as you zoom in, so canals stay readable
+      const picking = !!want.pick;                              // choosing districts: they lead, everything else steps back
+      const fillA = Math.max(0.12, 0.5 - 0.12 * Math.log2(Math.max(1, rel))) * (picking ? 0.45 : 1);   // fills thin out as you zoom in, so canals stay readable
       for (const c of shown) {
         const r = reached(c);
         let color = null;
@@ -240,10 +248,26 @@
       // The 14 river counties: outline = forecast tier, drawn upstream to downstream during the scan.
       if (S.risk > 0.003) for (const c of FOCUS) {
         const a = Math.max(0, Math.min(1, S.risk * FOCUS.length - c.rank));
-        if (a > 0) stroke(c.rings, C[c.river.tier], 2.3, a * S.tx * (want.scope < 0 ? 1 : 0.45));
+        if (a > 0) stroke(c.rings, C[c.river.tier], 2.3, a * S.tx * (picking ? 0.3 : want.scope < 0 ? 1 : 0.45));
       }
-      // Irrigation districts: a thin dashed outline; the chosen district is drawn solid and bright.
-      if (S.lev > 0.3 && rel > 1.6) {
+      // Choosing districts for the simulation: every district is a shape you can tap.
+      //   chosen                 filled in the strong green, with a bright outline
+      //   can be chosen          a faint fill and a plain outline
+      //   runs alone             the same, with a dashed outline (it draws on a different reservoir)
+      //   nothing to seal there  a faint dashed outline and no fill
+      if (picking) {
+        const kindOf = (d) => (want.sel && want.sel.has(d.i) ? "on" : want.ok && want.ok.has(d.i) ? "can" : want.solo && want.solo.has(d.i) ? "solo" : "no");
+        const here = G.districts.filter((d) => inView(d.box)), of = (kind) => [].concat(...here.filter((d) => kindOf(d) === kind).map((d) => d.rings));
+        // Each district is filled on its own. (Filled together, the ground two neighbours share would be left bare.)
+        const fill = (d, color, alpha) => { ctx.beginPath(); for (const ring of d.rings) { path(ring); ctx.closePath(); } ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.fill("evenodd"); };
+        for (const d of here) { const kind = kindOf(d); if (kind === "can" || kind === "solo") fill(d, C.text, 0.1); }
+        for (const d of here) if (kindOf(d) === "on") fill(d, C.Low, 0.62);
+        ctx.setLineDash([3 / cam.k, 4 / cam.k]); stroke(of("no"), C.muted, 0.8, 0.4);
+        ctx.setLineDash([7 / cam.k, 4 / cam.k]); stroke(of("solo"), C.text, 1.1, 0.7);
+        ctx.setLineDash([]); stroke(of("can"), C.text, 1.1, 0.7);
+        stroke(of("on"), C.map, 4, 0.9); stroke(of("on"), C.Low, 2, 1);
+        if (hover && hover.district) { stroke(hover.district.rings, C.map, 5.5, 0.9); stroke(hover.district.rings, C.hl, 2.4, 1); }   // the one under the pointer
+      } else if (S.lev > 0.3 && rel > 1.6) {
         ctx.setLineDash([4 / cam.k, 3 / cam.k]);
         stroke([].concat(...G.districts.filter((d) => d.i !== want.scope && inView(d.box)).map((d) => d.rings)), C.muted, 1, 0.55 * S.lev);
         ctx.setLineDash([]);
@@ -271,7 +295,8 @@
         if (aPlain > 0.003) stroke(mine.map((s) => s.pts), C.river, 0.8 * zoom, 0.7 * aPlain);
         if (aSoil > 0.003) [0, 2, 1].forEach((k) => { ctx.setLineDash(k === 2 ? [3 / cam.k, 3 / cam.k] : []); stroke(mine.filter((s) => s.soilClass === k).map((s) => s.pts), SOILCOL[k], (k === 1 ? 1.2 : 0.75) * zoom, aSoil * 0.9); });
         ctx.setLineDash([]);
-        if (S.lev > 0.003) {
+        if (picking) stroke(mine.map((s) => s.pts), C.muted, 0.5 * zoom, 0.38 * S.lev);   // canals stay, as thin grey lines
+        else if (S.lev > 0.003) {
           if (want.funded) {
             stroke(mine.filter((s) => !want.funded.has(s.c.id)).map((s) => s.pts), C.muted, 0.7 * zoom, 0.45 * S.lev);
             const paid = mine.filter((s) => want.funded.has(s.c.id)).map((s) => s.pts);
@@ -320,10 +345,10 @@
         const size = Math.max(10.5, Math.min(15, 10.5 * Math.pow(rel, 0.3)));
         for (const c of FOCUS) if (inView(c.box)) label(c.name, c.xy[0], c.xy[1], C.text, size + 1.5, { weight: 650, force: rel > 1.5 && rel < 30 });
         for (const c of shown) if (!c.river) label(c.name, c.xy[0], c.xy[1], C.muted, size, { alpha: 0.5 + 0.4 * reached(c) });
-        if (rel > 2.2) for (const c of FOCUS) if (S.risk * FOCUS.length - c.rank >= 1 && inView(c.box)) label("6-month chance " + U.pct(c.river.pSeason), c.xy[0], c.xy[1], C[c.river.tier], size, { dy: size + 4 });
+        if (rel > 2.2 && !want.pick) for (const c of FOCUS) if (S.risk * FOCUS.length - c.rank >= 1 && inView(c.box)) label("6-month chance " + U.pct(c.river.pSeason), c.xy[0], c.xy[1], C[c.river.tier], size, { dy: size + 4 });
         label("MEXICO", ...project(-102.6, 27.9), C.muted, 12, { alpha: 0.45 }); label("Gulf of Mexico", ...project(-95.4, 27.2), C.river, 12, { alpha: 0.5 });
       }
-      if (S.canals > 0.9 && !(scanning && S.rivers < 0.9)) {   // canal labels: networks from far away, each canal by name up close
+      if (S.canals > 0.9 && !want.pick && !(scanning && S.rivers < 0.9)) {   // canal labels (left out while choosing districts): networks from far away, each canal by name up close
         if (rel < 3.2) for (const n of NETWORKS) label(n.name + ": " + fmt(n.n) + " canal segments, " + fmt(n.km) + " km", n.xy[0], n.xy[1], C.river, 14.5, { align: "left", dx: n.dx, dy: n.dy, weight: 700, force: true });
         else {
           let n = 0;
@@ -479,13 +504,21 @@
       return best;
     }
     function inRing(x, y, r) { let inside = false; for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) if ((r[i + 1] > y) !== (r[j + 1] > y) && x < ((r[j] - r[i]) * (y - r[i + 1])) / (r[j + 1] - r[i + 1]) + r[i]) inside = !inside; return inside; }
+    /* Is the point inside this district? A point counts as inside when it is inside an odd number
+       of the district's rings, so a hole in a district is outside it (the same rule the fill uses). */
+    const inDistrict = (d, x, y) => x >= d.box[0] && x <= d.box[2] && y >= d.box[1] && y <= d.box[3] && d.rings.filter((r) => inRing(x, y, r)).length % 2 === 1;
     function pick(sx, sy) {
       const w = toWorld(sx, sy), rel = cam.k / kTexas;
-      // When the page is asking the user to pick districts (want.pick), canals are not clickable:
-      // a tap anywhere inside a district means that district.
-      const canal = rel > 4 && !want.pick ? nearestCanal(w[0], w[1], 7) : null;
+      // When the page is asking the user to pick districts (want.pick), only districts can be
+      // tapped, at any zoom: a tap on a canal or on county land inside a district means that
+      // district. Where two districts overlap, the smaller one wins, so it can still be reached.
+      if (want.pick) {
+        const under = G.districts.filter((d) => inDistrict(d, w[0], w[1])).sort((a, b) => a.size - b.size);
+        return under.length ? { district: under[0] } : null;
+      }
+      const canal = rel > 4 ? nearestCanal(w[0], w[1], 7) : null;
       if (canal) return { canal };
-      const district = rel > 2.5 || want.pick ? G.districts.find((d) => d.i !== want.scope && d.rings.some((r) => inRing(w[0], w[1], r))) : null;
+      const district = rel > 2.5 ? G.districts.find((d) => d.i !== want.scope && inDistrict(d, w[0], w[1])) : null;
       if (district) return { district };
       const county = G.counties.find((c) => w[0] >= c.box[0] && w[0] <= c.box[2] && w[1] >= c.box[1] && w[1] <= c.box[3] && c.rings.some((r) => inRing(w[0], w[1], r)));
       return county ? { county } : null;
@@ -499,7 +532,9 @@
     }
     canvas.addEventListener("pointerdown", (e) => {
       if (scanning) return;
-      dragFrom = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y, moved: false }; canvas.setPointerCapture(e.pointerId);
+      // A finger wobbles more than a mouse, so a touch may move further and still count as a tap.
+      dragFrom = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y, moved: false, slack: e.pointerType === "mouse" ? 4 : 10 };
+      try { canvas.setPointerCapture(e.pointerId); } catch (error) { /* not every browser allows it; the tap still works */ }
       // A finger has no hover, so work out what is under the tap here.
       const r = canvas.getBoundingClientRect(); hover = pick(e.clientX - r.left, e.clientY - r.top);
     });
@@ -509,20 +544,25 @@
       if (scanning) return;
       if (dragFrom) {
         const dx = e.clientX - dragFrom.x, dy = e.clientY - dragFrom.y;
-        if (Math.abs(dx) + Math.abs(dy) > 4) { dragFrom.moved = true; canvas.classList.add("drag"); tip.classList.remove("on"); }
+        if (Math.abs(dx) + Math.abs(dy) > dragFrom.slack) { dragFrom.moved = true; canvas.classList.add("drag"); tip.classList.remove("on"); }
         if (dragFrom.moved) { cam.x = dragFrom.cx - dx / cam.k; cam.y = dragFrom.cy - dy / cam.k; return; }
+        return;                                                // pressed but not yet a drag: keep what was under the press
       }
       hover = pick(sx, sy);
-      canvas.style.cursor = hover ? "pointer" : "";
+      // While choosing districts, one that cannot be chosen shows the "no" cursor.
+      const blocked = want.pick && hover && !(want.ok && want.ok.has(hover.district.i)) && !(want.solo && want.solo.has(hover.district.i));
+      canvas.style.cursor = hover ? (blocked ? "not-allowed" : "pointer") : "";
       if (hover) showTip(hover, sx, sy); else tip.classList.remove("on");
     });
-    canvas.addEventListener("pointerup", () => {
+    canvas.addEventListener("pointerup", (e) => {
       if (dragFrom && !dragFrom.moved && hover) {
         if (hover.canal) opt.onCanal(hover.canal.c); else if (hover.district) opt.onDistrict(hover.district.i); else opt.onCounty(hover.county.fips);
       }
       dragFrom = null; canvas.classList.remove("drag");
+      if (e.pointerType !== "mouse") { hover = null; tip.classList.remove("on"); }   // a lifted finger is not hovering over anything
     });
-    canvas.addEventListener("pointerleave", () => { hover = null; tip.classList.remove("on"); });
+    canvas.addEventListener("pointercancel", () => { dragFrom = null; hover = null; canvas.classList.remove("drag"); });   // the browser took the gesture over
+    canvas.addEventListener("pointerleave", () => { if (!dragFrom) { hover = null; tip.classList.remove("on"); } });
     function zoomAt(factor, sx, sy) {
       if (sx == null) { sx = W / 2; sy = H / 2; }
       const w = toWorld(sx, sy), k = Math.max(kTexas * 0.4, Math.min(kTexas * 600, cam.k * factor));
@@ -537,7 +577,8 @@
 
     return {
       /* Tell the map what to show. Any of: mode ("now" | "forecast"), scope (district number or -1),
-         funded (a Set of canal ids, or null), county (fips or null), canal (id or null), lakes ({name: % full}). */
+         funded (a Set of canal ids, or null), county (fips or null), canal (id or null), lakes ({name: % full}),
+         and for choosing districts: pick (true or false), sel, ok and solo (Sets of district numbers). */
       set(changes) { Object.assign(want, changes); },
       fitScope(ms) { return fly(scopeBox(), ms == null ? 1100 : ms); },
       flyTo(name) { if (!scanning && VIEW[name]) fly(VIEW[name], 1100); },

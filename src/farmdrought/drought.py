@@ -97,7 +97,7 @@ def d2_streak(classes):
     return streak
 
 
-def build_panel(buffer_km=BUFFER_KM, score_through=None, rivers=None, exclude=()):
+def build_panel(buffer_km=BUFFER_KM, score_through=None, rivers=None, exclude=(), counties=None):
     """Build the county-week table for the river counties (436 of them at the default 50 km).
 
     score_through : None (the default) uses every week in the file, exactly as before. A date
@@ -110,6 +110,12 @@ def build_panel(buffer_km=BUFFER_KM, score_through=None, rivers=None, exclude=()
                     (used only by the holdout test, holdout.py).
     exclude       : county codes to leave out even if they are near one of the rivers (the
                     holdout test passes the 436 counties already used). Empty by default.
+
+    counties      : None (the default) picks counties by distance to a river, as above. A list
+                    of county codes builds the table for exactly those counties instead (used
+                    only by the round-6 test, edge.py). They are not along one river, so their
+                    "river" column holds the STATE name: the input "river_mean" is then the
+                    average class across the listed counties of the same state.
 
     Columns: date, fips, county, state, river, lat, lon, d2_streak, the inputs (sets H, L
     and E), and the three truths: y (4-week), y_season (6-month) and y_weeks (12-month).
@@ -134,6 +140,10 @@ def build_panel(buffer_km=BUFFER_KM, score_through=None, rivers=None, exclude=()
     river, distance = nearest_river(lon, lat, load_river_points(names=rivers))
     left_out = set(exclude)
     chosen = np.array([j for j in np.where(distance <= buffer_km)[0] if usdm["fips"][keep[j]] not in left_out])
+    if counties is not None:
+        listed = set(counties)
+        chosen = np.array([j for j in range(len(keep)) if usdm["fips"][keep[j]] in listed])
+        river = np.array([usdm["state"][i] for i in keep])        # the group for "river_mean" is the state
 
     # 3. Neighbors of each river county: ALL counties within 150 km, except itself.
     neighbors = []

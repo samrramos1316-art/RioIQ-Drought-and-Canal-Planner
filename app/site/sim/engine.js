@@ -55,7 +55,7 @@
     kmPerCrewDay:  { value: 6,      tag: "assumption", label: "Kilometres of canal one crew seals in a working day" },
     crews:         { value: 2,      tag: "assumption", label: "Crews working at the same time" },
     // One application lasts about 90 days and the season is about nine months, so three
-    // applications keep the canals sealed for the whole season. Each one is paid for in full.
+    // applications are bought from March on (about 270 days of cover; February is not sealed). Each one is paid for in full.
     applications:  { value: 3,      tag: "assumption", label: "Sealant applications in a season you act (each lasts about 90 days)" },
     // The ranges samplePhysics() draws from (see PHYSICAL UNCERTAINTY below). Used only when a
     // run asks for physics; a plain run never reads them.
@@ -243,7 +243,13 @@
     let d2Run = 0;   // straight weeks at D2 or worse so far (carries across years, like the real record)
     const years = byYear.map(({ year, weeks }) => {
       const inSeason = (w) => w.month >= p.seasonStart && w.month <= p.seasonEnd;
-      const seasonWeeks = weeks.filter(inSeason).length || 1;
+      // A year's irrigation water is spread evenly over the weeks of the season. For a whole
+      // year that is the season weeks actually in it (39 or 40). A run can also start part-way
+      // through a year; dividing by only the weeks that are left would squeeze a full year's
+      // water into them, so a part-year is divided by a full season's weeks instead.
+      const fullSeasonWeeks = Math.round((p.seasonEnd - p.seasonStart + 1) * 52 / 12);
+      const wholeYear = weeks.length >= 50;
+      const seasonWeeks = wholeYear ? (weeks.filter(inSeason).length || 1) : fullSeasonWeeks;
       const demandWeek = scope.demandAf / seasonWeeks;
 
       const out = { year, demandAf: 0, deliveredAf: 0, recoveredAf: 0, unmetAf: 0, savedAf: 0,
@@ -467,8 +473,14 @@
 
     // The calendar: one entry a week from the start date to the end of the last simulated year.
     const start = new Date(opt.startDate + "T12:00:00Z").getTime(), startYear = new Date(start).getUTCFullYear();
+    // Which year holds the first season still to come: this year if the start date is before
+    // the season ends, otherwise next year. Today's forecast (pNow), the second-dry-year option
+    // and the shocks are all counted from that season, and the run covers opt.years seasons.
+    const seasonEndMonth = makeParams(overrides).seasonEnd;
+    const firstSeason = new Date(start).getUTCMonth() + 1 <= seasonEndMonth ? 0 : 1;
+    const lastYear = startYear + firstSeason + opt.years - 1;
     const calendar = [];
-    for (let t = start; new Date(t).getUTCFullYear() <= startYear + opt.years; t += WEEK) {
+    for (let t = start; new Date(t).getUTCFullYear() <= lastYear; t += WEEK) {
       const d = new Date(t), jan1 = Date.UTC(d.getUTCFullYear(), 0, 1);
       calendar.push({ date: d.toISOString().slice(0, 10), year: d.getUTCFullYear(), month: d.getUTCMonth() + 1,
                       weekOfYear: Math.min(51, Math.floor((t - jan1) / WEEK)) });
@@ -483,12 +495,12 @@
     const paidOver = (run) => (run.plan.overBudget && run.totals.yearsActed > 0 ? 1 : 0);
     for (let n = 0; n < opt.draws; n++) {
       const source = {}, warned = {};
-      for (let y = startYear; y <= startYear + opt.years; y++) {
-        const season = y - startYear;                       // 0 = the rest of this year, 1 = the first full season
+      for (let y = startYear; y <= lastYear; y++) {
+        const season = y - startYear - firstSeason;         // 0 = the first season still to come, 1 = the one after
         let from = pick(libraryYears);
         if (dryYears.length && wetYears.length) {
-          if (season === 1) from = rng() < opt.pNow ? pick(dryYears) : pick(wetYears);
-          if (season === 2 && opt.secondDryYear) from = pick(dryYears);
+          if (season === 0) from = rng() < opt.pNow ? pick(dryYears) : pick(wetYears);
+          if (season === 1 && opt.secondDryYear) from = pick(dryYears);
         }
         source[y] = from;
         warned[y] = library[from].dry ? rng() < opt.recall : rng() < opt.falseAlarm;
@@ -499,7 +511,7 @@
         const row = library[source[c.year]].rows[Math.min(c.weekOfYear, library[source[c.year]].rows.length - 1)];
         if (i > 0) pct += row.change;
         for (const shock of opt.shocks) {                    // each shock hits once, in its month
-          if (!hit.has(shock) && c.year === startYear + shock.year && c.month === shock.month) { hit.add(shock); pct += shock.points; }
+          if (!hit.has(shock) && c.year === startYear + firstSeason + shock.year - 1 && c.month === shock.month) { hit.add(shock); pct += shock.points; }
         }
         pct = Math.max(0, Math.min(100, pct));
         return { date: c.date, year: c.year, month: c.month, cls: row.cls, forecast: warned[c.year] ? 1 : 0, pct };

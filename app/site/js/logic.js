@@ -4,12 +4,14 @@
 
   TWO KINDS OF FUNCTION
     Plain ones need nothing but their arguments: esc, usd, num, pct, niceDate, workTime, gal,
-    money, usesElephantButte, and the guards safeUrl, safeDecode, cssClass, finiteOrNull, percentOrNull, csvText, csvNumber.
+    money, usesElephantButte, budgetScale, stepFromQuery, quarterScorecard, leakAcreFeet, and the guards safeUrl, safeDecode,
+    cssClass, finiteOrNull, percentOrNull, csvText, csvNumber.
     For the Sources step: sig, signed, verdictFor, forecastEffectSentence, levelLabel, perMillionGal.
+    For the Simulation step: band, rangeText, rangeCell, rangeHeadline, replayBands and the fixed sentences.
 
     Bound ones read the generated data (window.HG and window.HG_SIM in the browser). They come
     from makeLogic(data), so a test can hand in a small made-up data object instead:
-      tierFor, actionFor, planFor, canalNumbers, scopeP, simScope, replayScope, hitRates, USD_PER_AF.
+      tierFor, actionFor, planFor, canalNumbers, scopeP, quarterChance, simScope, replayScope, hitRates, USD_PER_AF.
 
   WHO USES IT
     js/common.js calls makeLogic once with the real data and republishes the functions under
@@ -80,13 +82,49 @@
      (the unit water agencies use: 1 acre-foot = 325,851 gallons), so it is converted here. */
   function gal(acreFeet, long) {
     const g = acreFeet * ENGINE.GALLONS_PER_ACRE_FOOT, unit = long ? " gallons" : " gal";
-    return g >= 1e9 ? (g / 1e9).toFixed(g >= 1e10 ? 0 : 1) + " billion" + unit : g >= 1e6 ? num(g / 1e6, g < 1e7 ? 1 : 0) + " million" + unit : num(g) + unit;
+    // The unit changes where the rounded figure would reach 1,000: 999.5 million is "1.0 billion", never "1,000 million".
+    if (g >= 999.5e6) return (g / 1e9).toFixed(g >= 1e10 ? 0 : 1) + " billion" + unit;
+    if (g >= 1e6) return num(g / 1e6, g < 1e7 ? 1 : 0) + " million" + unit;
+    return num(g) + unit;
   }
-  /* Short money for tables and charts: "$1.26M", "$12k", "$950". */
-  const money = (v) => (v < 0 ? "-" + money(-v) : v >= 1e9 ? "$" + (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? "$" + (v / 1e6).toFixed(v >= 1e8 ? 0 : 1) + "M" : v >= 1e4 ? "$" + Math.round(v / 1e3) + "k" : "$" + num(v));
+  /* Short money for tables and charts: "$1.26M", "$12k", "$950". The unit changes where the
+     rounded figure would reach 1,000: $999,500 is "$1.0M", never "$1000k". */
+  function money(v) {
+    if (v < 0) return "-" + money(-v);
+    if (v >= 999.5e6) return "$" + (v / 1e9).toFixed(2) + "B";
+    if (v >= 999500) return "$" + (v / 1e6).toFixed(v >= 1e8 ? 0 : 1) + "M";
+    if (v >= 1e4) return "$" + Math.round(v / 1e3) + "k";
+    return "$" + num(v);
+  }
 
   const ELEPHANT_BUTTE = ["48141", "48229"];           // El Paso and Hudspeth draw on Elephant Butte
   const usesElephantButte = (d) => d.fips.length > 0 && d.fips.every((f) => ELEPHANT_BUTTE.indexOf(f) >= 0);
+  /* Shown wherever an Elephant Butte district's dollar figures are. Its water rules (full supply
+     at 50% storage, none at 15%) and its crop value were worked out for the Lower Valley. Fixed wording. */
+  const EXTRAPOLATED_NOTE = "extrapolated: Valley water rules and crop values applied to another reservoir";
+
+  /* The budget slider's top and step, from what sealing every rankable canal costs. The top is
+     that cost rounded UP to a whole step, so the slider can always reach "fund everything". */
+  function budgetScale(costAll) {
+    const step = costAll > 200000 ? 5000 : costAll > 20000 ? 500 : 100;
+    return { step, max: Math.max(step, Math.ceil(costAll / step) * step) };
+  }
+
+  /* Which step a link asks for: the value of "step=" in the address, if it is one of the steps
+     we know. Anything else (no step, a misspelt one) gives the fallback. */
+  function stepFromQuery(search, allowed, fallback) {
+    const found = /[?&]step=([^&#]*)/.exec(String(search == null ? "" : search));
+    return found && allowed.indexOf(found[1]) >= 0 ? found[1] : fallback;
+  }
+
+  /* Acre-feet that leak from canals in a number of days, with no sealant, under one set of
+     physics (a draw from the engine's samplePhysics or centralPhysics; null = the plain rates).
+     It scales the leak exactly as the engine scales the water kept, so "leaked" and "saved" in
+     the simulation picture are counted the same way and add up. */
+  function leakAcreFeet(gallonsPerDay, days, physics) {
+    const keep = !physics ? 1 : physics.calibrated ? physics.seepMult : physics.widthMult * (1 - physics.linedShare);
+    return ENGINE.savedAcreFeet(gallonsPerDay * keep, days, 1);
+  }
 
   /* ---------- The replay: real years, five policies ---------- */
   const MIN_WEEKS_IN_A_YEAR = 50;
@@ -143,10 +181,16 @@
     };
   }
   /* ---------- Ranges: every modelled figure is shown as a middle with a low and a high ---------- */
-  /* Low, middle and high of a list: its 10th, 50th and 90th percentiles (the engine's own rule). */
+  /* Low, middle and high of a list: its 10th, 50th and 90th percentiles. A percentile sits at
+     position q x (n - 1) in the sorted list; when that falls between two values, it is the
+     point that far between them. So with 10 values the high is a little under the largest,
+     not the largest itself, and low and high are found the same way. */
   function band(values) {
     const sorted = values.slice().sort((x, y) => x - y);
-    const at = (q) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))];
+    const at = (q) => {
+      const place = q * (sorted.length - 1), below = Math.floor(place), above = Math.min(sorted.length - 1, below + 1);
+      return sorted[below] + (sorted[above] - sorted[below]) * (place - below);
+    };
     return { low: at(0.1), mid: at(0.5), high: at(0.9) };
   }
   /* A range in words: "$40.0M ($20.0M to $60.0M)". fmt turns a number into text. unit is what the
@@ -158,6 +202,13 @@
   function rangeCell(b, fmt, unit) {
     return '<span class="rmid">' + esc(fmt(b.mid)) + '</span><small class="rng">' +
       (fmt(b.low) === fmt(b.high) ? "same in every " + esc(unit || "draw") : esc(fmt(b.low)) + " to " + esc(fmt(b.high))) + "</small>";
+  }
+  /* The same range as a headline: the low and the high in large type, the middle in small type
+     under it. Used once, at the top of the Simulation step. */
+  function rangeHeadline(b, fmt, unit) {
+    const same = fmt(b.low) === fmt(b.high);
+    return '<b class="hrange">' + esc(same ? fmt(b.mid) : fmt(b.low) + " to " + fmt(b.high)) + '</b><small class="hmid">' +
+      (same ? "the same in every " + esc(unit || "draw") : "middle " + esc(fmt(b.mid))) + "</small>";
   }
   /* Acre-feet in thousands, for narrow table cells: 3,350 / 48.8 / 4.37. */
   const thousandAf = (af) => num(af / 1000, Math.abs(af) >= 1e5 ? 0 : Math.abs(af) >= 1e4 ? 1 : 2);
@@ -228,6 +279,9 @@
     "Across 14 districts its typical error was 32.7%, against 36.5% for canal length alone, and the two could not be told apart. " +
     "So the volumes and dollar figures here are not reliable and are not measurements. " +
     "The canal order on the map is an illustration of the method, not a tested ranking: we have not shown that it ranks canals better than canal length does.";
+  /* The same finding in one line, for the top of the Simulation step. Fixed wording. The full
+     sentence above is one tap away: in the step's fine print and at the top of the Sources step. */
+  const TRUST_LINE = "Modelled, not measured. Our own test could not confirm the leak model, so these dollars and gallons are not reliable.";
   /* What the published losses used in that test are. Shown on the Sources step. Fixed wording. */
   const LOSSES_1998_SENTENCE = "The 1998 losses are estimates based on water rights, not measured, and include evaporation and spills.";
   /* The caption on the simulation's picture. The picture shows single figures for one run; they
@@ -295,14 +349,18 @@
         : "A sealing round cost more than the budget in " + over + " of " + n + " draws: the plan is made at the assumed canal width, and in those draws the canals were wider.",
     };
   }
-  /* The table of ranges, one row per policy. Every figure in it is modelled. */
-  function replayBandsTable(result) {
+  /* The table of ranges, one row per policy. Every figure in it is modelled.
+     compact = true leaves out the crop-loss column and marks the forecast's row: that is the short
+     table at the top of the Simulation step. The full table is in the step's fine print. */
+  function replayBandsTable(result, compact) {
     const cell = (b, fmt) => '<td class="r">' + rangeCell(b, fmt) + "</td>";
+    const loss = (r) => (compact ? "" : cell(r.loss, money));
     const rows = result.rows.map((r) => (r.trigger === "never"
-      ? "<tr><td>" + esc(r.name) + '</td><td class="r">0</td><td class="r">none</td><td class="r">none</td>' + cell(r.loss, money) + '<td class="r"></td></tr>'
-      : "<tr><td>" + esc(r.name) + '</td><td class="r">' + esc(r.yearsSealed) + " of " + esc(result.years.length) + "</td>" +
-        cell(r.spend, money) + cell(r.keptAf, billionGal) + cell(r.loss, money) + cell(r.saving, money) + "</tr>")).join("");
-    return '<div class="tableWrap"><table class="t replay"><tr><th>Policy</th><th class="r">Years sealed</th><th class="r">Sealant</th><th class="r">Water kept (billion gallons)</th><th class="r">Crop loss</th><th class="r">Saving vs nothing</th></tr>' +
+      ? "<tr><td>" + esc(r.name) + '</td><td class="r">0</td><td class="r">none</td><td class="r">none</td>' + loss(r) + '<td class="r"></td></tr>'
+      : "<tr" + (compact && r.trigger === "forecast" ? ' class="hl"' : "") + "><td>" + esc(r.name) + '</td><td class="r">' + esc(r.yearsSealed) + " of " + esc(result.years.length) + "</td>" +
+        cell(r.spend, money) + cell(r.keptAf, billionGal) + loss(r) + cell(r.saving, money) + "</tr>")).join("");
+    return '<div class="tableWrap"><table class="t replay"><tr><th>Policy</th><th class="r">Years sealed</th><th class="r">Sealant</th><th class="r">Water kept (billion gallons)</th>' +
+      (compact ? "" : '<th class="r">Crop loss</th>') + '<th class="r">Saving vs nothing</th></tr>' +
       rows + "</table></div>";
   }
 
@@ -372,6 +430,33 @@
   const BENCHMARK_CAVEAT = "assumes the published 44,000 acre-feet is a yearly figure; not confirmed";
 
   /*
+    The scorecard at the top of the Sources step: one row per forecast, numbers first.
+      test  HG.quarter.test, the three-month forecast's one scored test (may be missing)
+      six   { diff, lo, hi }: the six-month forecast's cost minus its best simple rule's, with
+            the interval (may be missing)
+    The word "beats", "ties" or "loses to" comes only from whether the cost interval excludes
+    zero (verdictFor). Share right is stated beside it, whichever way it fell.
+    Returns [{ label, text }]; a forecast with no figures gets no row.
+  */
+  function quarterScorecard(test, six) {
+    const rows = [], share = (v) => num(v * 100, 1) + "%";
+    const word = (lo, hi) => ({ ahead: "beats", behind: "loses to" })[verdictFor({ lo, hi, lower: true }).word] || "ties";
+    if (test) {
+      const verdict = word(test.costGapLow, test.costGapHigh);
+      const lead = verdict !== "beats" ? verdict + " the best simple rule on cost"
+        : "beats the best simple rule on cost" + (test.shareRight < test.shareRightRule ? ", not on share right" : "");
+      rows.push({ label: "3 months ahead", text: lead + ". Cost " + num(Math.abs(test.costChange) * 100, 1) + "% " + (test.costChange < 0 ? "lower" : "higher") +
+        " on " + num(test.counties) + " unseen counties (interval " + signed(test.costGapLow) + " to " + signed(test.costGapHigh) + "). " +
+        "Missed " + num(test.missed) + " drought seasons vs " + num(test.missedRule) + "; false alarms " + num(test.falseAlarms) + " vs " + num(test.falseAlarmsRule) +
+        "; share right " + share(test.shareRight) + " vs " + share(test.shareRightRule) + "." });
+    }
+    if (six) {
+      rows.push({ label: "6 months ahead", text: word(six.lo, six.hi) + " the best simple rule on cost (gap " + signed(six.diff) + ", interval " + signed(six.lo) + " to " + signed(six.hi) + ")." });
+    }
+    return rows;
+  }
+
+  /*
     The functions that read the data.
       data.HG         the generated core data (threshold, plan.assumptions, districts, trigger)
       data.SIM        the generated simulation data (weekly record, reservoirs, the frozen model)
@@ -399,14 +484,18 @@
       drought season (null = use the model's forecast, which gives exactly the pipeline's order).
       Rule: rank by seepage rate x chance of drought, pay from the top down, stop at the first
       canal the money left cannot cover.
+      widthFt = the wetted canal width to price at (the simulation's slider). Left out, the
+      pipeline's width is used. costAll is the pipeline's own figure (at its own width);
+      costEvery is the engine's bill for every canal at widthFt, which is what the budget slider
+      must reach to fund them all.
     */
-    function planFor(scopeCanals, budget, pOverride) {
+    function planFor(scopeCanals, budget, pOverride, widthFt) {
       const a = HG.plan.assumptions;
       const treatable = scopeCanals.filter((c) => c.rank != null);
       const ordered = treatable.slice().sort(pOverride == null
         ? (x, y) => x.rank - y.rank
         : (x, y) => (y.rate - x.rate) || (x.rank - y.rank));
-      const p = { widthFt: a.wetted_width_ft, usdPerSqft: a.sealant_usd_per_sqft };
+      const p = { widthFt: widthFt || a.wetted_width_ft, usdPerSqft: a.sealant_usd_per_sqft };
       const result = E.fundCanals(ordered, budget, p);
       const days = a.days_one_application_lasts;
       return {
@@ -415,7 +504,8 @@
         savedLow: E.savedAcreFeet(result.gallonsPerDay, days, a.sealant_cut_low),
         savedHigh: E.savedAcreFeet(result.gallonsPerDay, days, a.sealant_cut_high),
         costAll: ordered.reduce((s, c) => s + c.usd, 0),
-        sqft: result.km * E.FEET_PER_KM * a.wetted_width_ft,
+        costEvery: E.fundCanals(ordered, Infinity, p).spent,
+        sqft: result.km * E.FEET_PER_KM * p.widthFt,
       };
     }
 
@@ -426,14 +516,15 @@
         afLow, afHigh  acre-feet of water kept in one application, across the range sealant tests found
         worthLow, worthHigh  what that water is worth to farms IF there is a shortage to fill
                              (net crop revenue per acre-foot; in a full year saved water earns nothing)
-      params: { kmPerCrewDay, crews } from the simulation's assumptions.
+      params: { kmPerCrewDay, crews, widthFt } from the simulation's assumptions. widthFt is the
+      wetted width to price at; left out, the pipeline's width is used.
     */
     const USD_PER_AF = PUBLISHED.worstCaseRevenue / PUBLISHED.valleyIrrigationAf;   // about $367, our own division
     function canalNumbers(list, params) {
-      const a = HG.plan.assumptions;
+      const a = HG.plan.assumptions, widthFt = params.widthFt || a.wetted_width_ft;
       let km = 0, usd = 0, gallonsPerDay = 0;
       list.forEach((c) => {
-        const sqft = c.km * E.FEET_PER_KM * a.wetted_width_ft;
+        const sqft = c.km * E.FEET_PER_KM * widthFt;
         km += c.km; usd += sqft * a.sealant_usd_per_sqft; gallonsPerDay += sqft * (c.rate || 0);
       });
       const afLow = E.savedAcreFeet(gallonsPerDay, a.days_one_application_lasts, a.sealant_cut_low);
@@ -451,6 +542,14 @@
       return HG.districts.reduce((s, d) => s + d.pSeason * d.canalKm, 0) / km;
     }
 
+    /* The three-month chance of a drought season for a list of counties: the plain mean of the
+       counties that have one (HG.quarter.chance). null if the data has no three-month forecast. */
+    function quarterChance(fipsList) {
+      const chance = (HG.quarter && HG.quarter.chance) || {};
+      const have = fipsList.map((f) => chance[f]).filter((p) => typeof p === "number");
+      return have.length ? have.reduce((s, p) => s + p, 0) / have.length : null;
+    }
+
     /* What the engine needs for a list of districts (members): its weekly record, its canals and
        the money at stake. rowsOf(fips) gives that county's forecasts as [[date made, chance], ...],
        oldest first; simScope and replayScope differ only in which forecasts they hand in. */
@@ -461,17 +560,27 @@
       const list = canals.filter((c) => ids.has(c.district) && c.rank != null);
       const valleyKm = HG.districts.filter((x) => x.fips.some((f) => SIM.valley.indexOf(f) >= 0)).reduce((s, x) => s + x.canalKm, 0);
       const kmHere = members.reduce((s, x) => s + x.canalKm, 0), share = kmHere / valleyKm;
+      // Several counties: each county's drought class and forecast counts by the ranked canal km
+      // these districts have in it. A county holding most of the canals should weigh most.
+      const kmIn = {};
+      list.forEach((c) => { kmIn[c.fips] = (kmIn[c.fips] || 0) + c.km; });
+      // The mean of [[value, county], ...], weighted by canal km. If none of those counties has
+      // any ranked canal km (the weights add up to zero), it is the plain mean.
+      const mean = (pairs) => {
+        const km = pairs.reduce((s, x) => s + (kmIn[x[1]] || 0), 0);
+        return km > 0 ? pairs.reduce((s, x) => s + x[0] * (kmIn[x[1]] || 0), 0) / km : pairs.reduce((s, x) => s + x[0], 0) / pairs.length;
+      };
       // The monthly forecasts, per county. A week uses the newest one made on or before it.
       const frozen = fips.map(rowsOf), cursor = fips.map(() => -1);
       const start = new Date(SIM.week0 + "T12:00:00Z").getTime(), weeks = [];
       for (let i = 0; i < SIM.nWeeks; i++) {
         const date = new Date(start + i * 7 * 864e5), iso = date.toISOString().slice(0, 10);
-        const cls = fips.map((f) => SIM.cls[f][i]).filter((ch) => ch !== ".").map(Number);
-        const fc = [];
-        frozen.forEach((rows, k) => { while (cursor[k] + 1 < rows.length && rows[cursor[k] + 1][0] <= iso) cursor[k]++; if (cursor[k] >= 0) fc.push(rows[cursor[k]][1]); });
+        const cls = fips.filter((f) => SIM.cls[f][i] !== ".").map((f) => [Number(SIM.cls[f][i]), f]);   // [class, county]
+        const fc = [];                                                                                  // [chance, county]
+        frozen.forEach((rows, k) => { while (cursor[k] + 1 < rows.length && rows[cursor[k] + 1][0] <= iso) cursor[k]++; if (cursor[k] >= 0) fc.push([rows[cursor[k]][1], fips[k]]); });
         weeks.push({ date: iso, year: date.getUTCFullYear(), month: date.getUTCMonth() + 1,
-                     cls: cls.length ? Math.round(cls.reduce((a, b) => a + b, 0) / cls.length) : null,
-                     forecast: fc.length ? fc.reduce((a, b) => a + b, 0) / fc.length : null,
+                     cls: cls.length ? Math.round(mean(cls)) : null,
+                     forecast: fc.length ? mean(fc) : null,
                      pct: SIM.reservoirs[system][i] });
       }
       // Today's forecast from the frozen model, weighted by each district's canal km.
@@ -535,13 +644,13 @@
       return c && typeof c.seepSd === "number" && isFinite(c.seepSd) && c.seepSd >= 0 ? { seepSd: c.seepSd } : {};
     }
 
-    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, simScope, replayScope, hitRates, physicsOptions };
+    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions };
   }
 
   return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber,
-           workTime, gal, money, usesElephantButte, REPLAY_POLICIES, replay,
-           band, rangeText, rangeCell, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
-           sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
+           workTime, gal, money, usesElephantButte, EXTRAPOLATED_NOTE, budgetScale, stepFromQuery, leakAcreFeet, quarterScorecard, REPLAY_POLICIES, replay,
+           band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
+           sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
            perMillionGal, BENCHMARK_CAVEAT, makeLogic };
 });

@@ -41,6 +41,10 @@ from farmdrought.config import ROOT
 ROUND4_DATA = ROOT / "data" / "round4"
 CLIMATE_CSV = ROUND4_DATA / "climate_counties.csv.gz"
 NORMALS_CSV = ROUND4_DATA / "climate_normals.csv"
+# Round 6 added more counties. The first pair of files is never rewritten (its hashes are
+# recorded), so the new counties sit in a second pair with the same columns.
+MORE_CLIMATE_CSV = ROUND4_DATA / "climate_west.csv.gz"
+MORE_NORMALS_CSV = ROUND4_DATA / "climate_west_normals.csv"
 
 FEATURES_W = ["rain3", "rain6", "rain12", "heat3", "heat12"]
 FEATURES_P = ["pdsi", "pdsi_chg3", "pdsi_min12", "z1", "z3", "z6"]
@@ -60,11 +64,18 @@ NOAA_TO_FIPS = {f"{i + 1:02d}": fips for i, fips in enumerate(FIPS_IN_NOAA_ORDER
 NOAA_FILES = {"rain_in": "pcpncy", "temp_f": "tmpccy", "pdsi": "pdsicy", "zndx": "zndxcy"}
 
 
-def read_noaa_file(path, wanted):
+# NOAA marks a month that is not published yet with a negative code: -9.99 in the rain file and
+# -99.9 or -99.99 in the others. A real value is never that low, so anything at or below these
+# floors is skipped. (Rain is never negative; the Palmer indexes stay well inside -20.)
+MISSING_AT_OR_BELOW = {"pcpncy": -9.0, "tmpccy": -90.0, "pdsicy": -90.0, "zndxcy": -90.0}
+
+
+def read_noaa_file(path, wanted, missing_at_or_below=-90.0):
     """Read one NOAA county file. Returns a table: fips, year, month, value.
 
     Each line: characters 1-2 NOAA state code, 3-5 county, 6-7 what is measured, 8-11 year,
-    then 12 monthly values. A value below -90 means "not published yet" and is skipped.
+    then 12 monthly values. A value at or below missing_at_or_below means "not published yet"
+    and is skipped.
     wanted : the set of county codes (FIPS) to keep.
     """
     rows = []
@@ -75,21 +86,24 @@ def read_noaa_file(path, wanted):
                 continue
             year = int(line[7:11])
             for month, value in enumerate(line[11:].split(), start=1):
-                if float(value) > -90:
+                if float(value) > missing_at_or_below:
                     rows.append((state + line[2:5], year, month, float(value)))
     return pd.DataFrame(rows, columns=["fips", "year", "month", "value"])
 
 
-def extract(noaa_folder, fips_list):
-    """Cut the two small files in data/round4 out of NOAA's four big ones (run once, by hand).
+def extract(noaa_folder, fips_list, climate_csv=None, normals_csv=None):
+    """Cut two small files out of NOAA's four big ones (run once, by hand).
 
     noaa_folder : a folder holding the four downloaded files (climdiv-pcpncy-..., and so on)
     fips_list   : the counties to keep
+    climate_csv, normals_csv : where to save (the first pair of files by default)
     """
+    climate_csv = CLIMATE_CSV if climate_csv is None else climate_csv
+    normals_csv = NORMALS_CSV if normals_csv is None else normals_csv
     wanted, months = set(fips_list), None
     for column, code in NOAA_FILES.items():
         path = sorted(glob.glob(f"{noaa_folder}/climdiv-{code}-*"))[-1]
-        table = read_noaa_file(path, wanted).rename(columns={"value": column})
+        table = read_noaa_file(path, wanted, MISSING_AT_OR_BELOW[code]).rename(columns={"value": column})
         months = table if months is None else months.merge(table, on=["fips", "year", "month"], how="outer")
         print(f"{path.split('/')[-1]}: {table['fips'].nunique()} counties")
     # "normal" for each calendar month, from 1901-1999 only
@@ -97,9 +111,9 @@ def extract(noaa_folder, fips_list):
     normals = old.groupby(["fips", "month"])[["rain_in", "temp_f"]].mean().reset_index()
     normals = normals.rename(columns={"rain_in": "rain_normal", "temp_f": "temp_normal"})
     ROUND4_DATA.mkdir(parents=True, exist_ok=True)
-    normals.to_csv(NORMALS_CSV, index=False)
+    normals.to_csv(normals_csv, index=False)
     recent = months[months["year"] >= FIRST_YEAR_KEPT].sort_values(["fips", "year", "month"])
-    recent.to_csv(CLIMATE_CSV, index=False)
+    recent.to_csv(climate_csv, index=False)
     print(f"saved {recent['fips'].nunique()} counties, {recent['year'].min()} to {recent['year'].max()}")
 
 
@@ -109,6 +123,9 @@ def monthly_features():
     """
     data = pd.read_csv(CLIMATE_CSV, dtype={"fips": str})
     normals = pd.read_csv(NORMALS_CSV, dtype={"fips": str})
+    if MORE_CLIMATE_CSV.exists() and MORE_NORMALS_CSV.exists():     # the counties added in round 6
+        data = pd.concat([data, pd.read_csv(MORE_CLIMATE_CSV, dtype={"fips": str})], ignore_index=True)
+        normals = pd.concat([normals, pd.read_csv(MORE_NORMALS_CSV, dtype={"fips": str})], ignore_index=True)
     data = data.merge(normals, on=["fips", "month"], how="left")
     data["period"] = pd.PeriodIndex.from_fields(year=data["year"], month=data["month"], freq="M")
     out = []

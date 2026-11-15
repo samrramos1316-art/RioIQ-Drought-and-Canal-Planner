@@ -4,6 +4,7 @@ import json
 import pytest
 
 from app import contract
+from app import build_site
 from app.build_site import OUT, build
 from app.contract import REPO_ROOT
 
@@ -131,7 +132,7 @@ def test_frozen_results_are_packed_as_a_short_summary(site):
     assert {e["file"] for e in frozen["errata"]} == {p.name for p in folder.glob("*errata*.json")}
     # it is a summary: small, and with no per-year numbers
     text = json.dumps(frozen, separators=(",", ":"))
-    assert len(text) < 12_000 and "per_year" not in text
+    assert len(text) < 15_000 and "per_year" not in text
 
 
 def test_a_results_file_with_its_own_site_summary_is_included(tmp_path):
@@ -316,3 +317,40 @@ def test_hash_list_gate_catches_a_changed_or_removed_line_against_the_base_branc
     for missing in ("", "0000000000000000000000000000000000000000", "origin/no-such-branch"):
         found, notes = gate.check(missing, [name], cwd=str(tmp_path))
         assert found == [] and "nothing was checked" in notes[0]
+
+
+def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
+    (tmp_path / "live").mkdir()
+    (tmp_path / "frozen" / "round3").mkdir(parents=True)
+    (tmp_path / "live" / "edge.json").write_text(json.dumps(
+        {"issued": "2026-11-03", "weeks_ahead": 13, "counties": {"48061": 0.2264, "48127": 0.2499}}))
+    policy = lambda right, missed: {"share_right": right, "missed": missed, "false_alarms": 7, "cost": 3 * missed + 7}
+    group = {"policies": {"model E": policy(0.9, 10), "D2 now": policy(0.91, 14)}, "rows": 100, "counties": 5,
+             "auc": {"model E": 0.95}}
+    (tmp_path / "frozen" / "round3" / "edge.json").write_text(json.dumps(
+        {"blind": group, "rio_grande_not_blind": group, "cost_change_against_d2_now": -0.055,
+         "primary": {"block1": {"diff": -12.0, "lo": -20.0, "hi": -4.0, "n_years": 18}}}))
+    packed = build_site.quarter_outlook(tmp_path)
+    assert packed["chance"] == {"48061": 0.226, "48127": 0.249}       # 0.2499 is not rounded up onto the warning line
+    assert packed["weeksAhead"] == 13 and packed["test"]["forecasts"] == 100
+    assert packed["test"]["missed"] == 10 and packed["test"]["missedRule"] == 14
+    assert packed["test"]["costGap"] == -12 and packed["test"]["costGapHigh"] == -4
+
+
+def test_three_month_outlook_is_left_out_when_a_file_is_missing(tmp_path):
+    assert build_site.quarter_outlook(tmp_path) is None
+
+
+def test_rounding_a_chance_never_moves_it_across_the_warning_line():
+    assert build_site.chance(0.249626, 3) == 0.249      # plain rounding would give 0.25: a false warning
+    assert build_site.chance(0.2474, 2) == 0.24
+    assert build_site.chance(0.25, 3) == 0.25           # on the line stays on the line
+    assert build_site.chance(0.2504, 3) == 0.25
+    assert build_site.chance(0.613, 2) == 0.61 and build_site.chance(0.1, 3) == 0.1
+
+
+def test_an_overtaken_limit_sentence_is_replaced_and_the_rest_are_left_alone():
+    old = "Weather inputs (rain, temperature, soil moisture) were not tested."
+    out = build_site.corrected_limits(["Nothing here measures crop yields.", old])
+    assert out[0] == "Nothing here measures crop yields."
+    assert "round 4" in out[1] and "were not tested" not in out[1]

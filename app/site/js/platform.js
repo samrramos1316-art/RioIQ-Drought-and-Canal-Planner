@@ -4,7 +4,7 @@
   HOW IT IS ORGANISED
     state      one object holding every choice the user has made (scope, step, budget ...)
     the map    js/scanmap.js draws it; this file only tells it what to show
-    the twin   js/twin.js draws the simulation (one district, twice); this file hands it the weeks
+    the twin   js/twin.js draws the simulation (the chosen districts, twice); this file hands it the weeks
     the steps  renderRisk(), renderBudget(), renderSim(), renderSources() each fill the right-hand panel
     keyboard   every clickable row carries ROW_BUTTON (it can be reached with Tab), and one
                keydown handler near the end of the file makes Enter and Space act as a click
@@ -26,11 +26,12 @@
   const STATE = -1;
   const FROZEN = SIM.pre2020;                           // the forecast model trained only on data before 2020
   const TODAY = new Date().toISOString().slice(0, 10);
-  const SEVERITIES = [                                  // the "what if" drought choices in the budget planner
+  // The "what if" choice in the budget planner. There is only one: any single chance given to
+  // every county puts the canals in the same order (by leak rate alone), so 25%, 50% and 80%
+  // would all give the same plan.
+  const SEVERITIES = [
     { p: null, label: "This week's forecast" },
-    { p: 0.25, label: "Moderate (25%)" },
-    { p: 0.5, label: "Severe (50%)" },
-    { p: 0.8, label: "Extreme (80%)" },
+    { p: 1, label: "Drought everywhere" },
   ];
   const SHOCKS = [                                      // "what if" blows the simulation can add; sizes are our assumptions
     { key: "mexico", label: "Mexico misses a delivery", note: "storage drops 8 points in the first spring", shock: { year: 1, month: 3, points: -8 } },
@@ -38,7 +39,7 @@
     { key: "wet", label: "A wet autumn", note: "storage gains 10 points next October", shock: { year: 1, month: 10, points: 10 } },
   ];
 
-  const state = { scope: null, step: "risk", mapMode: "now", budget: null, severity: null, simStep: 2, simCase: "likely", simSel: null,
+  const state = { scope: null, step: "risk", mapMode: "now", budget: null, severity: null, simStep: 1, simCase: "likely", simSel: null,
                   overrides: {}, county: null, canal: null, live: null, shocks: {} };
 
   /* ---------- Scope helpers ---------- */
@@ -50,6 +51,8 @@
   /* The chance of a drought season used by the planner: the "what if" value, or the forecast. */
   function scopeP() { return L.scopeP(state.severity, district()); }
   function scopeP0() { const keep = state.severity; state.severity = null; const p = scopeP(); state.severity = keep; return p; }
+  /* The three-month chance of a drought season for a list of counties, or null if the data has none. */
+  const quarterP = (fipsList) => L.quarterChance(fipsList);
   /* Today's reading for one reservoir system from api/live, or null if there is none or its
      figure is not a percentage (then the page keeps, and says it shows, the saved reading). */
   function liveReading(name) {
@@ -128,6 +131,7 @@
       (river ? chip(river.tier, river.tier + " · " + U.pct(river.pSeason)) : "") + "</div>" +
       '<div class="small muted" style="margin:2px 0 8px">Drought now: ' + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) +
       (c.pop ? " · Population (2020): " + U.num(c.pop) : "") +
+      (river && quarterP([fips]) != null ? " · Drought season chance: next 3 months " + U.pct(quarterP([fips])) + ", next 6 months " + U.pct(river.pSeason) : "") +
       (river ? " · Expected drought weeks in the next year: " + U.esc(river.weeksLow) + " to " + U.esc(river.weeksHigh) : " · Not a river county, so no forecast") + "</div>" +
       (photos ? '<div class="photos">' + photos + "</div>" : "") +
       (c.about ? '<p class="small" style="margin:0 0 4px">' + U.esc(c.about) + (safeUrl(c.page) == null ? "" : " " + anchor("Wikipedia", c.page, true)) + "</p>" : "") +
@@ -168,24 +172,30 @@
 
   /* Is the state view showing the simulation's district list (where map taps pick districts)? */
   const picking = () => state.step === "sim" && !district() && state.simStep === 1;
-  /* With everything ticked (the default), a tap picks just that district. After that, taps add or remove. */
+  /* A tap on a district, on the map or in the list, does one thing: it ticks it, or unticks it. */
   function tapDistrict(i) {
-    if (GROUPABLE.indexOf(i) < 0) { setScope(i); return; }             // an Elephant Butte district opens on its own
-    simMembers();
-    if (state.simSel.size === GROUPABLE.length) state.simSel = new Set([i]);
-    else if (state.simSel.has(i)) state.simSel.delete(i); else state.simSel.add(i);
-    renderSimResult(); simChrome();
+    if (SOLO.has(i)) { setScope(i, true); return; }                     // an Elephant Butte district runs alone, so it opens on its own
+    if (!CAN_PICK.has(i)) return;                                        // nothing to seal there: it cannot be chosen
+    simMembers();                                                        // makes sure the Set of ticked districts exists
+    if (state.simSel.has(i)) state.simSel.delete(i); else state.simSel.add(i);
+    pickChanged();
   }
+  /* After the ticked districts change: redraw the list, the buttons that count them, and the map. */
+  function pickChanged() { renderPickRows(); simChrome(); syncMap(); }
+  /* The words on the two Run buttons (in the panel and on the map). n = how many districts are ticked. */
+  const runLabel = (n) => (n ? "Run " + n + (n === 1 ? " district" : " districts") + " &rarr;" : "Pick a district");
 
   /* ---------- The map ---------- */
   const map = window.HGMap.create({
     stage: $("stage"), canvas: $("map"), tip: $("tip"), coords: $("coords"), bar: $("bar"),
     hud: { phase: $("phase"), line1: $("hud1"), line2: $("hud2") },
-    // On the simulation's district list, any tap inside a district picks that district:
-    // a tap on one of its canals counts, and a tap on empty county land does nothing.
-    onCanal: (c) => { if (picking()) { if (c.district >= 0) tapDistrict(c.district); return; } state.canal = c.id; if (state.step === "sim") state.step = "risk"; refresh(false); },
+    // On the simulation's district list the map only ever reports districts (js/scanmap.js, pick()):
+    // a tap anywhere inside one ticks or unticks it, and a tap on empty county land does nothing.
+    onCanal: (c) => { if (picking()) return; state.canal = c.id; if (state.step === "sim") state.step = "risk"; refresh(false); },
     onDistrict: (i) => { if (picking()) tapDistrict(i); else setScope(i); },
     onCounty: (fips) => { if (picking()) return; state.county = fips; state.canal = null; state.step = "risk"; refresh(false); },
+    // The opening scan ends on all of Texas. If the district list is waiting, go to where the districts are.
+    onScanEnd: () => { if (picking()) map.flyTo("districts"); },
     tipHtml(hit) {
       if (hit.canal) {
         const c = hit.canal, n = U.canalNumbers([c], params());
@@ -193,15 +203,29 @@
           "<dt>Length</dt><dd>" + U.num(c.km, 2) + " km</dd><dt>Soil</dt><dd>" + U.esc(c.soil || "not looked up") + "</dd><dt>Class</dt><dd>" + U.esc(levelLabel(c.level)) + "</dd></dl>" +
           "<small>" + U.esc((c.kind || "Canal or ditch") + (c.piped ? ", mapped as piped" : "") + ". Click for the full card.") + "</small>";
       }
-      if (hit.district != null) { const d = HG.districts[hit.district]; return "<b>" + U.esc(d.name) + "</b><dl><dt>Risk</dt><dd>" + U.esc(d.risk) + ", " + U.pct(d.pSeason) + "</dd><dt>Canals</dt><dd>" + U.num(d.canalKm) + " km</dd></dl><small>" + (picking() ? "Tap to select it for the simulation." : "Click to open this district.") + "</small>"; }
+      if (hit.district != null && picking()) {                // choosing districts: the name, and what a tap will do
+        const d = HG.districts[hit.district], i = hit.district, on = state.simSel && state.simSel.has(i);
+        return "<b>" + U.esc(d.name) + "</b><small>" + U.num(d.canalKm) + " km of canals · " +
+          (SOLO.has(i) ? "different reservoir: opens on its own" : !CAN_PICK.has(i) ? "no canal here can be sealed" : on ? "tap to remove" : "tap to add") + "</small>";
+      }
+      if (hit.district != null) { const d = HG.districts[hit.district]; return "<b>" + U.esc(d.name) + "</b><dl><dt>Risk</dt><dd>" + U.esc(d.risk) + ", " + U.pct(d.pSeason) + "</dd><dt>Canals</dt><dd>" + U.num(d.canalKm) + " km</dd></dl><small>Click to open this district.</small>"; }
       const c = U.countyByFips[hit.county], river = U.riverByFips[hit.county];
       return "<b>" + U.esc(c.name) + " County</b><dl><dt>Drought now</dt><dd>" + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) + "</dd>" +
+        (river && quarterP([hit.county]) != null ? "<dt>3-month chance</dt><dd>" + U.pct(quarterP([hit.county])) + "</dd>" : "") +
         (river ? "<dt>6-month chance</dt><dd>" + U.pct(river.pSeason) + ", " + U.esc(river.tier) + "</dd>" : "") + "</dl><small>Click for photos and a profile.</small>";
     },
   });
   function legend() {
     const forecast = state.mapMode === "forecast", plan = state.step === "budget";
     const key = (color, text) => '<span><i style="background:' + color + '"></i>' + text + "</span>";
+    $("legend").classList.toggle("slim", picking());
+    // While choosing districts the legend is swatches drawn like the districts: chosen, can be
+    // chosen, and (only if the data holds such a district) nothing to seal.
+    if (picking()) {
+      $("legend").innerHTML = '<div class="keys"><span><i class="sw on"></i>Selected</span><span><i class="sw can"></i>Tap to add</span>' +
+        (APPLICABLE.indexOf(false) >= 0 ? '<span><i class="sw no"></i>Nothing to seal</span>' : "") + "</div>";
+      return;
+    }
     $("legend").innerHTML =
       '<div class="modes"><button data-mode="now" class="' + (forecast ? "" : "on") + '"' + pressed(!forecast) + '>Drought now</button><button data-mode="forecast" class="' + (forecast ? "on" : "") + '"' + pressed(forecast) + '>6-month forecast</button></div>' +
       (forecast ? "<h4>River counties: chance of a drought season</h4><div class=\"keys\">" + ["Low", "Watch", "Warning"].map((t) => key(U.TIER_COLOR[t], t)).join("") + "</div>"
@@ -217,7 +241,7 @@
     const lakes = {};
     const butte = liveReading("Elephant Butte");
     if (butte) lakes["Elephant Butte"] = butte.pct;
-    map.set({ pick: picking(), mode: state.mapMode, scope: state.scope, county: state.county, canal: state.canal,
+    map.set({ pick: picking(), sel: picking() ? state.simSel : null, ok: CAN_PICK, solo: SOLO, mode: state.mapMode, scope: state.scope, county: state.county, canal: state.canal,
               funded: state.step === "budget" ? currentPlan().fundedIds : null, lakes });
     legend();
   }
@@ -225,18 +249,23 @@
   /* ---------- The budget plan for the current scope, budget and severity ---------- */
   let planCache = null, planKey = "";
   function currentPlan() {
-    const k = [state.scope, state.budget, state.severity].join("|");
-    if (k !== planKey) { planCache = U.planFor(scopeCanals(), state.budget, state.severity); planKey = k; }
+    const width = params().widthFt;                      // the canal-width slider prices the plan too
+    const k = [state.scope, state.budget, state.severity, width].join("|");
+    if (k !== planKey) { planCache = U.planFor(scopeCanals(), state.budget, state.severity, width); planKey = k; }
     return planCache;
   }
-  const costAll = () => U.planFor(scopeCanals(), 0, null).costAll;
+  /* What sealing every rankable canal here costs: the engine's own bill at the current canal
+     width, so the budget's ceiling and the simulation agree. */
+  const costAll = () => E.fundCanals(scopeCanals().filter((c) => c.rank != null), Infinity, params()).spent;
   function defaultBudget() {
     // Start with every treatable canal funded. The simulation shows each extra dollar of sealant
     // still returns far more than it costs, so the full network is the plan the numbers favour.
     return maxBudget();
   }
-  const maxBudget = () => Math.max(100, Math.ceil(costAll() / 100) * 100);
-  const budgetStep = () => (maxBudget() > 200000 ? 5000 : maxBudget() > 20000 ? 500 : 100);
+  /* The slider's top and step (budgetScale in js/logic.js): the top is the cost of everything,
+     rounded up to a whole step, so the slider can reach it. */
+  const maxBudget = () => window.HGLogic.budgetScale(costAll()).max;
+  const budgetStep = () => window.HGLogic.budgetScale(costAll()).step;
   /* The two sliders behind "how long it takes". Used on the budget step and the simulation step. */
   function crewFields() {
     const p = params();
@@ -256,17 +285,18 @@
       const act = U.actionFor(d.pSeason);
       const worst = Math.max.apply(null, d.fips.map((f) => U.countyByFips[f].dm || 0));
       const treatable = list.filter((c) => c.rank != null), all = U.canalNumbers(treatable, params());
-      const named = namedCanals(list);
+      const named = namedCanals(list), q3 = quarterP(d.fips);
       html += '<button class="back" data-act="state">&larr; All districts</button>' +
         "<h2>" + U.esc(d.name) + "</h2><div class=\"sub\">" + U.esc(d.kind) + " · " + U.esc(d.counties.join(", ")) + " · week of " + U.niceDate(HG.week) + "</div>" +
         stats([
           ["Drought season, next 6 months", U.pct(d.pSeason), U.esc(d.risk) + "; warning line " + U.pct(HG.threshold)],
+        ].concat(q3 == null ? [] : [["Drought season, next 3 months", U.pct(q3), "about one sealant application"]]).concat([
           ["Drought now", worst ? "D" + (worst - 1) : "None", U.DM_TEXT[worst].replace(/^D\d /, "")],
           resStat,
           ["Canals", U.num(d.canalKm) + " km", U.num(list.length) + " segments, " + U.num(treatable.length) + " rankable"],
-        ]) + gauge(d.pSeason) +
+        ])) + gauge(d.pSeason) +
         '<p class="rec ' + act.key + '"><b>' + act.title + ".</b> " + act.text.split(". ").slice(1).join(". ") + "</p>" +
-        "<h3>All rankable canals sealed, one application</h3>" + (treatable.length ? triple(all) : '<p class="fn">No canal here can be ranked: drains, or soil with no published seepage rate.</p>') +
+        "<h3>All rankable canals sealed, one application</h3>" + (treatable.length ? triple(all) + extrapolatedNote(d) : '<p class="fn">No canal here can be ranked: drains, or soil with no published seepage rate.</p>') +
         '<div class="rowBtns"><button class="btn" data-act="go" data-step="budget">Budget plan &rarr;</button><button class="btn ghost" data-act="go" data-step="sim">Simulation &rarr;</button></div>' +
         "<h3>Canal length by leak class</h3>" + mixBar(list, (c) => c.level, (k) => U.LEVEL_COLOR[k], levelLabel) +
         '<p class="fn">' + U.esc(window.HGLogic.LEVEL_NOTE) + "</p>" +
@@ -280,21 +310,22 @@
         more("County profile and photos", d.fips.map((f) => countyCard(f, false)).join(""));
     } else {
       const inDrought = HG.texas.filter((c) => c.dm != null && c.dm >= 2).length;
-      const warned = HG.river.filter((c) => c.pSeason >= HG.threshold).length;
+      const warned = HG.river.filter((c) => c.tier === "Warning").length;      // the pipeline's own label, not a rounded number compared again
+      const hasQ = !!HG.quarter;                                               // is there a three-month forecast to show?
       const dWarn = HG.districts.filter((x) => x.risk === "Warning").length;
       const all = U.canalNumbers(list.filter((c) => c.rank != null), params());
       html += "<h2>Texas, Rio Grande districts</h2><div class=\"sub\">" + HG.districts.length + " irrigation and water districts · 254 counties · week of " + U.niceDate(HG.week) + "</div>" +
         stats([
           ["Counties in drought (D1+)", inDrought + " / 254", "U.S. Drought Monitor"],
-          ["River counties over warning line", warned + " / 14", "6-month forecast at " + U.pct(HG.threshold) + " or more"],
+          ["River counties over warning line", warned + " / " + HG.river.length, "6-month forecast at " + U.pct(HG.threshold) + " or more"],
           resStat,
           ["Districts at Warning", dWarn + " / " + HG.districts.length, U.num(HG.plan.canal_km_in_districts) + " km of canal"],
         ]) +
         "<h3>All rankable canals sealed, one application</h3>" + triple(all) +
         '<div class="rowBtns"><button class="btn" data-act="go" data-step="budget">Budget plan &rarr;</button><button class="btn ghost" data-act="go" data-step="sim">Simulation &rarr;</button></div>' +
-        "<h3>Districts by 6-month drought chance</h3><div class=\"scroll\" style=\"max-height:440px\"><table class=\"t\"><tr><th>District</th><th>Tier</th><th class=\"r\">Chance</th><th class=\"r\">Canal km</th></tr>" +
+        "<h3>Districts by 6-month drought chance</h3><div class=\"scroll\" style=\"max-height:440px\"><table class=\"t\"><tr><th>District</th><th>Tier</th>" + (hasQ ? "<th class=\"r\">Next 3 months</th><th class=\"r\">Next 6 months</th>" : "<th class=\"r\">Chance</th>") + "<th class=\"r\">Canal km</th></tr>" +
         HG.districts.map((x, i) => ({ x, i })).sort((a, b) => b.x.pSeason - a.x.pSeason).map(({ x, i }) =>
-          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + '</td><td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
+          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + "</td>" + (hasQ ? '<td class="r">' + U.pct(quarterP(x.fips)) + "</td>" : "") + '<td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
         '</table></div><p class="fn">Select a district to open it. Select a county on the map for its profile.</p>' +
         more("Open issues from live data", issuesFor(null));
     }
@@ -315,7 +346,7 @@
       '<div class="fn">Every rankable canal: ' + U.usd(all) + " in sealant.</div></div>" +
       '<div class="field"><label>Drought chance to plan for</label><div class="seg" id="sev">' +
       SEVERITIES.map((s) => '<button data-p="' + (s.p == null ? "" : s.p) + '" class="' + (state.severity === s.p ? "on" : "") + '"' + pressed(state.severity === s.p) + ">" + (s.p == null ? "Forecast (" + U.pct(scopeP0()) + ")" : s.label) + "</button>").join("") +
-      "</div></div></div><div id=\"budgetResult\" aria-live=\"polite\"></div>" +
+      "</div><div class=\"fn\">Drought everywhere: order by leak rate alone.</div></div></div><div id=\"budgetResult\" aria-live=\"polite\"></div>" +
       '<details class="more"><summary>Crew assumptions</summary>' + crewFields() + "</details>" +
       '<div id="budgetExtra"></div>');
     if (all > 0) renderBudgetResult();
@@ -350,7 +381,7 @@
     $("budgetExtra").innerHTML =
       more("Field checklist", "<ol class=\"todo\">" +
         "<li><b>Walk the " + plan.funded.length + " funded segments (" + U.num(plan.km, 1) + " km).</b> Strike any that are lined or piped.</li>" +
-        "<li><b>Order sealant for " + U.num(plan.sqft) + " sq ft</b> (" + U.esc(a.wetted_width_ft) + " ft wetted width assumed): " + U.usd(plan.spent) + ". Labour and equipment are extra.</li>" +
+        "<li><b>Order sealant for " + U.num(plan.sqft) + " sq ft</b> (" + U.esc(P.widthFt) + " ft wetted width assumed): " + U.usd(plan.spent) + ". Labour and equipment are extra.</li>" +
         "<li><b>" + P.crews + (P.crews === 1 ? " crew" : " crews") + ", about " + U.workTime(total.days) + ",</b> done before first irrigation (early March).</li>" +
         "<li><b>Measure flow in and out</b> of a sealed stretch before paying for the next application (" + U.esc(a.days_one_application_lasts) + " days each).</li></ol>") +
       '<p class="fn">An estimate from published figures, not a field result. Crew speed is our assumption. ' + U.esc(HG.plan.note) + "</p>";
@@ -390,27 +421,30 @@
   const APPLICABLE = HG.districts.map((d, i) => U.canals.some((c) => c.district === i && c.rank != null));
   /* Districts the state view can run TOGETHER: they must share one reservoir system (Amistad-Falcon). */
   const GROUPABLE = HG.districts.map((d, i) => i).filter((i) => APPLICABLE[i] && !usesElephantButte(HG.districts[i]));
-  /* The districts being simulated: the open district, or the ones ticked in the state view (all by default). */
+  /* The same two rules as Sets, for the map and for taps: districts that can be ticked, and
+     districts that can be simulated but only alone (they draw on Elephant Butte). */
+  const CAN_PICK = new Set(GROUPABLE);
+  const SOLO = new Set(HG.districts.map((d, i) => i).filter((i) => APPLICABLE[i] && usesElephantButte(HG.districts[i])));
+  /* The districts being simulated: the open district, or the ones ticked in the state view (none until the user ticks one). */
   function simMembers() {
     if (district()) return [district()];
-    if (!state.simSel) state.simSel = new Set(GROUPABLE);
+    if (!state.simSel) state.simSel = new Set();
     return GROUPABLE.filter((i) => state.simSel.has(i)).map((i) => HG.districts[i]);
   }
   function simScope(list) { return L.simScope(list || simMembers()); }
   /* hitRates() (js/logic.js): the frozen model's hit rates on 2020 to 2025, used to decide how often a simulated warning is right. */
 
-  /* The Simulation step has three small steps of its own, shown as chips on the stage:
-       1 District   pick one district (the state view lists them all, with what acting saves in each)
-       2 Scenario   pick a future: best, average or worst of the 300, or the real 2020 to 2025 record
-       3 Simulation watch that district twice, side by side */
+  /* The Simulation step has two views (state.simStep):
+       1  the district list (state view only): tick districts on the map or in the list, then Run
+       3  the result: the ticked districts drawn twice, side by side, and the figures in the panel
+     Four buttons over the picture switch the future it plays: mild, typical or harsh of the 300, or the real 2020 to 2025 record. */
   const CASES = [
     { key: "best", short: "Mild", name: "A mild five years", tone: "low", note: "9 in 10 of the 300 futures are harsher than this one" },
     { key: "likely", short: "Typical", name: "A typical five years", tone: "watch", note: "the middle one of the 300 futures" },
     { key: "worst", short: "Harsh", name: "A harsh five years", tone: "warning", note: "9 in 10 of the 300 futures are milder than this one" },
-    { key: "check", short: "What really happened, 2020-25", name: "The real record", tone: "accent", note: "2020 to 2025 as it happened: years the forecast model never saw" },
+    { key: "check", short: "Real 2020-25", name: "The real record", tone: "accent", note: "2020 to 2025 as it happened: years the forecast model never saw" },
   ];
   const caseOf = (key) => CASES.find((c) => c.key === key);
-  const LONG_PART = "What really happened, ";             // left out of that button on a phone, where it reads "2020-25" (css/site.css)
   function renderSim() {
     const d = district(), p = params();
     if (d && !APPLICABLE[state.scope]) {                       // nothing to seal here, so nothing to simulate
@@ -418,30 +452,56 @@
         '<div class="rowBtns"><button class="btn" data-act="state">Choose other districts &rarr;</button></div>';
       return;
     }
+    if (picking()) { renderPick(); return; }                   // the state view's district list
+    // The result. Only the headline block is on show; everything else is in three fold-outs.
+    // The sliders are written once, here, and not redrawn with the results: a slider that was
+    // replaced while it was being dragged would drop the drag.
+    const names = simMembers().map((x) => x.name);
     $("view").innerHTML =
       "<h2>Simulation</h2>" +
-      '<div class="sub">' + (d ? U.esc(d.name) : simMembers().length === 1 ? U.esc(simMembers()[0].name) : simMembers().length + " districts together") + " · five years, with and without sealing the canals the model puts first</div>" +
-      '<div id="simLead"></div>' +
-      '<div class="controls"><div class="field"><label for="simBudget">Sealant budget, each round <output id="simBudgetOut"></output></label><input id="simBudget" type="range" min="0" max="' + maxBudget() + '" step="' + budgetStep() + '" value="' + state.budget + '"></div><div id="shockRow"></div></div>' +
-      '<div id="simResult" aria-live="polite"></div>' +
-      '<details class="more"><summary>Assumptions (' + SLIDERS.length + " sliders, and the unknowns drawn in every run)</summary>" +
+      '<div class="sub" title="' + U.esc(names.join(", ")) + '">' + U.esc(names.length <= 2 ? names.join(" and ") : names.length + " districts together") + "</div>" +
+      '<div id="simHead" aria-live="polite"></div>' +
+      '<details class="more" id="simSetup"><summary>Budget and assumptions</summary>' +
+      '<div class="field"><label for="simBudget">Sealant budget, each round <output id="simBudgetOut"></output></label><input id="simBudget" type="range" min="0" max="' + maxBudget() + '" step="' + budgetStep() + '" value="' + state.budget + '"></div>' +
       SLIDERS.map(([k, min, max, step, show]) => '<div class="field"><label for="a_' + k + '"><span>' + E.DEFAULTS[k].label + ' <span class="tag ' + E.DEFAULTS[k].tag + '">' + E.DEFAULTS[k].tag + '</span></span><output id="o_' + k + '">' + show(p[k]) + '</output></label><input type="range" data-param="' + k + '" id="a_' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + p[k] + '"></div>').join("") +
       '<button class="btn small ghost" data-act="resetAssume">Reset to defaults</button><div id="simUnknowns"></div></details>' +
-      '<div id="simNotes"></div>';
+      '<details class="more" id="simSecond"><summary id="simSecondTitle"></summary><div id="shockRow"></div><div id="simResult"></div></details>' +
+      '<details class="more" id="simFine"><summary>Fine print for this run</summary><div id="simNotes"></div></details>';
     renderSimResult();
   }
-  /* The chips and the prompt drawn over the stage on the Simulation step. */
-  function simChrome() {
-    const n = state.simStep;
-    $("simSteps").innerHTML = n === 3 ? '<button data-sim="1">&larr; ' + (district() ? "Other districts" : "Back to the district list") + "</button>" : "";
-    $("simPrompt").innerHTML = n === 1 ? "<b>Tap a district on the map</b><span>or tick several in the list, then run the simulation</span>" : "";
-    // One row of buttons switches scenario.
-    $("simCases").innerHTML = CASES.map((c) => '<button class="sbtn ' + (c.key === state.simCase ? "on" : "") + '"' + pressed(c.key === state.simCase) + ' data-case="' + c.key + '" title="' + c.note + '">' + c.short.replace(LONG_PART, '<span class="wide">' + LONG_PART + "</span>") + "</button>").join("");
+  /* The state view's district list: a Run button that stays in view, All and None, a search box
+     and the table. The rows are drawn by renderPickRows(), so the search box is never replaced
+     while someone is typing in it. */
+  function renderPick() {
+    $("view").innerHTML =
+      "<h2>Simulation</h2>" +
+      '<div class="sub">Pick districts, then run.</div>' +
+      '<div class="pickBar"><button class="btn" tabindex="0" data-act="simRun" id="simRunBtn"></button>' +
+      '<button class="btn ghost small" tabindex="0" data-act="simAll">All</button><button class="btn ghost small" tabindex="0" data-act="simNone">None</button>' +
+      '<input id="simSearch" type="search" aria-label="Search for a district or county. Enter ticks the first match." placeholder="Search district or county" value="' + U.esc(state.simQuery || "") + '"></div>' +
+      '<div id="simRows"></div>' +
+      '<p class="fn">Saving: sealing when the forecast warns, against doing nothing, over five years.' + TAG_MODELLED +
+      ' <button class="linkBtn" data-act="go" data-step="sources">How far to trust this &rarr;</button></p>';
+    renderPickRows();
   }
-  $("simCases").addEventListener("click", (e) => { const b = e.target.closest("[data-case]"); if (b) { state.simCase = b.dataset.case; refresh(false); } });
-  /* Back to the list. From a district's own view, the state list opens with only that district ticked. */
+  /* The words drawn over the stage on the Simulation step: the back button, the one-line prompt,
+     the Run button on the map and the four scenario buttons. */
+  function simChrome() {
+    const pick = picking(), n = pick ? simMembers().length : 0;
+    $("simSteps").innerHTML = state.simStep === 3 ? '<button data-sim="1">' + (district() && CAN_PICK.has(state.scope) ? "+ Add districts" : "&larr; Districts") + "</button>" : "";
+    $("simPrompt").textContent = pick ? "Tap districts to add them" : "";
+    $("simGo").hidden = !pick; $("simGo").disabled = !n; $("simGo").innerHTML = runLabel(n);
+    // One row of buttons switches scenario.
+    $("simCases").innerHTML = CASES.map((c) => '<button class="sbtn ' + (c.key === state.simCase ? "on" : "") + '"' + pressed(c.key === state.simCase) + ' data-case="' + c.key + '" title="' + c.note + '">' + c.short + "</button>").join("");
+  }
+  /* Run: show the ticked districts' result, starting with the typical future. */
+  function runSim() { if (!simMembers().length) return; state.simCase = "likely"; state.simStep = 3; refresh(false); }
+  $("simGo").addEventListener("click", runSim);
+  // Another scenario: only the figures and the picture change, so the fold-outs stay as they are.
+  $("simCases").addEventListener("click", (e) => { const b = e.target.closest("[data-case]"); if (b) { state.simCase = b.dataset.case; simChrome(); renderSimResult(); twin.play(); } });
+  /* Back to the list. From a district's own view, the state list opens with that district already ticked. */
   function backToList() {
-    if (district()) { const i = state.scope; setScope(STATE, true); state.simSel = new Set(GROUPABLE.indexOf(i) >= 0 ? [i] : []); }
+    if (district()) { const i = state.scope; setScope(STATE, true); state.simSel = new Set(CAN_PICK.has(i) ? [i] : []); }
     state.simStep = 1; refresh(true);
   }
   $("simSteps").addEventListener("click", (e) => { if (e.target.closest("button")) backToList(); });
@@ -467,7 +527,10 @@
     // Water leaking out of this district's canals in a week, if none were sealed. The rate per
     // square foot comes from each canal's soil (Fipps, Texas A&M, 1998). A canal cannot leak more
     // than the water released into it, and leaks nothing outside the season.
-    const leakWeek = E.savedAcreFeet(E.fundCanals(scope.canals, Infinity, P).gallonsPerDay, 7, 1);
+    // The two runs the picture plays hold each canal unknown at the middle of its range (about a
+    // third of the length already lined). The leak is counted the same way, so the water
+    // "saved" on one side is part of the water "leaked" on the other and the two add up.
+    const leakWeek = window.HGLogic.leakAcreFeet(E.fundCanals(scope.canals, Infinity, P).gallonsPerDay, 7, E.centralPhysics(L.physicsOptions()));
     const a = flat(nothing), b = flat(act), blank = () => ({ spend: 0, loss: 0, saved: 0, recovered: 0, leak: 0 }), sums = [blank(), blank()];
     const add = (sum, w) => {
       sum.spend += w.spend; sum.loss += w.loss; sum.saved += w.saved; sum.recovered += w.recovered;
@@ -493,40 +556,49 @@
   const twin = window.HGTwin.create({ canvas: $("twin"), stage: $("stage"), onTick(i, playing) {
     const w = twinWeeks[i]; if (!w) return;
     $("simSeek").value = i; $("simPlay").textContent = playing ? "Pause" : (i >= twinWeeks.length - 1 ? "Run again" : "Play");
-    $("simDate").textContent = "Week of " + U.niceDate(w.date);
+    $("simDate").textContent = U.niceDate(w.date);
   } });
   $("simPlay").onclick = () => (twin.playing() ? twin.pause() : twin.play());
   $("simSkip").onclick = () => { twin.pause(); twin.seek(twinWeeks.length - 1); };
   $("simSeek").oninput = (e) => { const i = Number(e.target.value); twin.pause(); twin.seek(i); };   // read the slider first: pausing redraws it
 
   /* State view: every district, with what acting on the forecast saves it in the middle future.
-     Each district is run on its own canals with every treatable canal funded. */
+     Each district is run on its own canals with every treatable canal funded. The runs are the
+     slow part, so they are kept until an assumption, a "what if" or the reservoir reading changes. */
   let tableCache = null, tableKey = "";
-  function districtTable(over, hit, on) {
+  function pickTable() {
+    const over = state.overrides, hit = hitRates(), on = SHOCKS.filter((s) => state.shocks[s.key]);
     const key = JSON.stringify([over, state.live && state.live.systems, on.map((s) => s.key)]);
     if (key !== tableKey) {
       tableCache = HG.districts.map((d, i) => ({ d, i })).filter((r) => APPLICABLE[r.i]).map(({ d, i }) => {
         const scope = simScope([d]), res = reservoirFor(d);
-        const budget = scope.canals.reduce((s, c) => s + c.usd, 0) + 1;
+        const budget = E.fundCanals(scope.canals, Infinity, E.makeParams(over)).spent + 1;   // every canal, at the current canal width
         const r = E.fromToday(scope, [{ trigger: "never" }, { trigger: "forecast" }], Object.assign({}, over, { budget }), {
           startDate: TODAY, pctNow: res.pct == null ? 50 : res.pct, pNow: scope.pNow, years: 5, draws: 100, seed: 11, cutoffYear: 2020,
           recall: hit.recall, falseAlarm: hit.falseAlarm, shocks: on.filter((x) => x.shock).map((x) => x.shock), secondDryYear: on.some((x) => x.secondDryYear),
           physics: true, physicsOptions: L.physicsOptions(), withFixed: false });
-        return { d, i, alone: usesElephantButte(d), loss: r.policies[0].summary.loss, saved: band(r.policies[1].draws.map((t, k) => r.policies[0].draws[k].cost - t.cost)) };
+        return { d, i, alone: SOLO.has(i), saved: band(r.policies[1].draws.map((t, k) => r.policies[0].draws[k].cost - t.cost)) };
       }).sort((a, b) => b.saved.mid - a.saved.mid);
       tableKey = key;
     }
-    const n = simMembers().length, q = (state.simQuery || "").toLowerCase();
-    const rows = tableCache.filter((r) => !q || r.d.name.toLowerCase().indexOf(q) >= 0 || r.d.counties.join(" ").toLowerCase().indexOf(q) >= 0);
-    return '<div class="rowBtns"><button class="btn" data-act="simRun"' + (n ? "" : " disabled") + ">Run the simulation: " + (n === 1 ? U.esc(simMembers()[0].name) : n === GROUPABLE.length ? "all " + n + " districts" : n + " districts") + ' &rarr;</button></div>' +
-      '<div class="pickBar"><input id="simSearch" type="search" aria-label="Search for a district or county" placeholder="Search for a district or county" value="' + U.esc(state.simQuery || "") + '"><button class="btn ghost small" data-act="simAll">Tick all</button><button class="btn ghost small" data-act="simNone">Clear</button></div>' +
-      "<div class=\"scroll\" style=\"max-height:330px\"><table class=\"t replay\"><tr><th></th><th>District</th><th class=\"r\">Crop loss if nothing is done</th><th class=\"r\">Modelled saving from sealing early</th></tr>" +
-      rows.map((r) => r.alone
-        ? '<tr class="go"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>&rarr;</td><td>' + U.esc(r.d.name) + ' <span class="muted">opens on its own (different reservoir)</span></td><td class="r">' + rangeCell(r.loss, money, "future") + '</td><td class="r">' + rangeCell(r.saved, money, "future") + "</td></tr>"
-        : '<tr class="go"' + rowCheckbox(state.simSel.has(r.i)) + ' data-act="simPick" data-i="' + U.esc(r.i) + '"><td><input type="checkbox" tabindex="-1" aria-hidden="true"' + (state.simSel.has(r.i) ? " checked" : "") + "></td><td>" + U.esc(r.d.name) + ' <span class="muted">' + U.esc(r.d.counties.join(", ")) + '</span></td><td class="r">' + rangeCell(r.loss, money, "future") + '</td><td class="r">' + rangeCell(r.saved, money, "future") + "</td></tr>").join("") +
-      (rows.length ? "" : '<tr><td colspan="4" class="muted">No district matches.</td></tr>') +
-      '</table></div><p class="fn">Modelled, not measured. Five years, 100 possible futures for each district on its own: the middle future, with the range 8 in 10 futures fall in beneath it. Ticked districts run together.</p>';
+    return tableCache;
   }
+  /* The rows of the district list, and the count on the Run button. Called after every tick,
+     every key typed in the search box, and when a live reservoir reading arrives. What is ticked
+     lives in state.simSel, not in the page, so redrawing the rows never loses it. */
+  function renderPickRows() {
+    const n = simMembers().length, q = (state.simQuery || "").toLowerCase();
+    const rows = pickTable().filter((r) => !q || r.d.name.toLowerCase().indexOf(q) >= 0 || r.d.counties.join(" ").toLowerCase().indexOf(q) >= 0);
+    $("simRunBtn").innerHTML = runLabel(n); $("simRunBtn").disabled = !n;
+    const tail = (r) => '<td class="r">' + U.num(r.d.canalKm) + ' km</td><td class="r">' + rangeCell(r.saved, money, "future") + "</td></tr>";
+    $("simRows").innerHTML = '<table class="t replay pick"><tr><th></th><th>District</th><th class="r">Canals</th><th class="r">Saving</th></tr>' +
+      rows.map((r) => r.alone
+        ? '<tr class="go"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>&rarr;</td><td>' + U.esc(r.d.name) + ' <span class="muted">own reservoir: opens alone; ' + U.esc(window.HGLogic.EXTRAPOLATED_NOTE) + "</span></td>" + tail(r)
+        : '<tr class="go' + (state.simSel.has(r.i) ? " on" : "") + '"' + rowCheckbox(state.simSel.has(r.i)) + ' data-act="simPick" data-i="' + U.esc(r.i) + '"><td><input type="checkbox" tabindex="-1" aria-hidden="true"' + (state.simSel.has(r.i) ? " checked" : "") + "></td><td>" + U.esc(r.d.name) + ' <span class="muted">' + U.esc(r.d.counties.join(", ")) + "</span></td>" + tail(r)).join("") +
+      (rows.length ? "" : '<tr><td colspan="4" class="muted">No district matches.</td></tr>') + "</table>";
+  }
+  /* What the figures in the district list are. Shown on the Sources step. */
+  const PICK_NOTE = "Each district on its own: five years, 100 possible futures. The figure is the middle future, with the range 8 in 10 futures fall in beneath it. Ticked districts run together.";
 
   /* ---------- What the Simulation step shows ----------
      Every modelled figure on this step is a range: the middle, with the low and high that 8 in 10
@@ -538,6 +610,8 @@
   const regimeSentence = (calibrated) => (calibrated
     ? "Leak rates are calibrated to each district's published loss, so the share of that loss that is seepage is drawn too."
     : "Leak rates are the published rates for each soil; calibrating them to district losses did not predict a hidden district better than canal length alone.");
+  /* For a district on Elephant Butte: one line saying its dollar figures are extrapolated. Empty for any other. */
+  const extrapolatedNote = (d) => (d && usesElephantButte(d) ? '<p class="fn warn">' + U.esc(window.HGLogic.EXTRAPOLATED_NOTE.replace(/^e/, "E")) + ".</p>" : "");
   /* What the held-out test of the leak model found. Shown wherever volumes and dollars are. */
   const heldOutNote = () => '<p class="note">' + U.esc(window.HGLogic.HELD_OUT_SENTENCE) + "</p>";
   /* The unknowns every run draws, with their ranges. Shown next to the sliders. */
@@ -578,36 +652,63 @@
     run through five policies (js/logic.js does the sums with the engine), once for every draw of
     the canal unknowns.
   */
+  const REPLAY_NOTE = "What each policy would have done in the years that really happened: the real weekly drought record, the real reservoir levels, and each year's forecast as it was really made, by a model trained only on earlier years. " +
+    "The weather is fixed, so the ranges come only from what is not known about the canals: how well the sealant works, how wide the canals are and how much of them is already lined.";
+  const SAVING_NOTE = "Modelled, not measured: none of these savings happened. Modelled saving is the crop loss avoided minus the sealant spent, against doing nothing. " +
+    "Water kept counts every week the sealant was working; it lowers the crop loss only in weeks with a shortage.";
   function replayHtml(over) {
     const scope = L.replayScope(simMembers());
     if (!scope) return "";                                   // the data holds no year with forecasts
     const result = bandsFor("replay", scope, over), P = E.makeParams(over);
-    return '<section class="replay"><h3>Replay of the real record, ' + U.esc(result.firstYear) + " to " + U.esc(result.lastYear) + TAG_MODELLED + "</h3>" +
-      '<p class="fn">What each policy would have done in the years that really happened: the real weekly drought record, the real reservoir levels, and each year\'s forecast as it was really made, by a model trained only on earlier years. ' +
-      "The weather is fixed, so the ranges come only from what is not known about the canals: how well the sealant works, how wide the canals are and how much of them is already lined. " + regimeSentence(result.calibrated) + "</p>" +
+    return '<section class="replay"><h3 class="keep">Replay of the real record, ' + U.esc(result.firstYear) + " to " + U.esc(result.lastYear) + TAG_MODELLED + "</h3>" +
+      '<p class="fn">' + REPLAY_NOTE + " " + regimeSentence(result.calibrated) + "</p>" +
       heldOutNote() +
       bandsBlock(result, true) +
-      '<p class="fn">Modelled, not measured: none of these savings happened. Modelled saving is the crop loss avoided minus the sealant spent, against doing nothing. ' +
-      "Water kept counts every week the sealant was working; it lowers the crop loss only in weeks with a shortage. " +
+      '<p class="fn">' + SAVING_NOTE + " " +
       "Sealant budget (an input) " + U.usd(over.budget) + " each round, up to " + U.esc(P.applications) + (P.applications === 1 ? " round" : " rounds") + " in a year a policy seals.</p></section>";
   }
 
-  function renderSimResult() {
-    if (!simMembers().length) {                                // nothing ticked: show the list only
-      $("simLead").innerHTML = districtTable(state.overrides, hitRates(), []); $("simResult").innerHTML = ""; $("simNotes").innerHTML = ""; $("shockRow").innerHTML = ""; $("simUnknowns").innerHTML = "";
-      return;
-    }
-    const scope = simScope(), over = Object.assign({}, state.overrides, { budget: state.budget }), P = E.makeParams(over);
-    $("simBudgetOut").textContent = U.usd(state.budget);
+  /* The one honesty line at the top of the step, with the way to the rest of it. */
+  const trustLine = () => '<p class="trust">' + U.esc(window.HGLogic.TRUST_LINE) + ' <button class="linkBtn" data-act="go" data-step="sources">How far to trust this &rarr;</button></p>';
+  /* The key to the picture: four items. The colours are the ones js/twin.js draws with. */
+  const pictureKey = () => '<div class="legend twinKey"><span><i class="idle"></i>Do nothing: water that arrived</span><span><i class="wet"></i>Acting: water that arrived</span>' +
+    '<span><i class="dry"></i>Water that did not arrive</span><span><i class="lineKey leak"></i>Leaking canal (white once sealed)</span></div>';
+  /*
+    What is on show at the top of the result: ONE headline range, the honesty line, a short table
+    and the key to the picture. The headline is the replay of the real record: what sealing when
+    the forecast warned would have saved against doing nothing, across the draws of the canal unknowns.
+  */
+  function simHeadHtml(over) {
+    const scope = L.replayScope(simMembers());
+    if (!scope) return trustLine() + pictureKey();           // the data holds no year with forecasts: there is no replay to head the step
+    const result = bandsFor("replay", scope, over), forecast = result.rows.find((r) => r.trigger === "forecast");
+    return '<div class="saveHero"><span>Acting on the forecast, against doing nothing' + TAG_MODELLED + "</span>" +
+      window.HGLogic.rangeHeadline(forecast.saving, money) +
+      "<small>Crops kept minus sealant. " + U.esc(result.firstYear) + " to " + U.esc(result.lastYear) + ", replayed.</small></div>" +
+      (scope.system === "Elephant Butte" ? extrapolatedNote(simMembers()[0]) : "") +
+      trustLine() +
+      window.HGLogic.replayBandsTable(result, true) +
+      pictureKey();
+  }
+
+  /*
+    The sums behind the result, with no page code: the random futures (or the real 2020 to 2025
+    record), the two runs the picture plays, and the HTML of the second fold-out.
+    forSources = true is the Sources step asking only for the list of inputs (simFacts): it always
+    takes the random futures, and with nothing ticked it describes every district together.
+  */
+  let runCache = null, runKey = "";                          // the random futures are slow, so they are kept until an input changes
+  function simCompute(forSources) {
+    const members = simMembers().length ? simMembers() : GROUPABLE.map((i) => HG.districts[i]);
+    const scope = simScope(members), over = Object.assign({}, state.overrides, { budget: state.budget }), P = E.makeParams(over);
     const plan = E.fundCanals(scope.canals, state.budget, P);
     const who = scope.members > 1 ? scope.members + " districts on the " + scope.system + " system" : "this district";
     const which = caseOf(state.simCase), hit = hitRates(), on = SHOCKS.filter((s) => state.shocks[s.key]);
-    const showCheck = state.simStep === 3 && state.simCase === "check";
+    const showCheck = !forSources && state.simCase === "check";
     const physicsOptions = L.physicsOptions(), central = E.centralPhysics(physicsOptions);   // central: each canal unknown at the middle of its range
-    $("simUnknowns").innerHTML = unknownsHtml(P, central.calibrated);
     // The real 2020 to 2025 record, with the forecasts the frozen model made for those years.
     const test = Object.assign({}, scope, { weeks: scope.weeks.filter((w) => w.year >= 2020 && w.year <= 2025), firstYear: 2020, lastYear: 2025 });
-    let run = null, html = "", pair = null, note = "";
+    let html = "", pair = null, note = "";
 
     if (!showCheck) {
       const res = reservoirFor(district());
@@ -616,19 +717,20 @@
         cutoffYear: 2020, recall: hit.recall, falseAlarm: hit.falseAlarm,
         shocks: on.filter((s) => s.shock).map((s) => s.shock), secondDryYear: on.some((s) => s.secondDryYear),
         physics: true, physicsOptions, withFixed });
-      run = futures(POLICIES.map((pol) => ({ trigger: pol.trigger })), state.budget, DRAWS, true);
       // What each policy gains over doing nothing, future by future: with the canal unknowns drawn, and with them at the middle.
       const gain = (set, i) => band(set[i].draws.map((t, k) => set[0].draws[k].cost - t.cost));
+      // The same question at other budgets (fewer futures, to stay quick): does more sealing still pay?
+      const top = maxBudget(), levels = [0, 0.1, 0.25, 0.5, 0.75, 1].map((f) => Math.round(top * f));
+      const key = JSON.stringify([scope.ids, over, on.map((s) => s.key), res.pct, top]);
+      if (key !== runKey) {
+        runCache = { run: futures(POLICIES.map((pol) => ({ trigger: pol.trigger })), state.budget, DRAWS, true),
+          curve: levels.map((b) => (b === 0 ? { low: 0, mid: 0, high: 0 } : gain(futures([{ trigger: "never" }, { trigger: "forecast" }], b, 120, false).policies, 1))) };
+        runKey = key;
+      }
+      const run = runCache.run, curve = runCache.curve;
       const act = run.policies[2], base = run.policies[0];
       const kept = band(act.draws.map((t, k) => base.draws[k].loss - t.loss));
       const mult = U.PUBLISHED.worstCaseOutput / U.PUBLISHED.worstCaseRevenue;      // total economic output per $1 of crop revenue (Texas A&M)
-      // The same question at other budgets (fewer futures, to stay quick): does more sealing still pay?
-      const top = maxBudget(), levels = [0, 0.1, 0.25, 0.5, 0.75, 1].map((f) => Math.round(top * f));
-      const curve = levels.map((b) => {
-        if (b === 0) return { low: 0, mid: 0, high: 0 };
-        const r = futures([{ trigger: "never" }, { trigger: "forecast" }], b, 120, false);
-        return gain(r.policies, 1);
-      });
       const curveHtml = "<h3>Modelled net saving by budget</h3><div class=\"chart\">" +
         lineChart([{ name: "Five-year modelled net saving: middle future (line) and 8 in 10 futures (shaded)", color: U.TIER_COLOR.Low, values: curve.map((c) => c.mid) }], levels.map((b) => money(b)), money,
                   { low: curve.map((c) => c.low), high: curve.map((c) => c.high), color: U.TIER_COLOR.Low }) + "</div>" +
@@ -662,7 +764,7 @@
                      { name: "Full supply above", color: U.LEVEL_COLOR["Unknown soil"], values: run.fan.map(() => P.fullAt), dash: true },
                      { name: "No supply below", color: U.TIER_COLOR.Warning, values: run.fan.map(() => P.zeroAt), dash: true }],
                     run.fan.map((w) => w.date.slice(0, 4)), (v) => Math.round(v) + "%", { low: run.fan.map((w) => w.low), high: run.fan.map((w) => w.high), color: U.TIER_COLOR.Low }) + "</div>");
-      if (state.simStep === 3) {
+      if (!forSources) {                                       // the two runs the picture plays: this scenario, doing nothing and acting
         pair = [run.cases[which.key].sampleFixed[0], run.cases[which.key].sampleFixed[2]];
         note = "Weather borrowed from " + run.cases[which.key].sourceYears.join(", ") + ", started from today's reservoir level";
       }
@@ -675,34 +777,39 @@
       html = '<p class="fn">Real drought and real reservoir levels, 2020 to 2025, with the forecasts made by the model frozen at the end of 2019, which never saw these years. ' +
         "The ranges come from what is not known about the canals.</p>" +
         bandsBlock(result) +
-        (t ? "<h3>Forecast accuracy, January to March warnings</h3><div class=\"scroll\" style=\"max-height:none\"><table class=\"t\"><tr><th>Rule</th><th class=\"r\">Drought seasons caught</th><th class=\"r\">Warnings that were right</th></tr>" +
+        (t ? "<h3 class=\"keep\">Forecast accuracy, January to March warnings</h3><div class=\"scroll\" style=\"max-height:none\"><table class=\"t\"><tr><th>Rule</th><th class=\"r\">Drought seasons caught</th><th class=\"r\">Warnings that were right</th></tr>" +
           "<tr><td><b>Our forecast</b> (trained before 2020)</td><td class=\"r\">" + U.esc(t.forecast.caught) + " of " + U.esc(t.forecast.droughtSeasons) + " (" + Math.round(t.forecast.recall * 100) + "%)</td><td class=\"r\">" + Math.round(t.forecast.precision * 100) + "%</td></tr>" +
           "<tr><td>Simple rule: already in moderate drought</td><td class=\"r\">" + U.esc(t.d1Rule.caught) + " of " + U.esc(t.d1Rule.droughtSeasons) + " (" + Math.round(t.d1Rule.recall * 100) + "%)</td><td class=\"r\">" + Math.round(t.d1Rule.precision * 100) + "%</td></tr></table></div>" +
           '<p class="fn">' + U.esc(t.forecast.rows) + " county-months, 14 Texas river counties, " + U.niceDate(FROZEN.test.from) + " to " + U.niceDate(FROZEN.test.to) + ". The two are close.</p>" : "") +
         '<p class="fn">False alarms: in ' + U.esc(pair[1].totals.falseAlarms) + " of the " + U.esc(pair[1].totals.yearsActed) + " years the forecast policy sealed, there was no shortage for the kept water to fill.</p>";
     }
+    return { scope, over, P, plan, which, on, showCheck, calibrated: central.calibrated, html, pair, note };
+  }
 
-    // What the stage shows, and what leads the panel, for the current sub-step.
-    let lead = "", watching = "";
-    if (state.simStep === 1) lead = districtTable(over, hit, on);
-    else if (state.simStep === 3) {
-      loadTwin(pair[0], pair[1], scope, P, plan, which, note);
-      simFacts = Object.assign(simFacts || {}, { watching: which.name + ": " + note });
-      // The picture is one future. It carries no figures of its own: the ranges are in the tables.
-      watching = '<p class="fn">The picture shows one case, ' + U.esc(which.name.toLowerCase()) + " (" + U.esc(which.note) + "), with each canal unknown held at the middle of its range. " + U.esc(note) + ".</p>" +
-        more("How to read the picture", '<dl class="key">' +
-          "<dt>Reservoir</dt><dd>The lakes on the river that feed the canals. The bar at the top shows how full they are. Below " + P.fullAt + "% full, farms get less water than they asked for.</dd>" +
-          "<dt>Green and brown</dt><dd>Each district shape fills with green for the share of water that reached its farms that week. Brown is water that did not arrive.</dd>" +
-          "<dt>Red and white lines</dt><dd>Canals. Red canals are unsealed and leak into the soil. White canals have been sealed.</dd>" +
-          "<dt>Scenario</dt><dd>" + which.name + ": " + which.note + ".</dd></dl>");
-    }
-    // The replay of real years leads the results. The random futures follow as a stress test.
-    $("simLead").innerHTML = lead;
-    $("shockRow").innerHTML = showCheck ? "" : '<div class="shocks"><span>What if things get worse or better? (our assumptions; they change the stress test, not the replay)</span>' + SHOCKS.map((s) => '<button class="sbtn ' + (state.shocks[s.key] ? "on" : "") + '"' + pressed(!!state.shocks[s.key]) + ' data-shock="' + s.key + '" title="' + s.note + '">' + s.label + "</button>").join("") + "</div>";
-    $("simResult").innerHTML = replayHtml(over) +
-      "<h3>" + (showCheck ? U.esc(which.name) + ", 2020 to 2025" : "Stress test: random futures") + TAG_MODELLED + "</h3>" + watching + html;
-
-    $("simNotes").innerHTML = '<div class="rowBtns"><button class="btn ghost" data-act="go" data-step="sources">Data and sources &rarr;</button></div>';
+  /* Fill the result: the headline block, the two fold-outs that change with the run, and the picture. */
+  function renderSimResult() {
+    if (picking()) { renderPickRows(); return; }               // the district list has no result to draw
+    if (!$("simHead")) return;                                 // the step's "not applicable" message is showing
+    const c = simCompute(false), which = c.which;
+    $("simBudgetOut").textContent = U.usd(state.budget);
+    $("simUnknowns").innerHTML = unknownsHtml(c.P, c.calibrated);
+    loadTwin(c.pair[0], c.pair[1], c.scope, c.P, c.plan, which, c.note);
+    simFacts = Object.assign(simFacts || {}, { watching: which.name + ": " + c.note });
+    // 1. On show: the headline range, the honesty line, the short table, the key.
+    $("simHead").innerHTML = simHeadHtml(c.over);
+    // 2. Folded: the random futures with their "what ifs", or the 2020 to 2025 record in figures.
+    $("simSecondTitle").innerHTML = (c.showCheck ? U.esc(which.name) + ", 2020 to 2025, in figures" : "Stress test: " + DRAWS + " random futures and what-ifs") + TAG_MODELLED;
+    $("shockRow").innerHTML = c.showCheck ? "" : '<div class="shocks"><span>What if? Our assumptions; they change the stress test, not the replay.</span>' + SHOCKS.map((s) => '<button class="sbtn ' + (state.shocks[s.key] ? "on" : "") + '"' + pressed(!!state.shocks[s.key]) + ' data-shock="' + s.key + '" title="' + s.note + '">' + s.label + "</button>").join("") + "</div>";
+    $("simResult").innerHTML = c.html;
+    // 3. Folded: the fine print. How the replay was made, the full table with crop losses, the
+    //    held-out test in full, and what the picture is. The picture is one future and carries no
+    //    range of its own: the ranges are in the tables.
+    $("simNotes").innerHTML = replayHtml(c.over) +
+      '<p class="fn">The picture shows one case, ' + U.esc(which.name.toLowerCase()) + " (" + U.esc(which.note) + "), with each canal unknown held at the middle of its range. " + U.esc(c.note) + ".</p>" +
+      '<dl class="key"><dt>Reservoir</dt><dd>The lakes on the river that feed the canals. The bar at the top shows how full they are. Below ' + c.P.fullAt + "% full, farms get less water than they asked for.</dd>" +
+      "<dt>Grey, green and brown</dt><dd>Each district shape fills from the bottom for the share of water that reached its farms that week: grey if nothing is done, green if the canals are sealed when the forecast warns. Brown is water that did not arrive.</dd>" +
+      "<dt>Red and white lines</dt><dd>Canals. Red canals are unsealed and leak into the soil. White canals have been sealed.</dd></dl>" +
+      '<div class="rowBtns"><button class="btn ghost" data-act="go" data-step="sources">Data and sources &rarr;</button></div>';
   }
 
   /* ---------- Sources: what the forecast changes in the sealing order ----------
@@ -850,15 +957,33 @@
      Everything a researcher needs to check the numbers: each dataset, what it was used for,
      and where it came from. The simulation's own inputs are listed last. */
   let simFacts = null;
+  /* The scorecard that opens "How far to trust this": one row per forecast, numbers first. Every
+     figure is read from the data (HG.quarter.test, and the six-month row of the frozen results);
+     quarterScorecard in js/logic.js writes the words. Empty if the data has neither. */
+  function scorecardHtml() {
+    const season = ((HG.frozen && HG.frozen.groups) || []).find((g) => g.section === "season");
+    const row = season && season.rows.find((r) => r[0] === "6-month system cost minus D1 now");   // "already in moderate drought", its best simple rule
+    const rows = window.HGLogic.quarterScorecard(HG.quarter && HG.quarter.test, row ? { diff: row[1], lo: row[2], hi: row[3] } : null);
+    if (!rows.length) return "";
+    return '<table class="t"><tr><th>Forecast</th><th>Against the best simple rule</th></tr>' +
+      rows.map((r) => "<tr><td><b>" + U.esc(r.label) + "</b></td><td>" + U.esc(r.text) + "</td></tr>").join("") + "</table>" +
+      '<p class="fn">Cost = 3 x missed drought seasons + false alarms; lower is better. A drought season is 8 straight weeks at D2 or worse.</p>';
+  }
   function renderSources() {
-    renderSim();                                           // runs the simulation once so its inputs can be listed
+    // Run the simulation's sums once so its inputs can be listed (nothing is drawn by this).
+    if (!district() || APPLICABLE[state.scope]) simCompute(true); else simFacts = null;
     const F = simFacts || {}, a = HG.plan.assumptions, t = FROZEN && FROZEN.test.preSeason, P = params();
     const link = (text, url) => anchor(text, url, false);            // text and address are both escaped; a bad address shows text only
     const table = (rows) => '<table class="t src"><tr><th>Used for</th><th>Data</th><th>Source</th></tr>' + rows.map((r) => "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>").join("") + "</table>";
     const tag = (k) => ' <span class="tag ' + k + '">' + k + "</span>";
     $("view").innerHTML =
       "<h2>Data and sources</h2><div class=\"sub\">Every dataset, what it is used for and where it comes from. Data as of " + U.niceDate(HG.week) + ".</div>" +
+      // First, how far to trust the site: the held-out test of the leak model, then the limits.
+      "<h3>How far to trust this</h3>" +
+      scorecardHtml() +
       heldOutNote() + '<p class="fn">' + U.esc(window.HGLogic.LOSSES_1998_SENTENCE) + "</p>" +
+      "<ul class=\"plain\"><li>Saved water counts only in a shortage. Above " + P.fullAt + "% storage, sealing earns nothing.</li><li>The sealant has not been field-tested on the Rio Grande. Prices are materials only.</li>" +
+      "<li>How a district shape fills in the simulation picture is illustration; the share is the model's.</li><li>" + U.esc(HG.plan.note) + "</li></ul>" +
       "<h3>1. Drought forecast model</h3>" + table([
         ["Drought class each week, each county (the model's main input and its answer)", "U.S. Drought Monitor, weekly, 2000 on", link("droughtmonitor.unl.edu", "https://droughtmonitor.unl.edu/")],
         ["El Ni&ntilde;o signal", "Oceanic Ni&ntilde;o Index, monthly", link("NOAA Climate Prediction Center", "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt")],
@@ -877,7 +1002,7 @@
       ]) +
       "<h3>3. Water leaking from canals</h3>" + table([
         ["Leak rate by soil, unlined canals", Object.keys(HG.seepage).filter((k) => !/sand$/i.test(k) || k === "Sand").map((k) => U.esc(k + " " + HG.seepage[k])).join(" · ") + " gallons per sq ft per day", link("Fipps, Texas A&M, 1998, Tables 6 to 8", "https://gfipps.tamu.edu/files/2019/12/RGV-Potential-Water-Savings.pdf") + " (Table 7 quotes the Texas Board of Water Engineers, 1946)"],
-        ["Canal size", U.esc(a.wetted_width_ft) + " ft wetted width for every canal", "Ours" + tag("assumption")],
+        ["Canal size", U.esc(P.widthFt) + " ft wetted width for every canal", "Ours" + tag("assumption")],
         ["Units", "Water agencies count in acre-feet. One acre-foot is 325,851 gallons, about half an Olympic pool. The platform shows gallons.", "Conversion"],
         ["Scale check", "Published potential saving in 28 Valley districts: 54,000 to 223,000 acre-feet a year. The simulation's own water figures are ranges, on the Simulation step.", link("Fipps, 1998", "https://gfipps.tamu.edu/files/2019/12/RGV-Potential-Water-Savings.pdf")],
       ]) +
@@ -886,7 +1011,7 @@
       "<h3>4. Sealant</h3>" + table([
         ["Price", "$" + U.esc(a.sealant_usd_per_sqft) + " per sq ft, materials only", link("U.S. Bureau of Reclamation", "https://www.usbr.gov/research/projects/detail.cfm?id=845")],
         ["Share of leakage stopped", Math.round(a.sealant_cut_low * 100) + "% to " + Math.round(a.sealant_cut_high * 100) + "% in field trials; every simulation run draws a value from this range", "Desert Research Institute field trials"],
-        ["How long it lasts", "About " + U.esc(a.days_one_application_lasts) + " days; " + P.applications + " applications cover a season", "Lund et al., 2021"],
+        ["How long it lasts", "About " + U.esc(a.days_one_application_lasts) + " days each; up to " + P.applications + (P.applications === 1 ? " round" : " rounds") + " from March", "Lund et al., 2021"],
         ["Crew speed", P.kmPerCrewDay + " km per crew per day, " + P.crews + " crews", "Ours" + tag("assumption")],
       ]) +
       (HG.forecastEffect ? "<h3>What the forecast changes</h3>" + forecastEffectHtml(district()) : "") +
@@ -907,14 +1032,24 @@
         ["Weather the futures are built from", F.library.length + " real years, " + F.library[0] + " to " + F.library[F.library.length - 1] + "; " + F.dry.length + " had a drought season (" + F.dry.join(", ") + ")", "U.S. Drought Monitor, Texas Water Development Board"],
         ["Forecast accuracy inside the simulation", "Warns before " + Math.round(F.recall * 100) + "% of dry seasons and " + Math.round(F.falseAlarm * 100) + "% of wet ones. A wrong warning costs the sealant for that year and keeps no water that was needed.", "Test above"],
         ["Futures", "300 draws, fixed seed, so every visit shows the same result", "Ours"],
-      ].concat((F.cases || []).map((c) => ["Scenario weather", c, "Real years, replayed from today's storage"]))
+        ["The district list", PICK_NOTE, "Ours"],
+      ].concat(F.watching ? [["The picture", U.esc(window.HGLogic.TWIN_CAPTION + " " + F.watching + "."), "Ours"]] : []).concat((F.cases || []).map((c) => ["Scenario weather", c, "Real years, replayed from today's storage"]))
        .concat(F.shocks && F.shocks.length ? [["Stress tests switched on", F.shocks.join("; "), "Ours" + tag("assumption")]] : [])) : "") +
       (F.outsideValley ? '<p class="fn warn">The crop-loss figure covers Cameron, Hidalgo, Starr and Willacy counties. Using its value per acre-foot here is our extrapolation.</p>' : "") +
-      "<h3>Limits</h3><ul class=\"plain\"><li>Saved water counts only in a shortage. Above " + P.fullAt + "% storage, sealing earns nothing.</li><li>The sealant has not been field-tested on the Rio Grande. Prices are materials only.</li>" +
-      "<li>Which field squares are dry in the picture is illustration; the share is the model's.</li><li>" + U.esc(HG.plan.note) + "</li></ul>";
+      // How the Simulation step's figures are made. The step itself shows one line; the rest is here
+      // and in the step's "Fine print" fold-out.
+      "<h3>8. How to read the simulation</h3><ul class=\"plain\">" +
+      "<li><b>Replay.</b> " + REPLAY_NOTE + "</li>" +
+      "<li><b>Ranges.</b> Each figure is the middle of " + DRAWS + " draws of what is not known about the canals (how well the sealant works, how wide the canals are, how much is already lined), with the range 8 in 10 draws fall in.</li>" +
+      "<li><b>Saving.</b> " + SAVING_NOTE + "</li>" +
+      "<li><b>Forecast against the simple rule.</b> " + U.esc(window.HGLogic.SCORED_TEST_SENTENCE) + "</li>" +
+      "<li><b>Stress test.</b> " + U.esc(window.HGLogic.STRESS_TEST_SENTENCE) + "</li>" +
+      "<li><b>Districts in one county</b> share one forecast, so several of them are not separate tests of it.</li></ul>";
   }
 
   /* ---------- Putting it together ---------- */
+  /* The four steps and the function that draws each. A link may name only one of these. */
+  const STEPS = { risk: renderRisk, budget: renderBudget, sim: renderSim, sources: renderSources };
   function refresh(refit) {
     document.querySelectorAll("#stepper button").forEach((b) => {
       b.classList.toggle("on", b.dataset.step === state.step);
@@ -923,25 +1058,30 @@
     });
     const sim = state.step === "sim";
     if (sim && !district() && !simMembers().length) state.simStep = 1;         // nothing ticked yet: stay on the list
-    $("stage").classList.toggle("flow", sim);                                   // chips and prompt over the stage
-    $("stage").classList.toggle("sim", sim && state.simStep === 3);             // the twin picture instead of the map
-    if (sim) simChrome();
+    // The picture replaces the map only when there is a result to play (not for a district with nothing to seal).
+    const picture = sim && state.simStep === 3 && (!district() || APPLICABLE[state.scope]);
+    // The opening scan ignores taps on the map. Nobody should wait for it on the Simulation step: end it.
+    if (sim && map.isScanning()) map.skip();
+    $("stage").classList.toggle("flow", sim);                                   // prompt and buttons over the stage
+    $("stage").classList.toggle("sim", picture);                                // the twin picture instead of the map
+    simChrome();
     $("scopeBtn").innerHTML = "<small>" + (district() ? "District" : "View") + "</small>" + U.esc(scopeName()) + " &#9662;";
     $("viewScope").textContent = district() ? "My district" : "All of Texas";
-    ({ risk: renderRisk, budget: renderBudget, sim: renderSim, sources: renderSources })[state.step]();
+    STEPS[state.step]();
     syncMap();
     $("view").scrollTop = 0;
-    if (sim && state.simStep === 3) twin.play(); else twin.pause();
-    // On the district list, open the map on the Lower Valley, where most districts are, close
-    // enough to tap one. The buttons above the map jump to El Paso and Eagle Pass.
-    if (sim && !district() && state.simStep === 1 && !map.isScanning()) map.flyTo("valley");
+    if (picture) twin.play(); else twin.pause();
+    // On the district list, open the map on the Lower Valley's districts, where most of them are,
+    // close enough to tap one. The buttons above the map jump to El Paso and Eagle Pass. (If the scan
+    // is still ending, onScanEnd in the map's options does this.)
+    if (picking() && !map.isScanning()) map.flyTo("districts");
     else if (refit && !map.isScanning()) map.fitScope();
   }
   function setScope(scope, noScan) {
     state.scope = scope; state.county = null; state.canal = null; state.severity = null;
     state.simStep = scope === STATE ? 1 : 3; state.simCase = "likely"; state.simQuery = "";       // a district goes straight to the average case
     state.budget = defaultBudget();
-    $("onboard").classList.remove("open");
+    closeChooser();
     let seen = false;
     try { seen = sessionStorage.getItem("hg-scanned") === "1"; sessionStorage.setItem("hg-scanned", "1"); } catch (e) { /* storage can be blocked */ }
     const scan = !noScan && !seen && state.step !== "sim" && location.search.indexOf("noscan") < 0;
@@ -962,11 +1102,16 @@
     if (act === "closeCounty") { state.county = null; refresh(false); }
     if (act === "closeCanal") { state.canal = null; refresh(false); }
     if (act === "csv") downloadCsv();
-    if (act === "resetAssume") { state.overrides = {}; renderSim(); }
-    if (act === "simPick") { const i = Number(t.dataset.i); simMembers(); state.simSel.has(i) ? state.simSel.delete(i) : state.simSel.add(i); renderSimResult(); simChrome(); }
-    if (act === "simAll") { state.simSel = new Set(GROUPABLE); renderSimResult(); simChrome(); }
-    if (act === "simNone") { state.simSel = new Set(); renderSimResult(); simChrome(); }
-    if (act === "simRun") { state.simCase = "likely"; state.simStep = 3; refresh(false); }
+    if (act === "resetAssume") {
+      const wasFull = state.budget >= maxBudget();            // the canal width goes back to its default, and the budget's ceiling with it
+      state.overrides = {};
+      state.budget = wasFull ? maxBudget() : Math.min(state.budget, maxBudget());
+      renderSim();
+    }
+    if (act === "simPick") tapDistrict(Number(t.dataset.i));              // the same as a tap on the map
+    if (act === "simAll") { state.simSel = new Set(GROUPABLE); pickChanged(); }
+    if (act === "simNone") { state.simSel = new Set(); pickChanged(); }
+    if (act === "simRun") runSim();
     if (act === "fullBudget") { state.budget = maxBudget(); renderSim(); }
     if (act === "canal") { state.canal = Number(t.dataset.id); map.flyToCanal(state.canal); refresh(false); }
   });
@@ -1003,14 +1148,19 @@
   const SLIDER_PAUSE_MS = 250;
   $("view").addEventListener("input", (e) => {
     if (e.target.id === "budget") { state.budget = Number(e.target.value); renderBudgetResult(); }
-    if (e.target.id === "simSearch") {                          // filter the list as you type, keeping the cursor in the box
-      state.simQuery = e.target.value; renderSimResult();
-      const box = $("simSearch"); box.focus(); box.setSelectionRange(box.value.length, box.value.length);
-    }
+    if (e.target.id === "simSearch") { state.simQuery = e.target.value; renderPickRows(); }   // filter the list as you type
     if (e.target.id === "simBudget") { state.budget = Number(e.target.value); $("simBudgetOut").textContent = U.usd(state.budget); laterSim(); }
     if (e.target.dataset.param) {
       const k = e.target.dataset.param, row = SLIDERS.find((s) => s[0] === k);
+      const wasFull = state.budget >= maxBudget();              // was every rankable canal funded before this change?
       state.overrides[k] = Number(e.target.value);
+      if (k === "widthFt") {
+        // A wider canal costs more to seal, so the budget's ceiling moves with the width. A plan
+        // that funded everything still does; any other budget is kept, up to the new ceiling.
+        state.budget = wasFull ? maxBudget() : Math.min(state.budget, maxBudget());
+        const slider = $("simBudget");
+        if (slider) { slider.max = maxBudget(); slider.step = budgetStep(); slider.value = state.budget; $("simBudgetOut").textContent = U.usd(state.budget); }
+      }
       if (k === "fullAt" || k === "zeroAt") {                   // keep "none" below "all"
         const p = params();
         if (p.zeroAt >= p.fullAt) state.overrides.zeroAt = p.fullAt - 1;
@@ -1018,6 +1168,15 @@
       $("o_" + k).textContent = row[4](state.overrides[k]);
       if (state.step === "sim") laterSim(); else renderBudgetResult();
     }
+  });
+  /* Enter in the district search ticks the first district it found and empties the box, so the
+     next name can be typed straight away. */
+  $("view").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.target.id !== "simSearch") return;
+    const first = $("simRows").querySelector('[data-act="simPick"]');
+    if (!first) return;
+    simMembers(); state.simSel.add(Number(first.dataset.i));
+    state.simQuery = ""; e.target.value = ""; pickChanged();
   });
   $("stepper").addEventListener("click", (e) => {
     const b = e.target.closest("button");
@@ -1030,20 +1189,38 @@
   };
   $("themeBtn").textContent = U.theme() === "dark" ? "Light mode" : "Dark mode";
 
-  /* ---------- The chooser ---------- */
-  function fillPick(query) {
+  /* ---------- The chooser ----------
+     A plain page: two rows (the state view, or one district) and a ruled list of the districts
+     with a search box. Every row is a real <button>, so Enter and Space work on it. Each carries
+     tabindex="0" because Safari leaves a button out of the Tab order unless it asks to be in it. */
+  function pickMatches(query) {
     const q = (query || "").toLowerCase();
-    $("pickList").innerHTML = HG.districts.map((d, i) => ({ d, i }))
-      .filter(({ d }) => !q || d.name.toLowerCase().indexOf(q) >= 0 || d.counties.join(" ").toLowerCase().indexOf(q) >= 0)
-      .map(({ d, i }) => '<button data-i="' + U.esc(i) + '"><span><b>' + U.esc(d.name) + "</b><small>" + U.esc(d.counties.join(", ")) + " · " + U.num(d.canalKm) + " km of canals</small></span>" + chip(d.risk) + "</button>").join("") ||
-      '<p style="color:#c9d8e8">No district matches. The portal covers the ' + HG.districts.length + " Texas districts on the Rio Grande.</p>";
+    return HG.districts.map((d, i) => ({ d, i })).filter(({ d }) => !q || d.name.toLowerCase().indexOf(q) >= 0 || d.counties.join(" ").toLowerCase().indexOf(q) >= 0);
   }
-  function openChooser() { fillPick(""); $("pickSearch").value = ""; $("pick").classList.add("open"); $("onboard").classList.add("open"); }
+  function fillPick(query) {
+    const rows = pickMatches(query);
+    $("pickList").innerHTML = rows.length
+      ? '<div class="pickHead" aria-hidden="true"><span>District</span><span>Canals</span><span>Risk</span></div>' +
+        rows.map(({ d, i }) => '<button tabindex="0" data-i="' + U.esc(i) + '"><span class="n"><b>' + U.esc(d.name) + "</b><small>" + U.esc(d.counties.join(", ")) + '</small></span><span class="k">' + U.num(d.canalKm) + ' km</span><span class="risk ' + cssClass(d.risk, window.HGLogic.TIER_CLASSES) + '">' + U.esc(d.risk) + "</span></button>").join("")
+      : '<p class="none">No district matches. The portal covers the ' + HG.districts.length + " Texas districts on the Rio Grande.</p>";
+  }
+  /* While the chooser is open, the page behind it is switched off for the keyboard and for screen
+     readers ("inert"), so Tab stays inside the chooser. Closing it switches the page back on. */
+  function openChooser() {
+    fillPick(""); $("pickSearch").value = "";
+    $("shell").inert = true; $("topbar").inert = true;
+    $("onboard").classList.add("open"); $("onboard").scrollTop = 0; $("onboard").focus();
+  }
+  function closeChooser() { $("onboard").classList.remove("open"); $("shell").inert = false; $("topbar").inert = false; }
   $("roleState").addEventListener("click", () => setScope(STATE));
-  $("roleDistrict").addEventListener("click", () => { $("pickSearch").focus(); $("pick").scrollIntoView({ behavior: "smooth" }); });
+  $("roleDistrict").addEventListener("click", () => { $("pickSearch").focus(); $("pick").scrollIntoView({ behavior: "smooth", block: "start" }); });
   $("pickSearch").addEventListener("input", (e) => fillPick(e.target.value));
+  // Enter in the search box opens the first district it found.
+  $("pickSearch").addEventListener("keydown", (e) => { const rows = pickMatches(e.target.value); if (e.key === "Enter" && e.target.value && rows.length) setScope(rows[0].i); });
   $("pickList").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setScope(Number(b.dataset.i)); });
   $("scopeBtn").addEventListener("click", openChooser);
+  // Escape closes the chooser and keeps the view that was open.
+  $("onboard").addEventListener("keydown", (e) => { if (e.key === "Escape") closeChooser(); });
 
   /* ---------- Live readings ---------- */
   // api/live fetches today's reservoir storage (the public source does not allow browsers to
@@ -1058,7 +1235,7 @@
   }
   showLive();
   fetch("api/live").then((r) => (r.ok ? r.json() : Promise.reject())).then((data) => {
-    if (data && data.systems) { state.live = data; showLive(); if (state.scope != null) { if (state.step === "risk") renderRisk(); if (state.step === "sim") renderSimResult(); syncMap(); } }
+    if (data && data.systems) { state.live = data; showLive(); if (state.scope != null) { if (state.step === "risk") renderRisk(); if (state.step === "sim") { renderSimResult(); if (!picking() && $("simHead")) twin.play(); } syncMap(); } }
   }).catch(() => { /* keep the saved reading */ });
 
   /* ---------- Start: use the link, then the remembered choice, else ask ---------- */
@@ -1066,7 +1243,7 @@
   // A link that names a scope (#state or #d=District name) skips the question.
   const byName = (name) => HG.districts.findIndex((d) => d.name === name);
   const hash = window.HGLogic.safeDecode(location.hash.slice(1));   // a malformed link must not stop the page from starting
-  if (location.search.indexOf("step=") >= 0) state.step = location.search.split("step=")[1].split("&")[0];   // for links straight to a step
+  state.step = window.HGLogic.stepFromQuery(location.search, Object.keys(STEPS), state.step);   // a link straight to a step; an unknown step is ignored
   if (hash === "state") setScope(STATE);
   else if (hash.indexOf("d=") === 0 && byName(hash.slice(2)) >= 0) setScope(byName(hash.slice(2)));
   else { state.scope = STATE; state.budget = defaultBudget(); refresh(true); openChooser(); }

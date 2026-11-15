@@ -31,7 +31,7 @@ import pandas as pd
 from farmdrought.climate import ROUND4_DATA
 from farmdrought.config import (CANAL_KSAT_CSV, CANAL_SOIL_CSV, FROZEN, KSAT_TO_GAL_SQFT_DAY, ROOT, ROUND3,
                                 SEEPAGE_GAL_SQFT_DAY)
-from farmdrought.manifest import add_new_frozen_files
+from farmdrought.manifest import add_new_frozen_files, check_round4
 from farmdrought.round3 import header, write_items
 
 OUTPUT = "ponding.json"
@@ -39,6 +39,7 @@ PONDING_CSV = ROUND4_DATA / "ponding_tests.csv"
 DECLARED_IN = ('reports/decision.md, section "Round 4, leak model: a check against measured canal tests (declared '
                'Nov 15, 2026, before the measured rates were joined to any model figure)"')
 DRAWS, SEED = 10000, 0
+MIN_DISTINCT_RATES = 3     # an order needs at least three different model rates to mean anything
 # The table's keys in lower case, so a texture can be matched by name whatever its capitals.
 TABLE = {name.lower(): rate for name, rate in SEEPAGE_GAL_SQFT_DAY.items()}
 
@@ -75,6 +76,13 @@ def rank_agreement(model, measured):
     """Spearman correlation with a bootstrap interval over tests (tests are drawn again with
     replacement; a draw where every model rate is the same has no correlation and is skipped)."""
     model, measured = np.asarray(model, float), np.asarray(measured, float)
+    if len(set(model)) < MIN_DISTINCT_RATES:
+        # With one or two different model rates the "order" is a single split of the tests, and
+        # many resamples have no order at all. An interval from the rest would look far surer
+        # than it is, so none is given. (Added after the first run: see ponding_errata.json.)
+        return {"spearman": round(spearman(model, measured), 3), "lo": None, "hi": None, "n_tests": int(len(model)),
+                "draws_used": 0, "passes": None,
+                "note": f"no interval: the model gives fewer than {MIN_DISTINCT_RATES} different rates across these tests"}
     rng, values = np.random.default_rng(SEED), []
     for _ in range(DRAWS):
         pick = rng.integers(0, len(model), len(model))
@@ -135,6 +143,10 @@ def ponding_item(tests):
 def main():
     if (ROUND3 / OUTPUT).exists():
         write_items({OUTPUT: None})   # raises: already run, and this check is run once
+    problems = check_round4()
+    if problems:
+        raise RuntimeError("an input under data/round4 differs from data/round4.sha256, so nothing was scored:\n  "
+                           + "\n  ".join(problems))
     with open(FROZEN / "metrics.json") as f:
         frozen = json.load(f)
     content = {**header(frozen), "declared_in": DECLARED_IN, **ponding_item(pd.read_csv(PONDING_CSV))}
