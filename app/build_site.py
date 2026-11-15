@@ -623,6 +623,34 @@ def reconciliation(canals, district_names, plan):
     }
 
 
+def quarter_outlook(reports=ROOT / "reports"):
+    """The three-month outlook (src/farmdrought/quarter.py), in short, for the website.
+
+    Two files are read and neither is changed:
+      reports/live/quarter.json            this week's chance per Rio Grande county (not scored yet)
+      reports/frozen/round3/quarter.json   the blind test on eight unseen rivers, scored once
+    Returns None when either file is missing, so the site simply leaves the line out.
+    """
+    live, test = reports / "live" / "quarter.json", reports / "frozen" / "round3" / "quarter.json"
+    if not (live.exists() and test.exists()):
+        return None
+    live, test = load_json(live), load_json(test)
+    unseen, rio = test["new_holdout"], test["rio_grande_not_blind"]
+    return {
+        "issued": live["issued"], "weeksAhead": live["weeks_ahead"], "chance": live["counties"],
+        "test": {
+            # share of forecasts that were right, at the line where the model says the likelier outcome
+            "shareRight": unseen["policies"]["model at 0.50"]["share_right"],
+            "shareRightRule": unseen["policies"]["D2 now"]["share_right"],     # the rule "severe drought now"
+            "lowestYear": unseen["policies"]["model at 0.50"]["lowest_year"],
+            "forecasts": unseen["rows"], "counties": unseen["counties"], "rivers": len(test["holdout_rivers"]),
+            "auc": unseen["auc"],
+            "rioGrandeShareRight": rio["policies"]["model at 0.50"]["share_right"],
+            "rioGrandeShareRightRule": rio["policies"]["D2 now"]["share_right"],
+        },
+    }
+
+
 def write_js(path, variable, data):
     """Save data as a JavaScript file that sets one global variable."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -695,6 +723,7 @@ def build(out_dir=None):
         "forecastEffect": forecast_effect(plan, district_names),      # the plan with and without the forecast
         "frozen": frozen_summary(),                                    # the frozen round-3 results, in short
         "reconcile": reconciliation(canals, district_names, plan),     # modelled seepage against published figures
+        "quarter": quarter_outlook(),                                  # the three-month chance per county and its test
         "threshold": metrics["trigger"]["threshold"],
         "trigger": metrics["trigger"],
         "season": metrics["season"]["focus"],

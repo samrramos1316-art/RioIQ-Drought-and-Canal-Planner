@@ -4,6 +4,7 @@ import json
 import pytest
 
 from app import contract
+from app import build_site
 from app.build_site import OUT, build
 from app.contract import REPO_ROOT
 
@@ -316,3 +317,22 @@ def test_hash_list_gate_catches_a_changed_or_removed_line_against_the_base_branc
     for missing in ("", "0000000000000000000000000000000000000000", "origin/no-such-branch"):
         found, notes = gate.check(missing, [name], cwd=str(tmp_path))
         assert found == [] and "nothing was checked" in notes[0]
+
+
+def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
+    (tmp_path / "live").mkdir()
+    (tmp_path / "frozen" / "round3").mkdir(parents=True)
+    (tmp_path / "live" / "quarter.json").write_text(json.dumps(
+        {"issued": "2026-11-03", "weeks_ahead": 13, "counties": {"48061": 0.226}}))
+    policy = {"share_right": 0.9, "lowest_year": 0.8}
+    group = {"policies": {"model at 0.50": policy, "D2 now": {"share_right": 0.91}}, "rows": 100, "counties": 5, "auc": 0.95}
+    (tmp_path / "frozen" / "round3" / "quarter.json").write_text(json.dumps(
+        {"new_holdout": group, "rio_grande_not_blind": group, "holdout_rivers": ["a", "b"]}))
+    packed = build_site.quarter_outlook(tmp_path)
+    assert packed["chance"] == {"48061": 0.226} and packed["weeksAhead"] == 13
+    assert packed["test"]["shareRight"] == 0.9 and packed["test"]["shareRightRule"] == 0.91
+    assert packed["test"]["rivers"] == 2 and packed["test"]["forecasts"] == 100
+
+
+def test_three_month_outlook_is_left_out_when_a_file_is_missing(tmp_path):
+    assert build_site.quarter_outlook(tmp_path) is None
