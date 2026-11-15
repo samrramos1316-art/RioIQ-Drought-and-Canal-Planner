@@ -979,7 +979,7 @@
       '<div class="recon" role="img" aria-label="Bar chart: dollars per million gallons kept, for a published conservation programme and for the sealant. The figures are in the text beside each bar.">' +
       bar("Programme", programme, "prog") + (sealant ? bar("Sealant", sealant, "") : "") + "</div>" +
       '<p class="fn"><b>Conservation programme:</b> ' + U.usd(b.programmeUsd) + " for " + U.esc(b.programmeDistricts) + " districts, divided by " + U.num(b.programmeAf) + " acre-feet a year over a life of " + U.esc(b.lifeYears[0]) + " to " + U.esc(b.lifeYears[1]) + " years, not discounted: " +
-      dollars(programme[0]) + " to " + dollars(programme[1]) + " per million gallons. <b>This " + U.esc(window.HGLogic.BENCHMARK_CAVEAT) + ".</b> If it is a total and not a yearly figure, the programme's cost per million gallons is far higher than shown.</p>" +
+      dollars(programme[0]) + " to " + dollars(programme[1]) + " per million gallons. " + U.esc(window.HGLogic.BENCHMARK_CAVEAT) + " (" + anchor("source", window.HGLogic.BENCHMARK_SOURCE) + ").</p>" +
       (sealant ? '<p class="fn"><b>Sealant:</b> what one application costs for every ranked canal, divided by the water it is modelled to keep: ' + dollars(sealant[0]) + " to " + dollars(sealant[1]) + " per million gallons. The range is the sealant's tested effect. " +
         "Materials only, every canal taken as unlined, and built on seepage volumes that the held-out test did not confirm. The two bars are not like for like: one is a published capital cost, the other a modelled materials cost.</p>" : "");
     return out;

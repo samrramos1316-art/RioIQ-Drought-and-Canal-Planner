@@ -532,3 +532,11 @@ Also still open and not touched: whether all 57 measured-canal tests match their
 ## A note on file locations (written Nov 15, 2026)
 
 The two helper scripts named above as `scripts/costratio.py` and `scripts/verify.sh` now live in `tools/` with the other helper scripts (`tools/costratio.py`, `tools/verify.sh`). Their contents are unchanged apart from the path in their own usage lines.
+
+## Corrections to wording (written Nov 15, 2026, round 8)
+
+Nothing above is edited; these notes correct it.
+
+- **"Declared … before any of its code was written or run"** (the gradient boosting heading, and other headings worded the same way). What git can show is narrower: the commit that adds the declaration comes before the commit that adds the code. Git cannot show when code was written or run on someone's machine. Read each such heading as "declared in a commit made before the commit that adds its code".
+- **The 44,000 acre-feet is a yearly figure.** Checked Nov 15, 2026: the source says the programme is "expected to save close to 44,000 acre feet of water each year", across 12 Valley districts (https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico). This settles the second question under "Facts we tried to check and could not". The site now says it is yearly, with the link, in place of "assumes … not confirmed". No number changed.
+- **Two sentences on the home page said more than the tests show.** "with a cost, a crew time and the water kept for every one" is now "with a cost, a crew time and a modelled upper estimate of the water kept"; "The six-month forecast is accurate but not special" is now "The six-month forecast matched the simple rule and did not beat it". Both old phrases are on CI's banned list.

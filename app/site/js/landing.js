@@ -60,9 +60,9 @@
   $("howForecast").textContent = "A random forest reads the weekly Drought Monitor and the El Niño index." +
     (test ? " Frozen at the end of 2019 and tested on the years since, its January to March warnings caught " + test.forecast.caught + " of " + test.forecast.droughtSeasons + " drought seasons." : "") +
     quarterSentence + eastSentence;
-  $("howRank").textContent = num(HG.canals.length) + " canal segments, each matched to the soil under it. Leak rate times drought chance gives the sealing order, with a cost, a crew time and the water kept for every one.";
+  $("howRank").textContent = num(HG.canals.length) + " canal segments, each matched to the soil under it. Leak rate times drought chance gives the sealing order, with a cost, a crew time and a modelled upper estimate of the water kept.";
   $("limitModel").textContent = test
-    ? "The six-month forecast is accurate but not special: the simple rule \"already in moderate drought\" caught " + test.d1Rule.caught + " of the same " + test.d1Rule.droughtSeasons + " seasons. We show both."
+    ? "The six-month forecast matched the simple rule and did not beat it: the simple rule \"already in moderate drought\" caught " + test.d1Rule.caught + " of the same " + test.d1Rule.droughtSeasons + " seasons. We show both."
     : "The six-month forecast only narrowly matches the simple rule \"already in moderate drought\".";
 
   /* Numbers count up the first time their beat comes into view. */
