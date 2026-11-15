@@ -70,16 +70,19 @@ main { position: relative; z-index: 5; }
 
 /* ---------- Buttons ---------- */
 .go { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
-.btn { display: inline-block; font: 500 .8rem var(--mono); letter-spacing: .09em; text-transform: uppercase; text-decoration: none; padding: 15px 22px; background: var(--ink); color: var(--ground); border: 1px solid var(--ink); transition: background .25s, color .25s, transform .25s; }
-.btn:hover { background: var(--blue); border-color: var(--blue); transform: translateY(-2px); }
+.btn { display: inline-block; font: 500 .8rem var(--mono); letter-spacing: .09em; text-transform: uppercase; text-decoration: none; padding: 15px 22px; background: var(--ink); color: var(--ground); border: 1px solid var(--ink); transition: background .25s, color .25s; }
+.btn:hover { background: var(--blue); border-color: var(--blue); }
 .btn.line { background: transparent; color: var(--ink); border-color: var(--rule); }
 .btn.line:hover { background: transparent; color: var(--blue); border-color: var(--blue); }
 /* ---------- The opening (js/opening.js) sits above the fixed map ---------- */
 .opening { z-index: 6; }
 main { background: transparent; }
 
-/* ---------- The people ---------- */
-.people { position: relative; z-index: 6; background: #0b0f10; border-top: 1px solid var(--rule); padding: 110px clamp(20px, 6vw, 96px) 100px; }
+/* ---------- The people ----------
+   This section sits between the opening and the Texas map. It is solid (its own background,
+   above the fixed map), so the map only appears once the reader scrolls past it.
+   scroll-margin-top: a link to #people stops just below the fixed top bar. */
+.people { position: relative; z-index: 6; background: #0b0f10; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 110px clamp(20px, 6vw, 96px) 100px; scroll-margin-top: 0; }
 .people h2 { font: 400 clamp(2rem, 4.6vw, 4rem)/1.05 var(--serif); letter-spacing: -.02em; margin: 0 0 56px; max-width: 16em; }
 .people h2 em { color: var(--blue); }
 .stories { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(22px, 3vw, 48px); align-items: start; }
@@ -114,6 +117,8 @@ footer p { margin: 0 0 8px; }
   .beat, .beat.right { align-items: flex-end; justify-content: flex-start; padding-bottom: 12vh; min-height: 120vh; }
   .hero { min-height: 100vh; padding-bottom: 14vh; }
   .cols, .stories { grid-template-columns: 1fr; }
+  /* One story per row on a phone: shorter photos and less padding, so three stories are not a long wall. */
+  .people { padding: 84px 20px 64px; } .people h2 { margin-bottom: 36px; } .stories { gap: 44px; } .stories img { height: 210px; } .mission { margin-top: 48px; }
   /* On a phone the map is above the copy, so the patch behind the last beat fades upwards instead of sideways. */
   .beat .copy.scrim::before { top: -40px; bottom: -40vh; left: -100vw; right: -100vw; -webkit-mask-image: none; mask-image: none;
     background: linear-gradient(180deg, transparent 0, var(--ground) 40px); }

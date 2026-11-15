@@ -131,19 +131,19 @@
   const SIDE = [1, -1, 1];      // +1 = map on the right (text on the left)
   const HIGH = [0.32, 0.32, 0.27];   // on a phone: how far down the screen the map's middle sits. The last beat has the most text, so its map sits higher.
 
-  /* Scroll position as a beat number: 0 at the top of the hero, 5 at the last beat. */
+  /* Scroll position as a beat number: 0 at the first Texas stop, 2 at the last. */
   const beats = Array.from(document.querySelectorAll(".beat"));
   const main = document.getElementById("texas");
   function readScroll() {
-    // A beat's offsetTop is measured from the top of <main>, not of the page (the opening sits
-    // above it), so the same amount is taken off the scroll position before the two are compared.
+    // A beat's offsetTop is measured from the top of <main>, not of the page (the opening and the
+    // stories sit above it), so the same amount is taken off the scroll position before the two are compared.
     const mid = scrollY + innerHeight / 2 - main.offsetTop;
     let b = 0;
     beats.forEach((el, i) => { const top = el.offsetTop, c = top + el.offsetHeight / 2; if (mid >= c) b = i; });
     const here = beats[b], next = beats[b + 1];
     if (next) { const c0 = here.offsetTop + here.offsetHeight / 2, c1 = next.offsetTop + next.offsetHeight / 2; b += Math.max(0, Math.min(1, (mid - c0) / (c1 - c0))); }
     beat = b;
-    // The map is only on screen between the end of the opening and the stories section.
+    // The map is only on screen while <main> is: after the stories, and before "How it works".
     onScreen = scrollY + innerHeight > main.offsetTop && scrollY < main.offsetTop + main.offsetHeight;
   }
   addEventListener("scroll", readScroll, { passive: true }); readScroll();
@@ -168,7 +168,7 @@
   /* ---------- One frame ---------- */
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; clock += dt;
-    if (!onScreen) { requestAnimationFrame(frame); return; }           // nothing to draw while the opening or the stories are showing
+    if (!onScreen) { requestAnimationFrame(frame); return; }           // nothing to draw while the opening, the stories or the last section cover the map
     // Camera: glide between the two beats we are between, holding still near each one.
     const i = Math.min(CAMERA.length - 2, Math.floor(beat)), u = smooth(beat - i, 0.2, 0.8);
     const a = fit(CAMERA[i], SIDE[i], HIGH[i]), b = fit(CAMERA[i + 1], SIDE[i + 1], HIGH[i + 1]);

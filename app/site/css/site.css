@@ -31,6 +31,8 @@
   /* map-only colours */
   --map: #081216; --casing: #0b2c38; --flow: #d5f1fa; --hl: #ffffff; --cline: #4a6a73; --vig: 1;
   --wet: #25b58f; --dry: #c4944f; --dead: #5a3418;   /* simulation fields: watered, dry, long dry */
+  --sealed: #ffffff;      /* simulation picture: a sealed canal (white in both themes, over the green) */
+  --idle: #5f747c;        /* simulation picture: water that arrived on the "do nothing" side (grey, so the acting side's green stands out) */
   --radius: 3px;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .28);
   --sans: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -44,7 +46,7 @@
   --unknown: #7b8086; --fund: #0b63b5;
   --dm0: #efe9d8; --dm1: #efdf8e; --dm2: #e8b53a; --dm3: #db5f00; --dm4: #c8102e; --dm5: #7a0c22;
   --map: #fbf8ef; --casing: #ffffff; --flow: #ffffff; --hl: #111111; --cline: #b9ae8e; --vig: .35;
-  --wet: #2e9e6b; --dry: #c99a52; --dead: #6b4423;
+  --wet: #2e9e6b; --dry: #c99a52; --dead: #6b4423; --idle: #9aa6b1;
   --shadow: 0 1px 2px rgba(11, 31, 58, .06), 0 8px 24px rgba(11, 31, 58, .08);
 }
 
@@ -68,8 +70,9 @@ img { max-width: 100%; display: block; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: .01em; }
 .brand svg { width: 28px; height: 28px; }
 .brand small { display: block; font-weight: 400; opacity: .7; font-size: .72rem; letter-spacing: .04em; }
-.btn { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 12px 20px; font-weight: 700; text-decoration: none; background: var(--blue); color: var(--on-blue); transition: transform .15s, background .15s, box-shadow .15s; }
-.btn:hover { background: var(--blue-2); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(56, 200, 245, .3); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 12px 20px; font-weight: 700; text-decoration: none; background: var(--blue); color: var(--on-blue); transition: background .15s; }
+.btn:hover { background: var(--blue-2); }
+.btn:disabled { background: var(--soft); color: var(--muted); cursor: default; }
 .btn.ghost { background: transparent; color: inherit; border: 1.5px solid currentColor; }
 .btn.ghost:hover { background: rgba(255, 255, 255, .1); box-shadow: none; }
 .btn.light { background: #fff; color: var(--navy); }
@@ -79,11 +82,11 @@ img { max-width: 100%; display: block; }
 .chip.Low { background: color-mix(in srgb, var(--low) 18%, transparent); color: var(--low); }
 .chip.Watch { background: color-mix(in srgb, var(--watch) 18%, transparent); color: var(--watch); }
 .chip.Warning { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--warning); }
-.tag { font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; border-radius: 4px; padding: 2px 6px; background: var(--soft); color: var(--muted); }
+.tag { font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; border-radius: 2px; padding: 2px 6px; background: var(--soft); color: var(--muted); white-space: nowrap; }
 .tag.published { background: color-mix(in srgb, var(--blue) 18%, transparent); color: var(--blue); }
 .tag.pipeline { background: color-mix(in srgb, var(--low) 18%, transparent); color: var(--low); }
 .tag.assumption { background: color-mix(in srgb, var(--watch) 18%, transparent); color: var(--watch); }
-.note { border-left: 4px solid var(--watch); background: color-mix(in srgb, var(--watch) 9%, var(--card)); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: .88rem; color: var(--ink); }
+.note { border-left: 4px solid var(--watch); background: color-mix(in srgb, var(--watch) 9%, var(--card)); padding: 10px 14px; font-size: .88rem; color: var(--ink); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .78rem; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0, 0, 0, .12); }
@@ -264,48 +267,55 @@ body.app { height: 100vh; display: flex; flex-direction: column; overflow: hidde
 .scanning .cine { height: 7vh; }
 #vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .5) 100%); opacity: calc(.45 * var(--vig)); transition: opacity 1.2s; }
 .scanning #vig { opacity: var(--vig); }
-/* The Simulation step: sub-step chips, prompt, scenario cards and the play bar (drawing is js/twin.js). */
-#simSteps, #simPrompt, #simCards { display: none; }
+/* The Simulation step: the back button, the prompt, the scenario buttons and the play bar (the picture is drawn by js/twin.js). */
+#simSteps, #simPrompt { display: none; }
 .stage.flow #simSteps { display: flex; }
 .stage.flow:not(.sim) #simPrompt { display: block; }
-.stage.cards #simCards { display: flex; }
 .stage.flow #actions, .stage.flow #hud, .stage.sim #views { display: none !important; }
 #simSteps { position: absolute; left: 16px; top: 14px; gap: 6px; z-index: 4; }
 #simSteps button { background: color-mix(in srgb, var(--card) 94%, transparent); border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; font: 500 15px var(--serif); color: var(--muted); }
 #simSteps button b { color: var(--blue); margin-right: 6px; }
 #simSteps button.on { border-color: var(--blue); color: var(--ink); font-weight: 700; }
 #simSteps button:disabled { opacity: .45; cursor: default; }
-#simPrompt { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); z-index: 3; text-align: center; pointer-events: none; width: min(92%, 640px); text-shadow: 0 0 8px var(--map), 0 0 8px var(--map), 0 0 8px var(--map); }
-#simPrompt b { display: block; font-size: clamp(20px, 2.4vw, 30px); line-height: 1.15; color: var(--head); }
-#simPrompt span { font-size: 15px; font-style: italic; color: var(--muted); }
-#simCards { position: absolute; right: 14px; top: 58px; bottom: 12px; width: min(330px, 44%); flex-direction: column; gap: 8px; justify-content: center; z-index: 4; }
-.stage.cards #simPrompt { left: calc(50% - 170px); width: min(60%, 520px); }
-.scase { flex: 0 1 auto; min-height: 0; overflow: hidden; text-align: left; background: color-mix(in srgb, var(--card) 95%, transparent); color: var(--ink); border: 1px solid var(--line); border-left: 5px solid var(--warning); border-radius: 4px; padding: 9px 12px; font-family: var(--serif); animation: caseIn .6s cubic-bezier(.2, .7, .2, 1) backwards; transition: transform .2s, box-shadow .2s; }
-.scase:nth-child(2) { animation-delay: .12s; } .scase:nth-child(3) { animation-delay: .24s; } .scase:nth-child(4) { animation-delay: .36s; }
-@keyframes caseIn { from { opacity: 0; transform: translateX(40px); } }
-.scase:hover { transform: translateX(-6px); box-shadow: 0 6px 24px rgba(0, 0, 0, .35); }
-.scase.best { border-left-color: var(--low); } .scase.likely { border-left-color: var(--watch); } .scase.check { border-left-color: var(--blue); }
-.scase h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0; font-size: 18px; color: var(--head); }
-.scase h3 small { font-size: 12.5px; font-weight: 400; font-style: italic; color: var(--muted); }
-.scase .big { font-size: 26px; font-weight: 700; line-height: 1.1; margin-top: 2px; color: var(--head); font-variant-numeric: tabular-nums; }
-.scase p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.3; }
-.scase p.tiny { font-size: 11.5px; font-style: italic; }
-.scase svg { display: block; width: 100%; height: 22px; margin-top: 3px; }
-@media (max-height: 900px) { .scase p.tiny { display: none; } }
-.scase .gain { font-size: 14px; font-weight: 700; color: var(--low); margin-top: 3px; } .scase .gain.bad { color: var(--warning); }
-.scase .go { font-size: 13.5px; font-weight: 700; color: var(--blue); }
-.pickBar { display: flex; gap: 6px; margin: 10px 0 8px; } .pickBar input { flex: 1; min-width: 0; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; font: inherit; }
+/* Choosing districts: one line of prompt at the top of the map, and a Run button at the bottom of it. */
+#simPrompt { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); z-index: 3; text-align: center; pointer-events: none; width: min(92%, 640px); font: 600 clamp(19px, 2vw, 24px)/1.15 var(--serif); color: var(--head); text-shadow: 0 0 8px var(--map), 0 0 8px var(--map), 0 0 8px var(--map); }
+#simGo { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 4; white-space: nowrap; }
+#simGo:disabled { background: var(--card); color: var(--muted); border-color: var(--line); cursor: default; }
+#simGo[hidden] { display: none; }
+/* The map's legend while choosing: three swatches drawn like the districts on the map. */
+#legend.slim { width: auto; padding: 8px 11px; } #legend.slim .keys { flex-direction: column; gap: 3px; }
+.keys i.sw { width: 15px; height: 11px; border-radius: 0; box-sizing: border-box; }
+.keys i.sw.on { background: color-mix(in srgb, var(--low) 62%, transparent); border: 2px solid var(--low); }
+.keys i.sw.can { background: color-mix(in srgb, var(--ink) 10%, transparent); border: 1px solid var(--ink); }
+.keys i.sw.no { border: 1px dashed var(--muted); }
+/* The district list's bar: Run, All, None and the search box. It stays at the top of the panel
+   while the list scrolls under it, so the Run button is always in view. */
+.pickBar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 -4px; padding: 10px 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.pickBar .btn:first-child { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+.pickBar input { flex: 1 1 100%; min-width: 0; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; font: inherit; }
+table.t.pick { border-top: 0; } table.t.pick th { position: static; } table.t.pick .rng { white-space: nowrap; }
+table.t.pick tr.on td { background: color-mix(in srgb, var(--low) 13%, transparent); }
+table.t.pick td:first-child, table.t.pick th:first-child { width: 26px; padding-left: 6px; }
+/* A button that reads as a link, inside a line of text. */
+.linkBtn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--blue); cursor: pointer; white-space: nowrap; }
+.linkBtn:hover { text-decoration: underline; }
+/* The one honesty line under the simulation's headline. */
+.trust { border-left: 3px solid var(--watch); padding-left: 10px; margin: 12px 0 14px; font-size: .84rem; }
+/* The key to the simulation picture: four swatches in the colours js/twin.js draws with. */
+.twinKey { margin: 12px 0 16px; } .twinKey i.idle { background: var(--idle); } .twinKey i.wet { background: var(--wet); } .twinKey i.dry { background: var(--dry); } .twinKey i.leak { background: var(--warning); height: 2px; }
+/* The forecast's row in the short policy table. */
+table.t tr.hl td { background: color-mix(in srgb, var(--low) 11%, transparent); } table.t tr.hl td:first-child { font-weight: 600; color: var(--head); box-shadow: inset 3px 0 0 var(--low); padding-left: 9px; }
 dl.key { margin: 0; font-size: .84rem; } dl.key dt { font-weight: 600; color: var(--head); margin-top: 8px; } dl.key dd { margin: 0; color: var(--muted); }
 #simSteps button { color: var(--ink); }
-#simCases { position: absolute; right: 14px; top: 14px; display: flex; gap: 4px; z-index: 4; } #simCases .sbtn { padding: 5px 9px; font-size: 14px; }
+#simCases { position: absolute; right: 14px; top: 14px; display: flex; gap: 4px; z-index: 4; } #simCases .sbtn { padding: 5px 9px; font-size: 14px; white-space: nowrap; }
 table.t input[type=checkbox] { accent-color: var(--blue); pointer-events: none; }
 #simBar { position: absolute; left: 14px; right: 14px; bottom: 10px; display: flex; gap: 10px; align-items: center; z-index: 3; }
 #simBar input[type=range] { flex: 1; min-width: 0; }
 /* The caption on the simulation picture: it sits just above the play bar, in the room js/twin.js leaves for it. */
 #twinCaption { position: absolute; left: 14px; right: 14px; bottom: 52px; margin: 0; z-index: 3; text-align: center; font-size: 12.5px; line-height: 1.35; color: var(--ink); pointer-events: none; }
-#simDate { font-size: 15px; min-width: 118px; text-align: right; color: var(--ink); }
+#simDate { font-size: 15px; min-width: 96px; text-align: right; color: var(--ink); }
 .shocks { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-.shocks span { color: var(--muted); font-size: .82rem; width: 100%; }
+.shocks { margin: 0 0 12px; } .shocks span { color: var(--muted); font-size: .78rem; width: 100%; }
 .watching { border-left: 5px solid var(--watch); } .watching.best { border-left-color: var(--low); } .watching.worst { border-left-color: var(--warning); } .watching.check { border-left-color: var(--blue); }
 table.t tr.go { cursor: pointer; } table.t tr.go:hover td { background: var(--soft); }
 
@@ -438,6 +448,7 @@ details.more:last-of-type { border-bottom: 1px solid var(--line); }
 details.more summary { font-weight: 600; font-size: .84rem; cursor: pointer; color: var(--ink); }
 details.more[open] summary { margin-bottom: 8px; }
 details.more h3 { display: none; }
+details.more h3.keep { display: block; margin-top: 14px; }   /* a heading that is not a repeat of the fold-out's own title */
 table.t { background: none; border: 0; border-top: 2px solid var(--head); border-radius: 0; font-size: .82rem; }
 table.t th { background: var(--bg); border-bottom: 1px solid var(--head); padding: 6px 8px 6px 0; font-weight: 600; }
 table.t td { padding: 6px 8px 6px 0; }
@@ -455,8 +466,8 @@ table.t.replay th.r { white-space: normal; }
 .rmid { display: block; }
 .rng { display: block; white-space: normal; font-size: .72rem; line-height: 1.3; color: var(--muted); }
 .scroll { border-radius: 0; }
-.saveHero span { letter-spacing: .1em; font-size: .7rem; }
-.saveHero b { font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
+.saveHero > span { letter-spacing: .08em; font-size: .7rem; }
+.saveHero b { font-weight: 600; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
 .saveHero + .stats { border-top: 1px solid var(--line); margin-top: 6px; }
 .chart { background: none; border: 0; padding: 4px 0; }
 ul.plain { margin: 0; padding-left: 18px; font-size: .84rem; } ul.plain li { margin: 6px 0; }
@@ -465,38 +476,49 @@ ul.plain { margin: 0; padding-left: 18px; font-size: .84rem; } ul.plain li { mar
 .stack { border-radius: 2px; height: 10px; } .gauge, .gauge i { border-radius: 2px; } .gauge { height: 6px; margin: -6px 0 12px; }
 .seg, .seg button { border-radius: 3px; }
 .btn { border-radius: 3px; }
-.role, .pickList button, .pick input, .scopeBtn, .topBtn { border-radius: 4px; }
+.scopeBtn, .topBtn { border-radius: 4px; }
 .flag { display: inline-block; font-size: .7rem; font-weight: 700; border-radius: 4px; padding: 1px 6px; border: 1px solid var(--watch); color: var(--watch); margin-left: 6px; white-space: nowrap; }
 
-/* The simulation's headline: what acting saves. */
+/* The simulation's headline: one range (what acting on the forecast saves), then one small line. */
 .saveHero { border-top: 2px solid var(--low); padding: 10px 0 0; margin: 14px 0 0; }
-.saveHero span { display: block; font-size: .76rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-.saveHero b { display: block; font-family: var(--serif); font-size: clamp(2.4rem, 4vw, 3.4rem); line-height: 1.1; color: var(--low); }
-.saveHero small { display: block; color: var(--muted); font-size: .84rem; }
+.saveHero > span { display: block; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); line-height: 1.7; }
+.saveHero > span .tag { letter-spacing: .05em; }
+.saveHero b { display: inline-block; font-family: var(--serif); font-size: clamp(1.9rem, 3vw, 2.7rem); line-height: 1.15; color: var(--low); margin-right: 10px; }
+.saveHero small { color: var(--muted); font-size: .84rem; }
+.saveHero small.hmid { color: var(--ink); font-size: .95rem; white-space: nowrap; }
+.saveHero small:last-child { display: block; }
 
-/* The first-visit chooser: who are you? */
-.onboard { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(1200px 700px at 30% 0%, #12404d, #081216); color: #fff; overflow-y: auto; display: none; }
-.onboard.open { display: block; animation: fadeIn .4s; }
-@keyframes fadeIn { from { opacity: 0; } }
-.onboard .wrap { padding-top: 7vh; padding-bottom: 60px; max-width: 980px; }
-.onboard h1 { color: #fff; font-size: clamp(1.8rem, 4vw, 2.8rem); }
-.onboard p.lead { color: #c9d8e8; max-width: 60ch; margin-bottom: 30px; }
-.roles { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.role { text-align: left; background: rgba(255, 255, 255, .06); border: 1.5px solid rgba(255, 255, 255, .2); border-radius: 14px; padding: 24px; color: #fff; transition: transform .2s, background .2s, border-color .2s; }
-.role:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .12); border-color: #38c8f5; }
-.role svg { width: 34px; height: 34px; color: #38c8f5; margin-bottom: 12px; }
-.role b { display: block; font-family: var(--serif); font-size: 1.4rem; margin-bottom: 6px; }
-.role span { color: #c9d8e8; font-size: .92rem; }
-.pick { margin-top: 26px; display: none; }
-.pick.open { display: block; animation: fadeIn .3s; }
-.pick input { width: 100%; padding: 13px 16px; border-radius: 10px; border: 0; font: inherit; margin-bottom: 12px; }
-.pickList { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
-.pickList button { text-align: left; background: #15272d; color: #f6faf7; border: 1px solid #2f4a52; border-radius: 10px; padding: 12px 14px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-.pickList button:hover { outline: 3px solid #38c8f5; }
-.pickList small { display: block; color: #b6c8c4; }
+/* The chooser: who is this for? A plain page in the platform's own colours and type (so it
+   follows the dark and light themes): a narrow column set to the left, a serif heading, two ruled
+   rows, and the districts as a ruled list. No cards, no gradient, nothing moves on hover. */
+.onboard { position: fixed; inset: 0; z-index: 2000; background: var(--bg); color: var(--ink); overflow-y: auto; display: none; }
+.onboard.open { display: block; }
+.onboard:focus { outline: none; }                       /* focused by the page when it opens, not by the user */
+.onboard .sheet { max-width: 680px; margin: 0 0 0 clamp(18px, 9vw, 150px); padding: clamp(28px, 7vh, 72px) 18px 80px 0; }
+.onboard .kicker { font-size: .72rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.onboard h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.01em; margin: 0 0 22px; }
+.roles { border-top: 2px solid var(--head); }
+.role { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr) auto; gap: 4px 18px; align-items: baseline; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 15px 6px 15px 0; color: var(--ink); }
+.role b { font: 600 1.3rem/1.25 var(--serif); color: var(--head); }
+.role span { color: var(--muted); font-size: .92rem; }
+.role i { font-style: normal; font-size: 1.15rem; color: var(--blue); }
+.role:hover b, .role:focus-visible b { color: var(--blue); }
+.pick { margin-top: 34px; scroll-margin-top: 12px; }
+.pick label { display: block; font-size: .72rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.pick input { width: 100%; padding: 10px 12px; border: 1px solid var(--muted); border-radius: 0; background: var(--card); color: var(--ink); font: inherit; margin-bottom: 14px; }
+.pickList { border-top: 2px solid var(--head); }
+.pickHead, .pickList button { display: grid; grid-template-columns: minmax(0, 1fr) 5.5em 5em; gap: 0 14px; align-items: baseline; }
+.pickHead { font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--head); }
+.pickHead span:nth-child(2), .pickList .k { text-align: right; font-variant-numeric: tabular-nums; }
+.pickList button { width: 100%; text-align: left; background: none; color: var(--ink); border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 9px 0; font-size: .92rem; }
+.pickList button:hover, .pickList button:focus-visible { background: var(--soft); }
+.pickList b { font-weight: 600; color: var(--head); }
+.pickList small { display: block; color: var(--muted); font-size: .78rem; }
+.pickList .risk { font-size: .84rem; } .pickList .risk.Warning { color: var(--warning); } .pickList .risk.Watch { color: var(--watch); } .pickList .risk.Low { color: var(--low); }
+.pickList .none { color: var(--muted); padding: 12px 0; margin: 0; }
 
 @media (max-width: 900px) {
-  .costGrid, .roles { grid-template-columns: 1fr; }
+  .costGrid { grid-template-columns: 1fr; }
   .story .step { justify-content: center; align-items: flex-end; padding-bottom: 8vh; }
   .hero .mosaic { grid-template-columns: repeat(4, 1fr); }
   body.app { height: auto; overflow: auto; }
@@ -507,26 +529,33 @@ ul.plain { margin: 0; padding-left: 18px; font-size: .84rem; } ul.plain li { mar
   .stepper button b { display: none; } .stepper button { font-size: .7rem; padding: 12px 2px 10px; letter-spacing: .02em; }
   .scopeBtn { max-width: 34vw; }
   .kpis { grid-template-columns: 1fr; }
-  #simCards { width: 52%; top: 108px; gap: 6px; } .stage.cards #simPrompt { left: 50%; width: 92%; } .scase p, .scase svg, .scase .go { display: none; } .scase .big { font-size: 20px; } .scase h3 { font-size: 15px; }
-  #simSteps button { padding: 5px 8px; font-size: 13.5px; } #simPrompt { top: 54px; } #simPrompt span { display: none; }
+  #simSteps button { padding: 5px 8px; font-size: 13.5px; } #simPrompt { top: 58px; }
+  /* Choosing districts on a phone: the three buttons that jump to where the districts are replace "All of Texas". */
+  /* (#stage is named so these rules outrank the one above that hides the buttons.) */
+  #stage.flow:not(.sim) #views { max-width: none; right: 16px; } #stage.flow:not(.sim) #views #viewScope { display: none; }
+  #stage.flow:not(.sim) #views .sbtn[data-view="valley"], #stage.flow:not(.sim) #views .sbtn[data-view="elpaso"], #stage.flow:not(.sim) #views .sbtn[data-view="maverick"] { display: inline-block; padding: 5px 9px; font-size: 14px; }
+  #simGo { left: 14px; transform: none; bottom: 14px; }
+  .pickBar { top: 0; }
   #legend { display: none; }
   .futures, .triple { grid-template-columns: 1fr; } .stats dd { font-size: 1.3rem; } .stats.three dd { font-size: 1.05rem; }
   .nav nav a:not(.btn) { display: none; }
   .live span { display: none; }
 }
-/* The simulation picture on a phone (js/twin.js stacks its two panels when the stage is under
-     620px wide). The scenario buttons go on a row of their own under the back button, with the
-     long label shortened so all four fit; the picture's date and reservoir bar start below that
-     row (twin.js). The date beside the play bar is left out, because the picture shows the month,
-     and that makes room for "Skip to the end". */
+/* The simulation picture on a phone (js/twin.js puts its two sides one above the other when the
+     stage is under 620px wide). The scenario buttons go on a row of their own under the back
+     button; the picture's date and reservoir bar start below that row (twin.js). The date beside
+     the play bar is left out, because the picture shows the month. */
 @media (max-width: 620px) {
   #simCases { left: 14px; right: 14px; top: 50px; } #simCases .sbtn { padding: 3px 7px; font-size: 12.5px; white-space: nowrap; }
-  #simCases .wide { display: none; }
   #simBar .sbtn { white-space: nowrap; } #simSkip { padding: 6px 10px; font-size: 14px; }
+  /* The chooser on a phone: each row's description goes under its name, and the list drops the risk column. */
+  .onboard .sheet { margin-left: 18px; }
+  .role { grid-template-columns: minmax(0, 1fr) auto; } .role span { grid-column: 1; grid-row: 2; }  .role i { grid-row: 1 / 3; grid-column: 2; align-self: center; }
+  .pickHead, .pickList button { grid-template-columns: minmax(0, 1fr) 5em; } .pickHead span:nth-child(3), .pickList .risk { display: none; }
   #simDate { display: none; }
-  /* On a short phone 62% of the screen is too little for the two stacked panels: their three
-     figures ran into each other. The picture gets a floor on its height instead. */
-  .stage.sim { height: max(62vh, 540px); }
+  /* On a short phone 62% of the screen is too little for the two sides one above the other: their
+     figures ran into each other. The picture gets more of the screen, and a floor on its height. */
+  .stage.sim { height: max(66vh, 590px); }
 }
 @media (prefers-reduced-motion: reduce) { .cine, #vig { transition: none; } }
 

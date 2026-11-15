@@ -942,6 +942,7 @@ test("replayBandsLines state the counts as they are, including zero", () => {
 function bareDollars(html) {
   const left = html
     .replace(/<span class="rmid">[^<]*<\/span><small class="rng">[^<]*<\/small>/g, "")                      // a range in a table cell
+    .replace(/<b class="hrange">[^<]*<\/b><small class="hmid">[^<]*<\/small>/g, "")                          // the headline range: low to high, with the middle under it
     .replace(/-?\$[\d.,]+[kMB]? \((?:-?\$[\d.,]+[kMB]? to -?\$[\d.,]+[kMB]?|the same in every (?:draw|future))\)/g, "")   // a range in a sentence
     .replace(/Sealant budget \(an input\) \$[\d.,]+(?: (?:million|billion))?/g, "");                         // the budget, labelled as an input
   return left.match(/-?\$[\d.,]+\s?(?:[kMB]|million|billion)?/g) || [];
@@ -957,6 +958,12 @@ test("no bare dollar: the checker itself catches a lone figure and passes the al
   assert.deepStrictEqual(bareDollars(L.rangeText({ low: -73000, mid: 7.4e6, high: 18.7e6 }, L.money) + "."), []);
   assert.deepStrictEqual(bareDollars(L.rangeText({ low: 5, mid: 5, high: 5 }, L.money, "future")), []);
   assert.deepStrictEqual(bareDollars("Sealant budget (an input) $1.3 million each round"), []);
+  // The headline at the top of the Simulation step is a range too: low to high, and the middle beside it.
+  assert.strictEqual(L.rangeHeadline({ low: 2e6, mid: 4e6, high: 6e6 }, L.money), '<b class="hrange">$2.0M to $6.0M</b><small class="hmid">middle $4.0M</small>');
+  assert.strictEqual(L.rangeHeadline({ low: -73000, mid: 7.4e6, high: 18.7e6 }, L.money), '<b class="hrange">-$73k to $18.7M</b><small class="hmid">middle $7.4M</small>');
+  assert.strictEqual(L.rangeHeadline({ low: 5, mid: 5, high: 5 }, L.money, "future"), '<b class="hrange">$5</b><small class="hmid">the same in every future</small>');
+  assert.deepStrictEqual(bareDollars(L.rangeHeadline({ low: 2e6, mid: 4e6, high: 6e6 }, L.money)), []);
+  assert.deepStrictEqual(bareDollars('<b class="hrange">$2.0M</b> and then $6.0M'), ["$2.0M", "$6.0M"]);   // a headline figure with no middle under it
 });
 
 test("no bare dollar: the replay table, its sentence and its count lines hold no lone dollar figure, for one district and for the state view", () => {
@@ -974,6 +981,18 @@ test("no bare dollar: the replay table, its sentence and its count lines hold no
     const cells = table.match(/<td class="r">.*?<\/td>/g);
     cells.forEach((c) => assert.ok(/rmid/.test(c) || /^<td class="r">(\d+ of \d+|0|none|)<\/td>$/.test(c), c));
     assert.strictEqual(cells.length, 5 * 5);
+    // The short table at the top of the step: the same rows without the crop-loss column, the
+    // forecast's row marked, water in billions of gallons, and still no lone dollar figure.
+    const short = L.replayBandsTable(result, true), shortCells = short.match(/<td class="r">.*?<\/td>/g);
+    assert.deepStrictEqual(bareDollars(short), []);
+    assert.strictEqual(shortCells.length, 5 * 4);
+    shortCells.forEach((c) => assert.ok(/rmid/.test(c) || /^<td class="r">(\d+ of \d+|0|none|)<\/td>$/.test(c), c));
+    assert.ok(short.indexOf("Crop loss") < 0 && table.indexOf("Crop loss") >= 0);
+    assert.ok(short.indexOf("Water kept (billion gallons)") >= 0 && !/acre|\baf\b/i.test(short));
+    assert.strictEqual((short.match(/<tr class="hl">/g) || []).length, 1);
+    assert.ok(short.indexOf('<tr class="hl"><td>Seal when the forecast warns</td>') >= 0);
+    // Leaving the column out changes nothing else: each short row is the full row minus its crop-loss cell.
+    result.rows.forEach((r) => assert.ok(short.indexOf(L.rangeCell(r.saving, L.money)) >= 0 || r.trigger === "never"));
   }
 });
 
@@ -1052,11 +1071,30 @@ test("the held-out test sentence is fixed wording and carries exactly the report
   assert.strictEqual(L.esc(L.HELD_OUT_SENTENCE), L.HELD_OUT_SENTENCE);     // nothing in it needs escaping
 });
 
+test("the one-line honesty note is fixed wording, says the same as the held-out sentence, and is shorter", () => {
+  assert.strictEqual(L.TRUST_LINE, "Modelled, not measured. Our own test could not confirm the leak model, so these dollars and gallons are not reliable.");
+  assert.ok(L.TRUST_LINE.length < L.HELD_OUT_SENTENCE.length / 3);
+  assert.ok(/not reliable/.test(L.TRUST_LINE) && /not reliable/.test(L.HELD_OUT_SENTENCE));
+  assert.strictEqual(L.esc(L.TRUST_LINE), L.TRUST_LINE);                   // nothing in it needs escaping
+});
+
 test("the held-out sentence is placed on the Simulation step above the replay table, on the Budget plan above the ranked list, and on the Sources step", () => {
   const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
   const body = (name) => { const a = page.indexOf("function " + name + "("); assert.ok(a >= 0, name); return page.slice(a, page.indexOf("\n  }\n", a)); };
   const before = (text, first, second, where) => { const i = text.indexOf(first), j = text.indexOf(second); assert.ok(i >= 0 && j >= 0 && i < j, where + ": " + first + " must come before " + second); };
   before(body("replayHtml"), "heldOutNote()", "bandsBlock(result", "Simulation step");
+  // The top of the Simulation step shows the one-line note, with the way to the rest, ABOVE its short table;
+  // the full sentence is in the step's fine print (replayHtml), which the step always fills in.
+  before(body("simHeadHtml"), "trustLine()", "replayBandsTable(result, true)", "Simulation step: the honesty line comes before the short table");
+  before(body("simHeadHtml"), "TAG_MODELLED", "rangeHeadline(", "Simulation step: the headline carries the modelled tag");
+  assert.ok(body("simHeadHtml").indexOf("if (!scope) return trustLine()") >= 0, "the line is shown even when there is no replay to head the step");
+  assert.ok(/const trustLine = \(\) => '<p class="trust">' \+ U\.esc\(window\.HGLogic\.TRUST_LINE\) \+ ' <button class="linkBtn" data-act="go" data-step="sources">How far to trust this &rarr;<\/button><\/p>';/.test(page));
+  assert.ok(body("renderSimResult").indexOf('$("simNotes").innerHTML = replayHtml(c.over)') >= 0, "Simulation step: the fine print holds the full sentence");
+  assert.ok(page.indexOf('<details class="more" id="simFine"><summary>Fine print for this run</summary><div id="simNotes"></div></details>') >= 0);
+  // The Sources step opens with it, under the heading the Simulation step's link names.
+  before(body("renderSources"), '"<h3>How far to trust this</h3>"', "heldOutNote()", "Sources step: the heading comes first");
+  // What used to be spelled out on the Simulation step is on the Sources step.
+  for (const piece of ["REPLAY_NOTE", "SAVING_NOTE", "PICK_NOTE", "window.HGLogic.SCORED_TEST_SENTENCE", "window.HGLogic.STRESS_TEST_SENTENCE", "window.HGLogic.TWIN_CAPTION"]) assert.ok(body("renderSources").indexOf(piece) >= 0, "Sources step: " + piece);
   before(body("bandsBlock"), "replayBandsTable(result)", "replayBandsSentence(result)", "the table is the first thing in the block");
   before(body("renderBudgetResult"), "heldOutNote() + rows", "Simulate this plan", "Budget plan");
   assert.ok(body("renderSources").indexOf("heldOutNote()") >= 0, "Sources step");

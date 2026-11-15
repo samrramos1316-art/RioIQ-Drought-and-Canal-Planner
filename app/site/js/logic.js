@@ -6,6 +6,7 @@
     Plain ones need nothing but their arguments: esc, usd, num, pct, niceDate, workTime, gal,
     money, usesElephantButte, and the guards safeUrl, safeDecode, cssClass, finiteOrNull, percentOrNull, csvText, csvNumber.
     For the Sources step: sig, signed, verdictFor, forecastEffectSentence, levelLabel, perMillionGal.
+    For the Simulation step: band, rangeText, rangeCell, rangeHeadline, replayBands and the fixed sentences.
 
     Bound ones read the generated data (window.HG and window.HG_SIM in the browser). They come
     from makeLogic(data), so a test can hand in a small made-up data object instead:
@@ -159,6 +160,13 @@
     return '<span class="rmid">' + esc(fmt(b.mid)) + '</span><small class="rng">' +
       (fmt(b.low) === fmt(b.high) ? "same in every " + esc(unit || "draw") : esc(fmt(b.low)) + " to " + esc(fmt(b.high))) + "</small>";
   }
+  /* The same range as a headline: the low and the high in large type, the middle in small type
+     under it. Used once, at the top of the Simulation step. */
+  function rangeHeadline(b, fmt, unit) {
+    const same = fmt(b.low) === fmt(b.high);
+    return '<b class="hrange">' + esc(same ? fmt(b.mid) : fmt(b.low) + " to " + fmt(b.high)) + '</b><small class="hmid">' +
+      (same ? "the same in every " + esc(unit || "draw") : "middle " + esc(fmt(b.mid))) + "</small>";
+  }
   /* Acre-feet in thousands, for narrow table cells: 3,350 / 48.8 / 4.37. */
   const thousandAf = (af) => num(af / 1000, Math.abs(af) >= 1e5 ? 0 : Math.abs(af) >= 1e4 ? 1 : 2);
   /* Acre-feet as billions of gallons, for the same narrow cells: 1,091 / 15.9 / 1.42. The page
@@ -228,6 +236,9 @@
     "Across 14 districts its typical error was 32.7%, against 36.5% for canal length alone, and the two could not be told apart. " +
     "So the volumes and dollar figures here are not reliable and are not measurements. " +
     "The canal order on the map is an illustration of the method, not a tested ranking: we have not shown that it ranks canals better than canal length does.";
+  /* The same finding in one line, for the top of the Simulation step. Fixed wording. The full
+     sentence above is one tap away: in the step's fine print and at the top of the Sources step. */
+  const TRUST_LINE = "Modelled, not measured. Our own test could not confirm the leak model, so these dollars and gallons are not reliable.";
   /* What the published losses used in that test are. Shown on the Sources step. Fixed wording. */
   const LOSSES_1998_SENTENCE = "The 1998 losses are estimates based on water rights, not measured, and include evaporation and spills.";
   /* The caption on the simulation's picture. The picture shows single figures for one run; they
@@ -295,14 +306,18 @@
         : "A sealing round cost more than the budget in " + over + " of " + n + " draws: the plan is made at the assumed canal width, and in those draws the canals were wider.",
     };
   }
-  /* The table of ranges, one row per policy. Every figure in it is modelled. */
-  function replayBandsTable(result) {
+  /* The table of ranges, one row per policy. Every figure in it is modelled.
+     compact = true leaves out the crop-loss column and marks the forecast's row: that is the short
+     table at the top of the Simulation step. The full table is in the step's fine print. */
+  function replayBandsTable(result, compact) {
     const cell = (b, fmt) => '<td class="r">' + rangeCell(b, fmt) + "</td>";
+    const loss = (r) => (compact ? "" : cell(r.loss, money));
     const rows = result.rows.map((r) => (r.trigger === "never"
-      ? "<tr><td>" + esc(r.name) + '</td><td class="r">0</td><td class="r">none</td><td class="r">none</td>' + cell(r.loss, money) + '<td class="r"></td></tr>'
-      : "<tr><td>" + esc(r.name) + '</td><td class="r">' + esc(r.yearsSealed) + " of " + esc(result.years.length) + "</td>" +
-        cell(r.spend, money) + cell(r.keptAf, billionGal) + cell(r.loss, money) + cell(r.saving, money) + "</tr>")).join("");
-    return '<div class="tableWrap"><table class="t replay"><tr><th>Policy</th><th class="r">Years sealed</th><th class="r">Sealant</th><th class="r">Water kept (billion gallons)</th><th class="r">Crop loss</th><th class="r">Saving vs nothing</th></tr>' +
+      ? "<tr><td>" + esc(r.name) + '</td><td class="r">0</td><td class="r">none</td><td class="r">none</td>' + loss(r) + '<td class="r"></td></tr>'
+      : "<tr" + (compact && r.trigger === "forecast" ? ' class="hl"' : "") + "><td>" + esc(r.name) + '</td><td class="r">' + esc(r.yearsSealed) + " of " + esc(result.years.length) + "</td>" +
+        cell(r.spend, money) + cell(r.keptAf, billionGal) + loss(r) + cell(r.saving, money) + "</tr>")).join("");
+    return '<div class="tableWrap"><table class="t replay"><tr><th>Policy</th><th class="r">Years sealed</th><th class="r">Sealant</th><th class="r">Water kept (billion gallons)</th>' +
+      (compact ? "" : '<th class="r">Crop loss</th>') + '<th class="r">Saving vs nothing</th></tr>' +
       rows + "</table></div>";
   }
 
@@ -540,8 +555,8 @@
 
   return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber,
            workTime, gal, money, usesElephantButte, REPLAY_POLICIES, replay,
-           band, rangeText, rangeCell, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
-           sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
+           band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
+           sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
            perMillionGal, BENCHMARK_CAVEAT, makeLogic };
 });

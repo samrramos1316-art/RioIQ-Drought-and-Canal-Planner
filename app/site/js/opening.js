@@ -76,7 +76,7 @@
       body: ["Fourteen Texas counties sit on the river. Their irrigation districts move its water to farms through canals, and unlined canals leak into the soil.",
              "RioIQ shows each district a modelled order for sealing its canals and what that would cost."],
       ghost: "RIOIQ",
-      links: [["See this week’s numbers", "#texas", ""], ["Open the platform", "app.html", "ghost"]] },
+      links: [["See who runs short of water", "#people", ""], ["Open the platform", "app.html", "ghost"]] },   // #people: the stories, the next section down
   ];
 
   /* ---------- Small helpers ---------- */
