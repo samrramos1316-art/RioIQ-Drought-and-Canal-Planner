@@ -365,3 +365,17 @@ So on used data the model is right about 87 to 88 times in 100, and so is the ru
 **Limits, stated now.** New places, not new time. The horizon was chosen after seeing that six months could not be improved, and after seeing the figures above on used counties; only the new holdout is blind. A three-month warning gives a district less time to act than a six-month one.
 
 **Once.** Scored one time. After any number from the new holdout is seen only a crash may be fixed.
+
+## Round 5 result: the three-month outlook is right 90 times in 100 on eight unseen rivers, and ties the rule "severe drought now" (written Nov 15, 2026, after the new holdout was scored once)
+
+Scored one time, as declared. The result is in `reports/frozen/round3/quarter.json`. Nothing was rerun.
+
+- **Accuracy on places never seen.** 136 counties along the Red, North Platte, South Platte, Green, Yellowstone, Sacramento, San Joaquin and Humboldt rivers; 29,240 forecasts over 18 years; a drought season followed in 23.9% of them. The model was right in **90.4%** of forecasts at both warning lines. Its worst single year was 83.3% and its best 96.9% (at the 0.25 line). AUC 0.957. At 0.25, 76.5% of warnings were followed by a drought season and 86.6% of drought seasons had been warned about.
+- **It ties the rule "D2 or worse now".** That rule was right in 90.7% of the same forecasts. On cost the model is at 4,666 against 4,718: -52, interval -200 to 64 (pairs of years: -241 to 69). Not separated. The model was ahead in 6 of 18 years.
+- **It beats the rule "D1 or worse now".** 4,666 against 6,476: -1,810, interval -2,437 to -1,153 (pairs: -2,462 to -1,109). A win by the declared rule, ahead in 16 of 18 years. That rule is right in only 79.8% of forecasts at this horizon, because a county in moderate drought often does not reach eight severe weeks within three months.
+- **The predictions.** "Right in 85 to 90 of 100": it was 90.4, just above the range. "Ties D2 now, beats D1 now": both held.
+- **On the Rio Grande (not blind).** 87.4% right at 0.25 and 87.6% at 0.50, AUC 0.937, against 88.1% for "D2 now". Cost 1,336 against 1,402: -66, interval -147 to 8. Not separated.
+- **What this means.** Three months ahead, the forecast is right about nine times in ten on places it never saw, and about 87 times in 100 on the Rio Grande. A county's current drought class already tells most of that story, so the model does not beat the best simple rule here either. What changes with the horizon is which rule is the best one: at six months it is "D1 now", at three months it is "D2 now". The model matches the better rule at each horizon without being told which to use, and gives a probability.
+- **What follows.** The website shows the three-month chance beside the six-month one. Version 1 and every earlier result stay as reported. This week's three-month chances for the 31 Rio Grande counties are in `reports/live/quarter.json` (issued 2026-11-03; not a scored result).
+
+**A note on the climate file.** `data/round4/climate_counties.csv.gz` and `climate_normals.csv` were cut again from the same NOAA files (dated 2026-11-05) to add the 136 new counties. The rows of the 602 counties already in them are unchanged: a dry run before the scoring reproduced the round-4 development figures exactly.
