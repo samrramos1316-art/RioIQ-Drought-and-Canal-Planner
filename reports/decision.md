@@ -396,3 +396,37 @@ Every Python file in the pipeline was read in full and its numbers recomputed in
 - **The holdout accuracy needs its neighbour.** On the six rivers of round 4 the general model was right in 79.4% of forecasts and "D1 now" in 75.9%, but "D2 now" was right in 81.0%. Accuracy was never the declared outcome there, and the README now gives all three.
 
 **Not confirmed, for a person to check.** Whether the $35.66 a month in `config.py` is the full feed cost (as the comment says) or the payment rate, which is 60% of it; if the latter, the damage figure on the map is 40% too low. Whether the live 4-week alert should keep the 0.36 threshold that was picked for the forest trained on 2000 to 2014, now that the live forest is trained on all years.
+
+## Round 6: can the forecast beat the best simple rule? Area inputs, tested on 693 western counties never used (declared Nov 15, 2026, before any of those counties was loaded or scored)
+
+**Why.** In every test so far the forecast has tied the best simple rule. The reason is structural: the model and the rule read the same single number, the worst drought class anywhere in the county. The Drought Monitor also publishes, each week, the share of every county's area in each class. A county with severe drought over 3% of its area and one with 100% look identical to the rule and to the model so far. This round gives the model those shares.
+
+**The new inputs (19), all from the same weekly map and known on the issue date.**
+- For the county itself (14): the share of its area at D1 or worse, D2 or worse, D3 or worse; a coverage index (the five cumulative shares added up, 0 to 5); the D2 share 4 and 13 weeks ago; the index 4, 13 and 26 weeks ago; the index averaged over 13 and 26 weeks; the D2 share averaged over 8 weeks; the D1 share averaged over 13 weeks; the change in the index over 4 weeks.
+- For its neighbours (5): the average D2 share and the average index over all counties within 150 km, now and 4 weeks ago, and the neighbours' index minus the county's own.
+
+**What development showed (the 738 counties already used; not blind). Three-month outlook, cost at the 0.25 line minus the cost of "D2 or worse now":**
+
+| Model | Rio Grande | Six rivers (round 4) | Eight rivers (round 5) | Six + eight together |
+|---|---|---|---|---|
+| Round 5 model (47 inputs) | -66 (-147 to 8) | -169 (-375 to 24) | -52 (-200 to 64) | -221 (-473 to 20) |
+| + own-county area, version 1 forest | -146 (-223 to -72) | -217 (-466 to 15) | -45 (-194 to 98) | |
+| + own-county area, larger forest | -168 (-267 to -74) | -287 (-588 to -34) | -87 (-237 to 50) | -374 (-722 to -58) |
+| + neighbours' area, larger forest | -172 (-261 to -86) | -294 (-591 to -31) | -172 (-322 to -28) | -466 (-832 to -131) |
+| the same, trained on every used county except the group scored | -183 (-290 to -82) | -327 (-674 to -27) | -272 (-624 to -5) | -599 (-1,128 to -121) |
+
+Also tried and not chosen: regularised gradient boosting with the area inputs (worse than the rule), an average of forest and boosting, and a warning line picked from past years in place of 0.25 (no steady gain). For the 6-month outlook the area inputs changed little (Rio Grande +155 against the "D1 now" rule, not separated), so this round is about the three-month outlook only.
+
+**The model that will be scored (called E).** The three-month answer of round 5 (8 straight weeks at D2 or worse inside the next 13 weeks). A forest of 300 trees, depth 14, at least 10 rows per leaf, square-root inputs per split, seed 0. Inputs: the 47 of rounds 4 and 5 plus the 19 above (66). Trained on all 738 used counties by forward chaining: for each test year 2008 to 2025, only rows whose 13-week answer was known before 1 January of that year. Warning line 0.25, fixed.
+
+**The blind set.** Every county in Arizona, California, Colorado, Idaho, Kansas, Montana, Nebraska, Nevada, New Mexico, North Dakota, Oklahoma, Oregon, South Dakota, Texas, Utah, Washington and Wyoming that has a complete drought record and was not used in rounds 1 to 5: 693 counties (the count comes from the map alone). None has been loaded with its outcomes for any purpose. These counties are not along one river, so the input that averages the class "along the same river" averages over the listed counties of the same state instead. Scored rows: monthly issue rows 2008 to 2025 whose full 52-week future was known by 2026-11-10.
+
+**Primary outcome, and what counts as a win.** Cost of model E minus cost of "D2 or worse now" over all 693 counties, with a year-block bootstrap (10,000 draws, seed 0). Single-year blocks are primary; pairs of years are printed beside it. A win only if the primary interval lies wholly below zero.
+
+**Also reported.** The same against "D1 or worse now". Share of forecasts right, precision, recall and AUC for the model and both rules. The round-5 model (47 inputs, trained on the 436) on the same counties, to show what the area inputs add. Per state. The Rio Grande figures (not blind).
+
+**Prediction, written before the result.** The model will cost 3 to 6% less than "D2 or worse now", and the interval will probably, not certainly, clear zero. Plain accuracy will stay near 90%: the gain is in fewer missed drought seasons for the same number of false alarms, not in a higher share right.
+
+**Limits, stated now.** New places, not new time. The design was picked from about a dozen variants on used counties, and the last two columns of the table are from counties used to choose it. The Rio Grande figures can never be blind. A gain of a few percent in cost is real if it holds, and it is small.
+
+**Once.** Scored one time. After any number from the blind set is seen only a crash may be fixed.
