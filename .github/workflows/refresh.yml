@@ -47,8 +47,9 @@ jobs:
         run: PYTHONPATH=src python -m pytest tests/pipeline -q
       - name: Save the refreshed files
         run: |
-          git config user.name "Sam"
-          git config user.email "Sam@users.noreply.github.com"
+          # GitHub's own bot identity, so automated data commits are plainly automated.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -d data/live ]; then git add data/live; fi
           if [ -d reports/live ]; then git add reports/live; fi
           if [ -d reports/prospective ]; then git add reports/prospective reports/prospective.sha256; fi
