@@ -132,7 +132,7 @@ def test_frozen_results_are_packed_as_a_short_summary(site):
     assert {e["file"] for e in frozen["errata"]} == {p.name for p in folder.glob("*errata*.json")}
     # it is a summary: small, and with no per-year numbers
     text = json.dumps(frozen, separators=(",", ":"))
-    assert len(text) < 12_000 and "per_year" not in text
+    assert len(text) < 15_000 and "per_year" not in text
 
 
 def test_a_results_file_with_its_own_site_summary_is_included(tmp_path):
@@ -322,16 +322,19 @@ def test_hash_list_gate_catches_a_changed_or_removed_line_against_the_base_branc
 def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
     (tmp_path / "live").mkdir()
     (tmp_path / "frozen" / "round3").mkdir(parents=True)
-    (tmp_path / "live" / "quarter.json").write_text(json.dumps(
-        {"issued": "2026-11-03", "weeks_ahead": 13, "counties": {"48061": 0.226}}))
-    policy = {"share_right": 0.9, "lowest_year": 0.8}
-    group = {"policies": {"model at 0.50": policy, "D2 now": {"share_right": 0.91}}, "rows": 100, "counties": 5, "auc": 0.95}
-    (tmp_path / "frozen" / "round3" / "quarter.json").write_text(json.dumps(
-        {"new_holdout": group, "rio_grande_not_blind": group, "holdout_rivers": ["a", "b"]}))
+    (tmp_path / "live" / "edge.json").write_text(json.dumps(
+        {"issued": "2026-11-03", "weeks_ahead": 13, "counties": {"48061": 0.2264, "48127": 0.2499}}))
+    policy = lambda right, missed: {"share_right": right, "missed": missed, "false_alarms": 7, "cost": 3 * missed + 7}
+    group = {"policies": {"model E": policy(0.9, 10), "D2 now": policy(0.91, 14)}, "rows": 100, "counties": 5,
+             "auc": {"model E": 0.95}}
+    (tmp_path / "frozen" / "round3" / "edge.json").write_text(json.dumps(
+        {"blind": group, "rio_grande_not_blind": group, "cost_change_against_d2_now": -0.055,
+         "primary": {"block1": {"diff": -12.0, "lo": -20.0, "hi": -4.0, "n_years": 18}}}))
     packed = build_site.quarter_outlook(tmp_path)
-    assert packed["chance"] == {"48061": 0.226} and packed["weeksAhead"] == 13
-    assert packed["test"]["shareRight"] == 0.9 and packed["test"]["shareRightRule"] == 0.91
-    assert packed["test"]["rivers"] == 2 and packed["test"]["forecasts"] == 100
+    assert packed["chance"] == {"48061": 0.226, "48127": 0.249}       # 0.2499 is not rounded up onto the warning line
+    assert packed["weeksAhead"] == 13 and packed["test"]["forecasts"] == 100
+    assert packed["test"]["missed"] == 10 and packed["test"]["missedRule"] == 14
+    assert packed["test"]["costGap"] == -12 and packed["test"]["costGapHigh"] == -4
 
 
 def test_three_month_outlook_is_left_out_when_a_file_is_missing(tmp_path):

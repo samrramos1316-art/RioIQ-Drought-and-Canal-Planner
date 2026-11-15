@@ -642,29 +642,34 @@ def reconciliation(canals, district_names, plan):
 
 
 def quarter_outlook(reports=ROOT / "reports"):
-    """The three-month outlook (src/farmdrought/quarter.py), in short, for the website.
+    """The three-month outlook (src/farmdrought/edge.py, model E), in short, for the website.
 
     Two files are read and neither is changed:
-      reports/live/quarter.json            this week's chance per Rio Grande county (not scored yet)
-      reports/frozen/round3/quarter.json   the blind test on eight unseen rivers, scored once
+      reports/live/edge.json            this week's chance per Rio Grande county (not scored yet)
+      reports/frozen/round3/edge.json   the blind test on 693 unseen western counties, scored once
     Returns None when either file is missing, so the site simply leaves the line out.
     """
-    live, test = reports / "live" / "quarter.json", reports / "frozen" / "round3" / "quarter.json"
+    live, test = reports / "live" / "edge.json", reports / "frozen" / "round3" / "edge.json"
     if not (live.exists() and test.exists()):
         return None
     live, test = load_json(live), load_json(test)
-    unseen, rio = test["new_holdout"], test["rio_grande_not_blind"]
+    blind, rio = test["blind"], test["rio_grande_not_blind"]
+    model, rule = blind["policies"]["model E"], blind["policies"]["D2 now"]     # the rule: "severe drought now"
+    gap = test["primary"]["block1"]                                             # model cost minus the rule's cost
     return {
-        "issued": live["issued"], "weeksAhead": live["weeks_ahead"], "chance": live["counties"],
+        "issued": live["issued"], "weeksAhead": live["weeks_ahead"],
+        "chance": {fips: chance(p, 3) for fips, p in live["counties"].items()},
         "test": {
-            # share of forecasts that were right, at the line where the model says the likelier outcome
-            "shareRight": unseen["policies"]["model at 0.50"]["share_right"],
-            "shareRightRule": unseen["policies"]["D2 now"]["share_right"],     # the rule "severe drought now"
-            "lowestYear": unseen["policies"]["model at 0.50"]["lowest_year"],
-            "forecasts": unseen["rows"], "counties": unseen["counties"], "rivers": len(test["holdout_rivers"]),
-            "auc": unseen["auc"],
-            "rioGrandeShareRight": rio["policies"]["model at 0.50"]["share_right"],
-            "rioGrandeShareRightRule": rio["policies"]["D2 now"]["share_right"],
+            "forecasts": blind["rows"], "counties": blind["counties"], "auc": blind["auc"]["model E"],
+            "shareRight": model["share_right"], "shareRightRule": rule["share_right"],
+            "missed": model["missed"], "missedRule": rule["missed"],
+            "falseAlarms": model["false_alarms"], "falseAlarmsRule": rule["false_alarms"],
+            "cost": model["cost"], "costRule": rule["cost"],
+            # the cost gap with its interval: a win only because the whole interval is below zero
+            "costGap": short(gap["diff"]), "costGapLow": short(gap["lo"]), "costGapHigh": short(gap["hi"]),
+            "costChange": test["cost_change_against_d2_now"], "years": gap["n_years"],
+            "rioGrandeShareRight": rio["policies"]["model E"]["share_right"],
+            "rioGrandeCost": rio["policies"]["model E"]["cost"], "rioGrandeCostRule": rio["policies"]["D2 now"]["cost"],
         },
     }
 
