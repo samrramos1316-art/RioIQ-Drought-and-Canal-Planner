@@ -40,10 +40,11 @@ Cost = 3 x missed drought seasons + false alarms (our assumption). Lower is bett
 
 In plain words:
 
-- **Three months ahead, the forecast beats the best simple rule.** Given how much of each county's area is in drought (not just its worst class), it cost 5.5% less than "severe drought now" on 693 counties it had never seen, and the whole interval is below zero. It missed a quarter fewer drought seasons (3,938 against 5,270) and raised more false alarms (11,769 against 9,145).
-- **It wins on cost, not on share right.** It was right in 89.5% of those forecasts and the rule in 90.3%. If a missed drought is worse than a false alarm, the model is the better tool; if they are equally bad, the rule is.
+- **Three months ahead, the forecast beats the best simple rule, when a missed drought season costs three false alarms.** Given how much of each county's area is in drought (not just its worst class), it cost 5.5% less than "severe drought now" on 693 counties it had never seen, and the whole interval is below zero. It missed a quarter fewer drought seasons (3,938 against 5,270) and raised more false alarms (11,769 against 9,145).
+- **The win depends on that cost rule.** The 3-to-1 ratio has been fixed since the project's first commit. At 3 to 1 or steeper the model wins; at 2 to 1 or at equal costs the two tie. At the 0.25 warning line the model is right in 89.5% of forecasts and the rule in 90.3%.
+- **No simple rule built from the same area data comes close** (the best one found after the fact still loses to the model by 1,231, interval -2,083 to -449).
 - **Six months ahead it ties the best simple rule** ("moderate drought now"), on the Rio Grande and on six rivers it had never seen, with about 78 to 79% of forecasts right ("D2 now" is right 81% of the time there but misses far more drought seasons). It is clearly better than waiting for severe drought to appear.
-- **One model, both horizons.** The best rule of thumb changes with the horizon: "moderate drought now" at six months, "severe drought now" at three. The model matches or beats the better one each time.
+- **One approach, both horizons.** The best rule of thumb changes with the horizon: "moderate drought now" at six months, "severe drought now" at three. A forest trained for each horizon matches or beats the better one each time.
 - **Things we tried that did not help:** rain, temperature and soil-moisture inputs at six months; gradient boosting; recalibrating the probability; a warning line picked from past years. All are reported in `reports/decision.md`.
 - **The start of a severe drought six months ahead** in a county that is not yet dry is close to unforecastable from these inputs (AUC about 0.6).
 
