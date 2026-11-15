@@ -41,10 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: No "Headgate" or "streamlit" in app/, src/ or tests/
+      - name: No "Headgate", "streamlit" or a retired overclaim in app/, src/ or tests/
         run: |
           # -I skips binary files; app/site/data/ is generated data and is not searched.
-          if grep -rIniE "headgate|streamlit" app src tests --exclude-dir=__pycache__ | grep -v "^app/site/data/"; then
+          # "water kept for every one" and "accurate but not special" said more than the tests show (round 8, A2).
+          if grep -rIniE "headgate|streamlit|water kept for every one|accurate but not special" app src tests --exclude-dir=__pycache__ | grep -v "^app/site/data/"; then
             echo "Banned word found (see the lines above)."
             exit 1
           fi

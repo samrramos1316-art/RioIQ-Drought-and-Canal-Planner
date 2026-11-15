@@ -1210,10 +1210,11 @@ test("the top leak class is worded as a modelled class, and the other classes ke
 test("the stress test says its forecast is drawn at random, and the benchmark carries its caveat", () => {
   assert.strictEqual(L.STRESS_TEST_SENTENCE, "In these random futures the forecast model is not run: whether a warning is given before each season is drawn at random, " +
     "using fixed rates for how often the forecast was right and how often it raised a false alarm in its test.");
-  assert.strictEqual(L.BENCHMARK_CAVEAT, "assumes the published 44,000 acre-feet is a yearly figure; not confirmed");
+  assert.strictEqual(L.BENCHMARK_CAVEAT, "The 44,000 acre-feet is a yearly figure: the source says the programme is \"expected to save close to 44,000 acre feet of water each year\"");
+  assert.ok(L.safeUrl(L.BENCHMARK_SOURCE));
   const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
   assert.ok(page.indexOf("U.esc(window.HGLogic.STRESS_TEST_SENTENCE)") >= 0);
-  assert.ok(page.indexOf("U.esc(window.HGLogic.BENCHMARK_CAVEAT)") >= 0);
+  assert.ok(page.indexOf("U.esc(window.HGLogic.BENCHMARK_CAVEAT) + \" (\" + anchor(\"source\", window.HGLogic.BENCHMARK_SOURCE)") >= 0);
   // The engine really does draw the warning from the two rates (sim/engine.js).
   const engine = fs.readFileSync(path.join(__dirname, "..", "sim", "engine.js"), "utf8");
   assert.ok(engine.indexOf("warned[y] = library[from].dry ? rng() < opt.recall : rng() < opt.falseAlarm;") >= 0);
@@ -1517,4 +1518,11 @@ test("real data: the export has every county with a forecast, every district and
     assert.strictEqual(lines.length, t.rows.length + 1);
   }
   assert.doesNotThrow(() => JSON.stringify(out));
+});
+
+test("the home page words the canal figures and the six-month forecast no more strongly than the tests show", () => {
+  const landing = fs.readFileSync(path.join(__dirname, "landing.js"), "utf8");
+  assert.ok(landing.indexOf("a cost, a crew time and a modelled upper estimate of the water kept.") >= 0);
+  assert.ok(landing.indexOf("The six-month forecast matched the simple rule and did not beat it:") >= 0);
+  // The old wording is kept out by CI's banned-phrase step (.github/workflows/ci.yml), which searches this folder too.
 });

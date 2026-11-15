@@ -436,8 +436,10 @@
     "using fixed rates for how often the forecast was right and how often it raised a false alarm in its test.";
   /* Dollars per acre-foot as dollars per million gallons (the unit the page shows water in). */
   const perMillionGal = (usdPerAf) => usdPerAf * 1e6 / ENGINE.GALLONS_PER_ACRE_FOOT;
-  /* The caveat that must be shown with the lining-programme benchmark. Fixed wording. */
-  const BENCHMARK_CAVEAT = "assumes the published 44,000 acre-feet is a yearly figure; not confirmed";
+  /* What is known about the lining-programme benchmark's water figure, and where it is said. Fixed
+     wording. Checked Nov 15, 2026: the source gives it as a yearly figure. */
+  const BENCHMARK_CAVEAT = "The 44,000 acre-feet is a yearly figure: the source says the programme is \"expected to save close to 44,000 acre feet of water each year\"";
+  const BENCHMARK_SOURCE = "https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico";
 
   /*
     The scorecard at the top of the Sources step: one row per forecast, numbers first.
@@ -749,5 +751,5 @@
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
-           perMillionGal, BENCHMARK_CAVEAT, makeLogic };
+           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, makeLogic };
 });
