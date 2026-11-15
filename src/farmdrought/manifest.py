@@ -125,7 +125,8 @@ PROSPECTIVE_LIST = Path("reports") / "prospective.sha256"
 ROUND4_LIST = Path("data") / "round4.sha256"
 APPEND_ONLY = {"frozen": (Path("reports") / "frozen", FROZEN_LIST),
                "prospective": (Path("reports") / "prospective", PROSPECTIVE_LIST),
-               "round4": (Path("data") / "round4", ROUND4_LIST)}
+               "round4": (Path("data") / "round4", ROUND4_LIST),
+               "prospective_m": (Path("reports") / "prospective_m", "reports/prospective_m.sha256")}
 
 
 def check_round4(root=ROOT):
@@ -193,7 +194,7 @@ def add_new_prospective_files(root=ROOT):
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] in (["frozen"], ["prospective"], ["round4"]):
+    if sys.argv[1:] in (["frozen"], ["prospective"], ["round4"], ["prospective_m"]):
         folder, list_path = APPEND_ONLY[sys.argv[1]]
         problems = check_listed(ROOT, folder, list_path)
         print("\n".join(problems) if problems else f"every file under {folder} matches {list_path}")

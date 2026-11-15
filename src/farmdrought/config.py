@@ -102,6 +102,11 @@ LIVE_DATA = ROOT / "data" / "live"
 _LIVE = {"on": False}
 
 
+def live_is_on():
+    """True inside `with live_data():`."""
+    return _LIVE["on"]
+
+
 def live_copy(path):
     """Where the refresh saves its newer copy of a raw input."""
     path = Path(path)

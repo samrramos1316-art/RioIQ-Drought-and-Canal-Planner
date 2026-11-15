@@ -963,7 +963,7 @@
   function scorecardHtml() {
     const season = ((HG.frozen && HG.frozen.groups) || []).find((g) => g.section === "season");
     const row = season && season.rows.find((r) => r[0] === "6-month system cost minus D1 now");   // "already in moderate drought", its best simple rule
-    const rows = window.HGLogic.quarterScorecard(HG.quarter && HG.quarter.test, row ? { diff: row[1], lo: row[2], hi: row[3] } : null);
+    const rows = window.HGLogic.quarterScorecard(HG.quarter && HG.quarter.test, row ? { diff: row[1], lo: row[2], hi: row[3] } : null, HG.quarter && HG.quarter.east);
     if (!rows.length) return "";
     return '<table class="t"><tr><th>Forecast</th><th>Against the best simple rule</th></tr>' +
       rows.map((r) => "<tr><td><b>" + U.esc(r.label) + "</b></td><td>" + U.esc(r.text) + "</td></tr>").join("") + "</table>" +

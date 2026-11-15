@@ -34,6 +34,7 @@ from farmdrought.climate import add_climate_features
 from farmdrought.config import D2_CLASS, FOCUS_RIVER, FROZEN, LIVE, ROOT, ROUND3, SCORE_THROUGH, SEASON_THRESHOLD
 from farmdrought.counties import load_county_centers
 from farmdrought.drought import build_panel, load_usdm
+from farmdrought.features import FEATURES_H, FEATURES_L
 from farmdrought.evaluate import tally
 from farmdrought.holdout import FEATURES_G, development_table, holdout_table
 from farmdrought.manifest import add_new_frozen_files, check_round4
@@ -49,6 +50,9 @@ DECLARED_IN = ('reports/decision.md, section "Round 6: can the forecast beat the
 WEST_STATES = ["Arizona", "California", "Colorado", "Idaho", "Kansas", "Montana", "Nebraska", "Nevada", "New Mexico",
                "North Dakota", "Oklahoma", "Oregon", "South Dakota", "Texas", "Utah", "Washington", "Wyoming"]
 FEATURES_E = FEATURES_G + FEATURES_A + FEATURES_NB      # 47 + 14 + 5 = 66 inputs
+# ADDED for round 7 (east.py): model E's inputs without the El Nino index and without NOAA's
+# climate record. Everything left comes from the Drought Monitor map: 24 + 5 + 14 + 5 = 48.
+FEATURES_M = FEATURES_H + FEATURES_L + FEATURES_A + FEATURES_NB
 D1_CLASS = D2_CLASS - 1
 
 
@@ -67,18 +71,26 @@ def used_table():
     return pd.concat([dev.assign(group="dev"), six.assign(group="six"), eight.assign(group="eight")], ignore_index=True)
 
 
-def west_counties(used_fips):
+def west_counties(used_fips, states=WEST_STATES):
     """County codes in the 17 western states with a complete drought record and a map shape,
-    that are not in used_fips. Decided from the map alone; no outcome is read."""
+    that are not in used_fips. Decided from the map alone; no outcome is read.
+
+    states : ADDED for round 7. The state names to keep (the 17 by default, exactly as before).
+             None keeps every state that has a map shape."""
     usdm, centers = load_usdm(), load_county_centers()
     return [fips for i, fips in enumerate(usdm["fips"])
-            if usdm["state"][i] in WEST_STATES and fips in centers and fips not in used_fips
+            if (states is None or usdm["state"][i] in states) and fips in centers and fips not in used_fips
             and not np.isnan(usdm["classes"][i]).any()]
 
 
 def blind_table(used_fips):
     """Monthly issue rows for the never-used western counties."""
-    return issue_rows(build_panel(score_through=SCORE_THROUGH, counties=west_counties(used_fips))).assign(group="west")
+    return county_table(west_counties(used_fips), "west")
+
+
+def county_table(counties, group):
+    """Monthly issue rows for exactly the listed counties, with their "group" name."""
+    return issue_rows(build_panel(score_through=SCORE_THROUGH, counties=counties)).assign(group=group)
 
 
 def forecasts(used, blind):

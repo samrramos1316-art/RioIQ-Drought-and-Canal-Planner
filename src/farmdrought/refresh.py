@@ -183,6 +183,15 @@ def _main():
     if report["outputs_rebuilt"]:
         run("-m", "farmdrought.export")      # predict only: this week's forecast, never the scores
         run("-m", "farmdrought.prospective") # write the new forecast down before its answer is known
+        if report["sources"]["drought_monitor"]["changed"]:
+            # Model M's three-month chance (Drought Monitor inputs only): new weekly area shares,
+            # this week's forecast, and the log written before the answer is known. If it fails the
+            # last good file stays and the failure is reported, like a failed download.
+            try:
+                run("-m", "farmdrought.live_m")
+                report["quarter_m"] = {"ok": True}
+            except subprocess.CalledProcessError as error:
+                report["quarter_m"] = {"ok": False, "error": str(error)[:200]}
     if "--download-only" not in sys.argv:
         # The issues list reads live weather alerts and the rain forecast, so it is rebuilt on
         # every run, even on a day when no saved file changed.

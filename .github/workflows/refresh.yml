@@ -52,6 +52,7 @@ jobs:
           if [ -d data/live ]; then git add data/live; fi
           if [ -d reports/live ]; then git add reports/live; fi
           if [ -d reports/prospective ]; then git add reports/prospective reports/prospective.sha256; fi
+          if [ -d reports/prospective_m ]; then git add reports/prospective_m reports/prospective_m.sha256; fi
           git add data/processed/latest.parquet data/processed/canals.geojson data/processed/districts.geojson
           git add reports/metrics.json reports/refresh.json reports/issues.json app/site/data
           # commit only if a data file changed (refresh.json and issues.json change on every run)

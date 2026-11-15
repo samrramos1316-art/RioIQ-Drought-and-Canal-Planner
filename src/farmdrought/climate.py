@@ -45,6 +45,9 @@ NORMALS_CSV = ROUND4_DATA / "climate_normals.csv"
 # recorded), so the new counties sit in a second pair with the same columns.
 MORE_CLIMATE_CSV = ROUND4_DATA / "climate_west.csv.gz"
 MORE_NORMALS_CSV = ROUND4_DATA / "climate_west_normals.csv"
+# Round 7 may add the eastern counties the same way (only model E needs them; see east.py).
+EAST_CLIMATE_CSV = ROUND4_DATA / "climate_east.csv.gz"
+EAST_NORMALS_CSV = ROUND4_DATA / "climate_east_normals.csv"
 
 FEATURES_W = ["rain3", "rain6", "rain12", "heat3", "heat12"]
 FEATURES_P = ["pdsi", "pdsi_chg3", "pdsi_min12", "z1", "z3", "z6"]
@@ -123,9 +126,14 @@ def monthly_features():
     """
     data = pd.read_csv(CLIMATE_CSV, dtype={"fips": str})
     normals = pd.read_csv(NORMALS_CSV, dtype={"fips": str})
-    if MORE_CLIMATE_CSV.exists() and MORE_NORMALS_CSV.exists():     # the counties added in round 6
-        data = pd.concat([data, pd.read_csv(MORE_CLIMATE_CSV, dtype={"fips": str})], ignore_index=True)
-        normals = pd.concat([normals, pd.read_csv(MORE_NORMALS_CSV, dtype={"fips": str})], ignore_index=True)
+    for more_csv, more_normals in [(MORE_CLIMATE_CSV, MORE_NORMALS_CSV), (EAST_CLIMATE_CSV, EAST_NORMALS_CSV)]:
+        if more_csv.exists() and more_normals.exists():             # the counties added in rounds 6 and 7
+            more = pd.read_csv(more_csv, dtype={"fips": str})
+            shared = set(more["fips"]) & set(data["fips"])
+            if shared:
+                raise ValueError(f"{more_csv.name} repeats {len(shared)} counties that an earlier climate file holds")
+            data = pd.concat([data, more], ignore_index=True)
+            normals = pd.concat([normals, pd.read_csv(more_normals, dtype={"fips": str})], ignore_index=True)
     data = data.merge(normals, on=["fips", "month"], how="left")
     data["period"] = pd.PeriodIndex.from_fields(year=data["year"], month=data["month"], freq="M")
     out = []

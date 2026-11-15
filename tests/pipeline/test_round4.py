@@ -24,6 +24,8 @@ def write_climate(tmp_path, monkeypatch, months):
     monkeypatch.setattr(climate, "NORMALS_CSV", tmp_path / "n.csv")
     monkeypatch.setattr(climate, "MORE_CLIMATE_CSV", tmp_path / "none.csv")       # no second pair in these tests
     monkeypatch.setattr(climate, "MORE_NORMALS_CSV", tmp_path / "none2.csv")
+    monkeypatch.setattr(climate, "EAST_CLIMATE_CSV", tmp_path / "none3.csv")
+    monkeypatch.setattr(climate, "EAST_NORMALS_CSV", tmp_path / "none4.csv")
     data.to_csv(tmp_path / "c.csv", index=False)
     normals.to_csv(tmp_path / "n.csv", index=False)
 
@@ -221,3 +223,230 @@ def test_neighbour_area_inputs_look_only_backwards(monkeypatch):
     week20 = before.iloc[20]
     assert week20["nb_a2"] == 0.20 and week20["nb_a2_l4"] == 0.16          # county A's D2 share, now and 4 weeks ago
     assert abs(week20["nb_dsci_minus"] - 2.20) < 1e-12                     # A's index (2.20) minus B's own (0)
+
+
+# ---------------------------------------------------------------------------------------------
+# Round 7: the blind-safety rules themselves, the cost arithmetic, and the eastern test (east.py)
+# ---------------------------------------------------------------------------------------------
+import pytest
+
+from farmdrought import costwindow, east, outlook
+
+
+def test_chain_fits_only_allowed_rows_whose_answer_was_known_before_the_year():
+    # The REAL chain(), with a model that only records which rows it was given to learn from.
+    dates = pd.date_range("2006-01-03", "2009-12-29", freq="7D")
+    table = pd.DataFrame({"date": np.tile(dates, 2), "fips": np.repeat(["used", "blind"], len(dates)), "x": 0.0})
+    table["y"] = np.tile(np.arange(len(dates)) % 2, 2).astype(float)
+    table["blind"] = table["fips"] == "blind"
+    fitted = []
+
+    class Spy:
+        classes_ = [0.0, 1.0]
+
+        def fit(self, x, y):
+            fitted.append(x.index)
+            return self
+
+        def predict_proba(self, x):
+            return np.tile([0.5, 0.5], (len(x), 1))
+
+    out = outlook.chain(table, "y", 13, ["x"], Spy, train_on=~table["blind"],
+                        predict_on=pd.Series(True, index=table.index))
+    assert len(fitted) == outlook.OUTLOOK_TEST[1] - outlook.OUTLOOK_TEST[0] + 1
+    for year, index in zip(range(outlook.OUTLOOK_TEST[0], outlook.OUTLOOK_TEST[1] + 1), fitted):
+        rows = table.loc[index]
+        assert not rows["blind"].any()                                                     # never a blind row
+        assert (rows["date"] + pd.Timedelta(weeks=13) < pd.Timestamp(f"{year}-01-01")).all()   # answer already known
+    assert len(table.loc[fitted[0]]) > 0 and out[table["date"].dt.year == 2008].notna().all()
+
+
+def fake_map(monkeypatch):
+    """Four counties: 1 and 2 in Texas, 3 in Ohio, 4 in Utah with a gap in its drought record."""
+    classes = np.zeros((4, 5))
+    classes[3, 2] = np.nan
+    monkeypatch.setattr(edge, "load_usdm", lambda: {"fips": ["1", "2", "3", "4"], "classes": classes,
+                                                    "state": ["Texas", "Texas", "Ohio", "Utah"]})
+    monkeypatch.setattr(edge, "load_county_centers", lambda: {f: (0.0, 0.0) for f in "1234"})
+
+
+def test_blind_counties_leave_out_used_other_states_and_incomplete_records(monkeypatch):
+    fake_map(monkeypatch)
+    assert edge.west_counties({"1"}) == ["2"]             # 1 is used, 3 is not western, 4 has a gap
+    assert edge.west_counties(set()) == ["1", "2"]
+
+
+def test_the_states_argument_only_changes_which_states_are_kept(monkeypatch):
+    fake_map(monkeypatch)
+    assert edge.west_counties({"1"}, states=["Ohio"]) == ["3"]
+    assert edge.west_counties({"1"}, states=None) == ["2", "3"]      # every state, still not used, still complete
+
+
+def test_eastern_counties_need_area_shares_and_are_never_western(monkeypatch):
+    fake_map(monkeypatch)
+    monkeypatch.setattr(east.pd, "read_parquet", lambda path, columns: pd.DataFrame({"fips": ["1", "2", "3"]}))
+    assert east.east_counties(set()) == ["3"]             # Ohio only: Texas and Utah are round 6's states
+    assert east.east_counties({"3"}) == []
+    assert not set(east.EAST_STATES) & set(edge.WEST_STATES) and len(east.EAST_STATES + edge.WEST_STATES) == 49
+
+
+def test_model_m_reads_the_drought_map_only():
+    from farmdrought.features import FEATURES_E as el_nino
+    outside = set(el_nino + climate.FEATURES_W + climate.FEATURES_P + climate.FEATURES_N)
+    assert len(edge.FEATURES_M) == 48 and len(set(edge.FEATURES_M)) == 48
+    assert not set(edge.FEATURES_M) & outside
+    assert set(edge.FEATURES_E) - set(edge.FEATURES_M) == outside
+
+
+def test_round_7_never_trains_on_an_eastern_row(monkeypatch):
+    seen = {}
+
+    def fake_chain(table, label, horizon, features, make_model, train_on, predict_on):
+        seen[len(features)] = (train_on.copy(), predict_on.copy())
+        return pd.Series(0.5, index=table.index)
+
+    monkeypatch.setattr(east, "chain", fake_chain)
+    monkeypatch.setattr(east, "add_area_features", lambda t: t)
+    monkeypatch.setattr(east, "add_quarter_label", lambda t: t)
+    monkeypatch.setattr(east.climate, "add_climate_features", lambda t: t)
+    frame = lambda fips, groups: pd.DataFrame({"fips": fips, "group": groups, **{c: 0.0 for c in edge.FEATURES_E}})
+    table = east.forecasts(frame(["a", "b", "c"], ["dev", "six", "eight"]), frame(["w"], ["west"]),
+                           frame(["e"], ["east"]), with_e=True)
+    is_east = table["group"] == "east"
+    m_train, m_predict = seen[48]
+    e_train, e_predict = seen[66]
+    assert not m_train[is_east].any() and m_train[~is_east].all()          # M: every used and western row, no eastern
+    assert list(table.loc[e_train, "group"]) == ["dev", "six", "eight"]    # E: the 738 only, as frozen
+    assert m_predict.equals(is_east) and e_predict.equals(is_east)
+
+
+def test_cost_at_any_ratio_matches_the_round_6_counts():
+    model = {"missed": 3938, "false_alarms": 11769}       # reports/frozen/round3/edge.json, the blind set
+    d2, d1 = {"missed": 5270, "false_alarms": 9145}, {"missed": 1374, "false_alarms": 30608}
+    assert costwindow.cost(**model, r=3) == 23583 and costwindow.cost(**d2, r=3) == 24955
+    low, high = costwindow.window(model, d2, d1)
+    assert round(low, 2) == 1.97 and round(high, 2) == 7.35
+    assert costwindow.cost(**model, r=2) - costwindow.cost(**d2, r=2) == -40     # a tie at 2 to 1
+    assert costwindow.break_even(model, model) is None
+
+
+def test_a_cost_ratio_gives_its_miss_weight_and_its_warning_line():
+    assert costwindow.miss_weight(0.25) == 3 and costwindow.miss_weight(0.5) == 1
+    assert abs(costwindow.warning_line(0.18) - 0.18) < 1e-12
+    with pytest.raises(ValueError):
+        costwindow.miss_weight(1.0)
+
+
+def test_the_cheapest_rule_is_picked_and_ties_go_to_the_first_named():
+    assert costwindow.cheapest({"D2 now": 5, "D1 now": 4, "always warn": 9, "never warn": 9}) == "D1 now"
+    assert costwindow.cheapest({"D2 now": 4, "D1 now": 4, "always warn": 4, "never warn": 4}) == "D2 now"
+
+
+def made_up_scored_rows():
+    """Three years, four rows each. cls 3 = D2, 2 = D1. Worked out by hand in the tests below.
+    2010 is a year with no drought and no warning from anyone (three years, so the interval can be drawn)."""
+    return pd.DataFrame({
+        "date": pd.to_datetime(["2008-01-01"] * 4 + ["2009-01-06"] * 4 + ["2010-01-05"] * 4),
+        "fips": list("abcd") * 3, "state": "Ohio",
+        "cls": [3, 2, 0, 0, 3, 0, 2, 0, 0, 0, 0, 0],
+        quarter.LABEL: [1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "p": [0.9, 0.6, 0.1, 0.3, 0.2, 0.7, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0], "y_weeks": 1.0})
+
+
+def test_round_7b_compares_with_the_cheapest_rule_at_each_ratio():
+    rows = made_up_scored_rows()
+    by_ratio = {c["cost_ratio"]: c for c in east.other_costs(rows, "p", "model")}
+    half, quarter_ratio = by_ratio[0.50], by_ratio[0.25]
+    # ratio 0.50: a miss = 1 false alarm. D2 now: 3 missed + 1 false = 4. D1 now: 1 + 1 = 2. always: 8. never: 4.
+    assert half["rule_totals"] == {"D2 now": 4.0, "D1 now": 2.0, "always warn": 8.0, "never warn": 4.0}
+    assert half["b"] == "D1 now" and half["model_total"] == 1.0          # the model at 0.50 misses one (p 0.3), no false alarm
+    # ratio 0.25: a miss = 3 false alarms. D1 now: 3 x 1 + 1 = 4. The model at 0.25: no miss, one false alarm.
+    assert quarter_ratio["b"] == "D1 now" and quarter_ratio["rule_totals"]["D1 now"] == 4.0
+    assert quarter_ratio["model_total"] == 1.0 and quarter_ratio["difference"] == -3.0
+
+
+def test_round_7c_is_the_share_right_at_the_half_line():
+    result = east.plain_accuracy(made_up_scored_rows(), "p", "model")
+    # The model at 0.50 is right on 4 of 4 rows in 2008 and 3 of 4 in 2009; "D2 now" on 3 of 4 and 1 of 4.
+    # Everyone is right on all 4 rows of 2010.
+    assert result["per_year"]["model"] == [1.0, 0.75, 1.0] and result["per_year"]["D2 now"] == [0.75, 0.25, 1.0]
+    assert abs(result["model_mean"] - 11 / 12) < 1e-12 and abs(result["D2 now_mean"] - 8 / 12) < 1e-12
+    assert result["lower_is_better"] is False
+
+
+def test_two_climate_files_may_not_hold_the_same_county(tmp_path, monkeypatch):
+    write_climate(tmp_path, monkeypatch, pd.period_range("2020-01", "2020-12", freq="M"))
+    monkeypatch.setattr(climate, "EAST_CLIMATE_CSV", tmp_path / "c.csv")       # the same file again
+    monkeypatch.setattr(climate, "EAST_NORMALS_CSV", tmp_path / "n.csv")
+    with pytest.raises(ValueError, match="repeats 1 counties"):
+        climate.monthly_features()
+
+
+# ---------------------------------------------------------------------------------------------
+# After round 7: fresh area shares and model M's live forecast (area.fetch_latest, live_m.py)
+# ---------------------------------------------------------------------------------------------
+import io
+import json
+
+from farmdrought import live_m
+
+SERVICE_CSV = ("MapDate,FIPS,County,State,None,D0,D1,D2,D3,D4,ValidStart,ValidEnd,StatisticFormatID\n"
+               "20261117,48001,Anderson,TX,12.5,87.5,67.18,30.25,0,0,2026-11-17,2026-11-23,1\n"
+               "20261117,48003,Andrews,TX,100,0,0,0,0,0,2026-11-17,2026-11-23,1\n")
+
+
+def test_service_rows_are_packed_as_hundredths_of_a_percent():
+    packed = area.pack(pd.read_csv(io.StringIO(SERVICE_CSV), dtype={"FIPS": str, "MapDate": str}))
+    assert list(packed["fips"]) == ["48001", "48003"] and list(packed["date"].dt.strftime("%Y-%m-%d")) == ["2026-11-17"] * 2
+    assert list(packed.loc[0, ["D0", "D1", "D2", "D3", "D4"]]) == [8750, 6718, 3025, 0, 0]
+    assert packed["D1"].dtype == "int16"
+
+
+def test_fetch_latest_saves_only_newer_weeks_beside_the_snapshot_and_names_failed_states(tmp_path, monkeypatch):
+    snapshot = pd.DataFrame({"fips": ["48001", "35001"], "date": pd.to_datetime(["2026-11-10", "2026-11-10"]),
+                             **{c: pd.Series([0, 0], dtype="int16") for c in area.CLASSES}})
+    snapshot.to_parquet(tmp_path / "snapshot.parquet")
+    monkeypatch.setattr(area, "AREA_FILE", tmp_path / "snapshot.parquet")
+    monkeypatch.setattr(area, "LIVE_AREA_FILE", tmp_path / "live" / "new.parquet")
+
+    def get(url, params):
+        if params["aoi"] == "NM":
+            raise RuntimeError("the service is down")
+        assert params["startdate"] == "11/10/2026"                          # asks from the newest week it holds
+        return SERVICE_CSV + "20261110,48001,Anderson,TX,0,100,0,0,0,0,x,y,1\n"   # an old week comes back too
+
+    newest, failed = area.fetch_latest(today="2026-11-20", get=get)
+    saved = pd.read_parquet(tmp_path / "live" / "new.parquet")
+    assert newest == "2026-11-17" and failed == ["NM"]
+    assert set(saved["date"].dt.strftime("%Y-%m-%d")) == {"2026-11-17"}          # the old week is not repeated
+    assert len(pd.read_parquet(tmp_path / "snapshot.parquet")) == 2             # the snapshot is untouched
+
+
+def test_load_area_reads_the_new_weeks_only_inside_live_data(tmp_path, monkeypatch):
+    row = lambda day: pd.DataFrame({"fips": ["48001"], "date": pd.to_datetime([day]),
+                                    **{c: pd.Series([1000], dtype="int16") for c in area.CLASSES}})
+    row("2026-11-10").to_parquet(tmp_path / "snapshot.parquet")
+    row("2026-11-17").to_parquet(tmp_path / "new.parquet")
+    monkeypatch.setattr(area, "AREA_FILE", tmp_path / "snapshot.parquet")
+    monkeypatch.setattr(area, "LIVE_AREA_FILE", tmp_path / "new.parquet")
+    assert len(area.load_area()) == 1                                            # scoring never sees the new week
+    from farmdrought.config import live_data
+    with live_data():
+        assert len(area.load_area()) == 2
+
+
+def test_the_newest_week_needs_both_a_drought_class_and_area_shares():
+    panel = pd.DataFrame({"river": ["Rio Grande"] * 3 + ["Pecos"], "fips": ["a", "a", "b", "c"],
+                          "date": pd.to_datetime(["2026-11-10", "2026-11-17", "2026-11-17", "2026-11-17"])})
+    rows = live_m.newest_rows(panel, pd.to_datetime(["2026-11-10"]))              # area shares stop a week early
+    assert list(rows["fips"]) == ["a"] and str(rows["date"].iloc[0].date()) == "2026-11-10"
+
+
+def test_the_model_m_log_records_when_each_answer_is_known_and_never_rewrites_a_week(tmp_path):
+    first = live_m.record("2026-11-10", {"48001": 0.5, "35001": 0.25}, logged_at="2026-11-12T09:00:00+00:00")
+    assert first["forecast"]["answer_known_after"] == "2027-02-09" and first["counties"]["48001"] == 0.5
+    assert first["forecast"]["alarm_threshold"] == 0.25 and first["model"]["inputs"] == edge.FEATURES_M
+    live_m.log_week(first, tmp_path)
+    with pytest.raises(FileExistsError):
+        live_m.log_week(live_m.record("2026-11-10", {"48001": 0.99}), tmp_path)          # a recomputed week is refused
+    assert json.loads((tmp_path / "2026-11-10.json").read_text())["counties"]["48001"] == 0.5
