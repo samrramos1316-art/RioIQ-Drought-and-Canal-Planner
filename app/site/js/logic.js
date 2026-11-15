@@ -438,7 +438,7 @@
     zero (verdictFor). Share right is stated beside it, whichever way it fell.
     Returns [{ label, text }]; a forecast with no figures gets no row.
   */
-  function quarterScorecard(test, six) {
+  function quarterScorecard(test, six, east) {
     const rows = [], share = (v) => num(v * 100, 1) + "%";
     const word = (lo, hi) => ({ ahead: "beats", behind: "loses to" })[verdictFor({ lo, hi, lower: true }).word] || "ties";
     if (test) {
@@ -449,6 +449,12 @@
         " on " + num(test.counties) + " unseen counties (interval " + signed(test.costGapLow) + " to " + signed(test.costGapHigh) + "). " +
         "Missed " + num(test.missed) + " drought seasons vs " + num(test.missedRule) + "; false alarms " + num(test.falseAlarms) + " vs " + num(test.falseAlarmsRule) +
         "; share right " + share(test.shareRight) + " vs " + share(test.shareRightRule) + "." });
+    }
+    if (east) {
+      const verdict = word(east.costGapLow, east.costGapHigh);
+      rows.push({ label: "3 months ahead, East", text: verdict + " the best simple rule on cost at 3 to 1, on " + num(east.counties) + " eastern counties scored once (cost " +
+        num(Math.abs(east.costChange) * 100, 1) + "% " + (east.costChange < 0 ? "lower" : "higher") + ", interval " + signed(east.costGapLow) + " to " + signed(east.costGapHigh) +
+        "; cheaper in " + east.yearsCheaper + " of " + east.years + " years). The edge is a western result." });
     }
     if (six) {
       rows.push({ label: "6 months ahead", text: word(six.lo, six.hi) + " the best simple rule on cost (gap " + signed(six.diff) + ", interval " + signed(six.lo) + " to " + signed(six.hi) + ")." });

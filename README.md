@@ -37,10 +37,12 @@ Cost = 3 x missed drought seasons + false alarms (our assumption). Lower is bett
 | 3-month outlook, eight more rivers never used (136 counties, 29,240 forecasts), cost | 4,666 | 4,718 ("D2 now") | -52 (-200 to 64) | tie |
 | **3-month outlook with area inputs, 693 western counties never used (148,995 forecasts), cost** | **23,583** | 24,955 ("D2 now") | **-1,372 (-2,386 to -420)** | **ahead: 5.5% less cost, in all 17 states** |
 | The same on the Rio Grande (not blind) | 1,219 | 1,402 ("D2 now") | -183 (-290 to -82) | ahead: 13% less cost |
+| **Round 7: the same idea with Drought Monitor inputs only (model M), 1,666 eastern counties never used (358,190 forecasts), cost at 3 to 1** | 33,405 | 30,759 ("D2 now") | **+2,646 (+1,206 to +4,286)** | **behind: it did not hold in the East** (ahead in 1 of 18 years) |
 
 In plain words:
 
-- **Three months ahead, the forecast beats the best simple rule, when a missed drought season costs three false alarms.** Given how much of each county's area is in drought (not just its worst class), it cost 5.5% less than "severe drought now" on 693 counties it had never seen, and the whole interval is below zero. It missed a quarter fewer drought seasons (3,938 against 5,270) and raised more false alarms (11,769 against 9,145).
+- **Three months ahead, in the western counties, the forecast beats the best simple rule when a missed drought season costs three false alarms.** Given how much of each county's area is in drought (not just its worst class), it cost 5.5% less than "severe drought now" on 693 counties it had never seen, and the whole interval is below zero. It missed a quarter fewer drought seasons (3,938 against 5,270) and raised more false alarms (11,769 against 9,145).
+- **The win did not carry to the eastern states.** We tested the forecast once more, on 1,666 eastern counties it had never seen (round 7, declared before it was scored). At 3 to 1 it cost 8.6% more than "severe drought now" and was cheaper in only 1 of 18 years. It wins where a warning is cheap or where a miss and a false alarm cost the same (a miss worth 1 false alarm: -2,738, interval -4,103 to -1,501; worth 19 or 49: wins against "moderate drought now"), and ties or loses in between. So the claim is for western, Rio Grande-like climates, not for the whole country. We got most of our own predictions for this round wrong and said so in `reports/decision.md`.
 - **The win depends on that cost rule.** The 3-to-1 ratio has been fixed since the project's first commit. At 3 to 1 or steeper the model wins; at 2 to 1 or at equal costs the two tie. At the 0.25 warning line the model is right in 89.5% of forecasts and the rule in 90.3%.
 - **No simple rule built from the same area data comes close** (the best one found after the fact still loses to the model by 1,231, interval -2,083 to -449).
 - **Six months ahead it ties the best simple rule** ("moderate drought now"), on the Rio Grande and on six rivers it had never seen, with about 78 to 79% of forecasts right ("D2 now" is right 81% of the time there but misses far more drought seasons). It is clearly better than waiting for severe drought to appear.
@@ -72,15 +74,18 @@ In plain words:
 |---|---|
 | `app/site/` | The website. `index.html` (intro), `app.html` (platform), `js/`, `css/`, `sim/engine.js` (the simulation), `data/` (built files) |
 | `app/build_site.py` | Builds `app/site/data/` from the pipeline's outputs, after checking them against the data contract (`app/contract.py`) |
-| `src/farmdrought/` | The pipeline: drought panel and inputs, the three forecasts, the tests against simple rules, the canal and leak model |
+| `src/farmdrought/` | The pipeline: drought panel and inputs, the forecasts, the tests against simple rules, the canal and leak model. Each test round has its own file: `round3.py`, `holdout.py` (round 4), `quarter.py` (5), `edge.py` and `area.py` (6), `east.py` and `live_m.py` (7) |
 | `data/raw/` | The snapshot every frozen result was scored on (hashes in `data/manifest.json`) |
 | `data/round4/` | Inputs added for rounds 4 to 6: NOAA county climate cuts, the Drought Monitor's county area shares, measured canal tests and their sources (hashes in `data/round4.sha256`) |
 | `reports/frozen/` | Results scored once and never rewritten (hashes in `reports/frozen.sha256`, enforced in CI) |
 | `reports/decision.md` | Every experiment, written down before it was run, and what it showed |
-| `reports/prospective/` | Each week's forecast, logged before the answer is known |
+| `reports/prospective/`, `reports/prospective_m/` | Each week's forecasts, logged before the answer is known (six-month model; three-month map-only model) |
+| `reports/live/` | What the daily job writes: this week's forecasts and sealant plan |
 | `tests/` | `tests/app`, `tests/pipeline`; the site's own tests sit beside the code (`*.test.js`) |
-| `tools/` | Small scripts used by CI (`reproduce.py`, `site_size.py`, `hash_list_gate.py`) |
+| `tools/` | Helper scripts: `verify.sh` (every test and hash check in one command), `reproduce.py`, `site_size.py`, `hash_list_gate.py` (used by CI), `costratio.py` (what a missed drought might cost against a false alarm) |
 | `ARCHITECTURE.md` | The build plan for the last stretch, with its corrections |
+| `api/`, `vercel.json` | The live reservoir reading for a deployment from the repo root |
+| `notebooks/` | The first exploratory scripts and the El Nino index file |
 
 ## Run it
 
@@ -91,6 +96,9 @@ pip install -r requirements-pipeline.txt -r requirements-app.txt
 python -m pytest tests/app -q
 PYTHONPATH=src python -m pytest tests/pipeline -q
 node app/site/sim/engine.test.js && node app/site/js/logic.test.js
+
+# every test and hash check in one command
+bash tools/verify.sh
 
 # retrain version 1 and compare with the frozen numbers (a few minutes)
 PYTHONPATH=src python tools/reproduce.py

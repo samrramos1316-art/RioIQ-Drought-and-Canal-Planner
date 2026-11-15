@@ -649,6 +649,27 @@ def reconciliation(canals, district_names, plan):
     }
 
 
+def east_test(reports):
+    """Round 7's one scored test of the map-only forecast on the eastern counties
+    (reports/frozen/round3/east.json), in short, for the website. It lost to "D2 or worse now" at the
+    declared 3 to 1, and the site says so. None when the file is missing, so the row is left out."""
+    path = reports / "frozen" / "round3" / "east.json"
+    if not path.exists():
+        return None
+    test = load_json(path)
+    model, rule = test["model M"], test["model M"]["policies"]["D2 now"]
+    at, gap = model["policies"]["model M at 0.25"], model["somewhere_else_7a"]["block1"]
+    return {
+        "forecasts": test["rows"], "counties": test["counties"], "baseRate": test["base_rate"],
+        "missed": at["missed"], "missedRule": rule["missed"], "falseAlarms": at["false_alarms"],
+        "falseAlarmsRule": rule["false_alarms"], "cost": at["cost"], "costRule": rule["cost"],
+        "costGap": short(gap["diff"]), "costGapLow": short(gap["lo"]), "costGapHigh": short(gap["hi"]),
+        "costChange": round(gap["diff"] / rule["cost"], 4), "years": gap["n_years"],
+        "yearsCheaper": model["somewhere_else_7a"]["year_tests"]["years_a_cheaper"],
+        "shareRight": at["share_right"], "shareRightRule": rule["share_right"],
+    }
+
+
 def quarter_outlook(reports=ROOT / "reports"):
     """The three-month outlook (src/farmdrought/edge.py, model E), in short, for the website.
 
@@ -667,6 +688,7 @@ def quarter_outlook(reports=ROOT / "reports"):
     return {
         "issued": live["issued"], "weeksAhead": live["weeks_ahead"],
         "chance": {fips: chance(p, 3) for fips, p in live["counties"].items()},
+        "east": east_test(reports),
         "test": {
             "forecasts": blind["rows"], "counties": blind["counties"], "auc": blind["auc"]["model E"],
             "shareRight": model["share_right"], "shareRightRule": rule["share_right"],

@@ -337,6 +337,24 @@ def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
     assert packed["test"]["costGap"] == -12 and packed["test"]["costGapHigh"] == -4
 
 
+def test_the_east_test_is_packed_as_a_loss_when_the_interval_is_above_zero(tmp_path):
+    (tmp_path / "frozen" / "round3").mkdir(parents=True)
+    policy = lambda right, missed, fa: {"share_right": right, "missed": missed, "false_alarms": fa, "cost": 3 * missed + fa}
+    model = {"policies": {"model M at 0.25": policy(0.93, 10, 40), "D2 now": policy(0.95, 12, 20)},
+             "somewhere_else_7a": {"block1": {"diff": 14.0, "lo": 6.0, "hi": 23.0, "n_years": 18},
+                                   "year_tests": {"years_a_cheaper": 1}}}
+    (tmp_path / "frozen" / "round3" / "east.json").write_text(json.dumps(
+        {"rows": 500, "counties": 20, "base_rate": 0.058, "model M": model}))
+    east = build_site.east_test(tmp_path)
+    assert east["counties"] == 20 and east["costGap"] == 14 and east["costGapLow"] == 6     # the whole interval above zero
+    assert east["cost"] == 70 and east["costRule"] == 56 and east["costChange"] == 0.25      # (70 - 56) / 56
+    assert east["yearsCheaper"] == 1 and east["missed"] == 10 and east["missedRule"] == 12
+
+
+def test_the_east_test_is_left_out_when_its_file_is_missing(tmp_path):
+    assert build_site.east_test(tmp_path) is None
+
+
 def test_three_month_outlook_is_left_out_when_a_file_is_missing(tmp_path):
     assert build_site.quarter_outlook(tmp_path) is None
 

@@ -74,6 +74,8 @@ jobs:
         run: PYTHONPATH=src python -m farmdrought.manifest prospective
       - name: Round 4 and 5 inputs match data/round4.sha256
         run: PYTHONPATH=src python -m farmdrought.manifest round4
+      - name: Logged model M forecasts match reports/prospective_m.sha256
+        run: PYTHONPATH=src python -m farmdrought.manifest prospective_m
       - name: No recorded hash changed or disappeared since the base branch
         run: |
           # Pull request: the branch it will merge into. Push to main: the commit main was at before.
@@ -87,7 +89,7 @@ jobs:
             BASE="$(git merge-base HEAD origin/main)"
           fi
           echo "base: ${BASE:-none}"
-          python tools/hash_list_gate.py "$BASE" reports/frozen.sha256 reports/prospective.sha256 data/round4.sha256
+          python tools/hash_list_gate.py "$BASE" reports/frozen.sha256 reports/prospective.sha256 reports/prospective_m.sha256 data/round4.sha256
 
   size-gate:
     # Prints the website's file sizes and fails if one grew past its limit (tools/site_size.py).

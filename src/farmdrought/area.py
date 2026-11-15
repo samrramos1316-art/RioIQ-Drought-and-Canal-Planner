@@ -30,10 +30,21 @@ import numpy as np
 import pandas as pd
 
 from farmdrought.climate import ROUND4_DATA
-from farmdrought.config import NEIGHBOR_KM
+from farmdrought.config import LIVE_DATA, NEIGHBOR_KM, live_is_on
 from farmdrought.counties import km, load_county_centers
 
 AREA_FILE = ROUND4_DATA / "usdm_area.parquet"
+# ADDED for the live forecast (live_m.py): weeks newer than the snapshot, saved by fetch_latest().
+# data/round4 is hashed and never written by the refresh, so the new weeks sit in data/live.
+LIVE_AREA_FILE = LIVE_DATA / "usdm_area_new.parquet"
+SERVICE = "https://usdmdataservices.unl.edu/api/CountyStatistics/GetDroughtSeverityStatisticsByAreaPercent"
+STATE_ABBREVIATIONS = {
+    "01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", "08": "CO", "09": "CT", "10": "DE", "11": "DC",
+    "12": "FL", "13": "GA", "15": "HI", "16": "ID", "17": "IL", "18": "IN", "19": "IA", "20": "KS", "21": "KY",
+    "22": "LA", "23": "ME", "24": "MD", "25": "MA", "26": "MI", "27": "MN", "28": "MS", "29": "MO", "30": "MT",
+    "31": "NE", "32": "NV", "33": "NH", "34": "NJ", "35": "NM", "36": "NY", "37": "NC", "38": "ND", "39": "OH",
+    "40": "OK", "41": "OR", "42": "PA", "44": "RI", "45": "SC", "46": "SD", "47": "TN", "48": "TX", "49": "UT",
+    "50": "VT", "51": "VA", "53": "WA", "54": "WV", "55": "WI", "56": "WY", "72": "PR"}
 FEATURES_A = ["a_d1", "a_d2", "a_d3", "dsci", "a_d2_l4", "a_d2_l13", "dsci_l4", "dsci_l13", "dsci_l26",
               "dsci_m13", "dsci_m26", "a_d2_m8", "a_d1_m13", "dsci_chg4"]
 FEATURES_NB = ["nb_a2", "nb_dsci", "nb_dsci_l4", "nb_a2_l4", "nb_dsci_minus"]
@@ -54,9 +65,57 @@ def cut(folder):
     print(f"saved {out['fips'].nunique()} counties, {out['date'].min().date()} to {out['date'].max().date()}")
 
 
+def pack(data):
+    """Rows as the service sends them (MapDate, FIPS, D0..D4 in percent) -> the packed layout:
+    fips, date, and each class in hundredths of a percent (6718 means 67.18%)."""
+    out = pd.DataFrame({"fips": data["FIPS"].astype(str).str.zfill(5),
+                        "date": pd.to_datetime(data["MapDate"].astype(str), format="%Y%m%d")})
+    for name in CLASSES:
+        out[name] = (data[name] * 100).round().astype("int16")
+    return out.drop_duplicates(["fips", "date"]).sort_values(["fips", "date"]).reset_index(drop=True)
+
+
+def fetch_latest(today=None, get=None):
+    """Download every week newer than the snapshot, state by state, and save them in
+    data/live/usdm_area_new.parquet (the snapshot in data/round4 is never touched). A state that
+    fails is skipped and named; the weeks already saved stay. Returns (newest date, states that failed)."""
+    import io
+
+    import requests
+    get = get or (lambda url, params: requests.get(url, params=params, timeout=120,
+                                                   headers={"User-Agent": "farmdrought"}).text)
+    have = pd.read_parquet(AREA_FILE, columns=["fips", "date"])
+    states = sorted({fips[:2] for fips in have["fips"].unique()} & set(STATE_ABBREVIATIONS))
+    start = (LIVE_AREA_FILE.exists() and pd.read_parquet(LIVE_AREA_FILE, columns=["date"])["date"].max()
+             or have["date"].max())
+    end = pd.Timestamp(today) if today is not None else pd.Timestamp.today().normalize()
+    frames, failed = [], []
+    for code in states:
+        try:
+            text = get(SERVICE, {"aoi": STATE_ABBREVIATIONS[code], "startdate": f"{start.month}/{start.day}/{start.year}",
+                                 "enddate": f"{end.month}/{end.day}/{end.year}", "statisticsType": 1})
+            frames.append(pack(pd.read_csv(io.StringIO(text), dtype={"FIPS": str, "MapDate": str})))
+        except Exception:
+            failed.append(STATE_ABBREVIATIONS[code])
+    fresh = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=["fips", "date"] + CLASSES)
+    fresh = fresh[fresh["date"] > have["date"].max()]
+    if LIVE_AREA_FILE.exists():
+        fresh = pd.concat([pd.read_parquet(LIVE_AREA_FILE), fresh], ignore_index=True)
+    fresh = fresh.drop_duplicates(["fips", "date"]).sort_values(["fips", "date"]).reset_index(drop=True)
+    if len(fresh):
+        LIVE_AREA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        fresh.to_parquet(LIVE_AREA_FILE, index=False)
+    newest = fresh["date"].max() if len(fresh) else have["date"].max()
+    return str(pd.Timestamp(newest).date()), failed
+
+
 def load_area():
-    """The packed file as shares: fips, date, a_d1, a_d2, a_d3 (0 to 1) and dsci (0 to 5)."""
+    """The packed file as shares: fips, date, a_d1, a_d2, a_d3 (0 to 1) and dsci (0 to 5).
+    Inside `with live_data():` the newer weeks saved by fetch_latest() are added; scoring never
+    runs inside it, so no scored row can see them."""
     raw = pd.read_parquet(AREA_FILE)
+    if live_is_on() and LIVE_AREA_FILE.exists():
+        raw = pd.concat([raw, pd.read_parquet(LIVE_AREA_FILE)], ignore_index=True).drop_duplicates(["fips", "date"])
     share = {name: raw[name] / 10000 for name in CLASSES}
     return pd.DataFrame({"fips": raw["fips"], "date": raw["date"], "a_d1": share["D1"], "a_d2": share["D2"],
                          "a_d3": share["D3"], "dsci": share["D0"] + share["D1"] + share["D2"] + share["D3"] + share["D4"]})

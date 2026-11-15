@@ -50,9 +50,16 @@
       " unseen counties: it missed " + num(q.missed) + " drought seasons against " + num(q.missedRule) + ", with " + num(q.falseAlarms) + " false alarms against " + num(q.falseAlarmsRule) +
       ". Its share right was lower, " + share(q.shareRight) + " against " + share(q.shareRightRule) + "."
     : "";
+  // Round 7 tested the same idea once on eastern counties. The sentence follows the interval, so a loss reads as a loss.
+  const e = HG.quarter && HG.quarter.east;
+  const eastSentence = e
+    ? (e.costGapLow > 0 ? " In the East it did not hold: on " + num(e.counties) + " eastern counties it cost " + num(e.costChange * 100, 1) + "% more than that rule at the same costs, so the edge is a western result."
+      : e.costGapHigh < 0 ? " It held in the East too, on " + num(e.counties) + " eastern counties."
+      : " On " + num(e.counties) + " eastern counties it tied that rule.")
+    : "";
   $("howForecast").textContent = "A random forest reads the weekly Drought Monitor and the El Niño index." +
     (test ? " Frozen at the end of 2019 and tested on the years since, its January to March warnings caught " + test.forecast.caught + " of " + test.forecast.droughtSeasons + " drought seasons." : "") +
-    quarterSentence;
+    quarterSentence + eastSentence;
   $("howRank").textContent = num(HG.canals.length) + " canal segments, each matched to the soil under it. Leak rate times drought chance gives the sealing order, with a cost, a crew time and the water kept for every one.";
   $("limitModel").textContent = test
     ? "The six-month forecast is accurate but not special: the simple rule \"already in moderate drought\" caught " + test.d1Rule.caught + " of the same " + test.d1Rule.droughtSeasons + " seasons. We show both."

@@ -1394,6 +1394,24 @@ test("quarterScorecard: numbers first, and it says the three-month forecast wins
   assert.ok(rows.map((r) => r.label + " " + r.text).join(" ").split(/\s+/).length <= 60, "about 60 words at most");
 });
 
+const EAST_TEST = { forecasts: 358190, counties: 1666, costGap: 2646, costGapLow: 1206, costGapHigh: 4286, costChange: 0.086, years: 18, yearsCheaper: 1 };
+
+test("quarterScorecard: an eastern loss is worded as a loss, from the interval", () => {
+  const rows = L.quarterScorecard(null, null, EAST_TEST);
+  assert.strictEqual(rows.length, 1);
+  assert.strictEqual(rows[0].label, "3 months ahead, East");
+  assert.strictEqual(rows[0].text, "loses to the best simple rule on cost at 3 to 1, on 1,666 eastern counties scored once " +
+    "(cost 8.6% higher, interval +1,206 to +4,286; cheaper in 1 of 18 years). The edge is a western result.");
+  assert.match(rows[0].text, /^loses to the best simple rule/);
+  assert.ok(!/beats/.test(rows[0].text));
+});
+
+test("quarterScorecard: an eastern tie or win is worded from the interval too", () => {
+  assert.match(L.quarterScorecard(null, null, { ...EAST_TEST, costGapLow: -300, costGapHigh: 500 })[0].text, /^ties the best simple rule/);
+  assert.match(L.quarterScorecard(null, null, { ...EAST_TEST, costGapLow: -900, costGapHigh: -100, costChange: -0.03 })[0].text, /^beats the best simple rule/);
+  assert.deepStrictEqual(L.quarterScorecard(QUARTER_TEST, null, null).map((r) => r.label), ["3 months ahead"]);
+});
+
 test("quarterScorecard: the word comes from the interval, and missing data gives no row", () => {
   assert.deepStrictEqual(L.quarterScorecard(null, null), []);
   assert.deepStrictEqual(L.quarterScorecard(undefined, undefined), []);
