@@ -328,9 +328,12 @@ def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
     group = {"policies": {"model E": policy(0.9, 10), "D2 now": policy(0.91, 14)}, "rows": 100, "counties": 5,
              "auc": {"model E": 0.95}}
     (tmp_path / "frozen" / "round3" / "edge.json").write_text(json.dumps(
-        {"blind": group, "rio_grande_not_blind": group, "cost_change_against_d2_now": -0.055,
+        {"blind": group, "rio_grande_not_blind": group, "cost_change_against_d2_now": -0.055, "model": {"line": 0.25},
          "primary": {"block1": {"diff": -12.0, "lo": -20.0, "hi": -4.0, "n_years": 18}}}))
     packed = build_site.quarter_outlook(tmp_path)
+    # The 90-day decision's numbers: the declared line, a miss worth 3 false alarms at it, and the
+    # break-even worth (same false alarms, 4 fewer misses: the model is cheaper at any worth above 0).
+    assert packed["test"]["line"] == 0.25 and packed["test"]["missWeight"] == 3 and packed["test"]["breakEven"] == 0.0
     assert packed["chance"] == {"48061": 0.226, "48127": 0.249}       # 0.2499 is not rounded up onto the warning line
     assert packed["weeksAhead"] == 13 and packed["test"]["forecasts"] == 100
     assert packed["test"]["missed"] == 10 and packed["test"]["missedRule"] == 14

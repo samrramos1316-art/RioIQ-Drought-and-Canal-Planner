@@ -1105,7 +1105,7 @@ test("the held-out sentence is placed on the Simulation step above the replay ta
   // What used to be spelled out on the Simulation step is on the Sources step.
   for (const piece of ["REPLAY_NOTE", "SAVING_NOTE", "PICK_NOTE", "window.HGLogic.SCORED_TEST_SENTENCE", "window.HGLogic.STRESS_TEST_SENTENCE", "window.HGLogic.TWIN_CAPTION"]) assert.ok(body("renderSources").indexOf(piece) >= 0, "Sources step: " + piece);
   before(body("bandsBlock"), "replayBandsTable(result)", "replayBandsSentence(result)", "the table is the first thing in the block");
-  before(body("renderBudgetResult"), "heldOutNote() + rows", "Simulate this plan", "Budget plan");
+  before(body("renderBudgetResult"), "heldOutNote() + ninetyDayHtml(d) + rows", "Simulate this plan", "Budget plan");
   assert.ok(body("renderSources").indexOf("heldOutNote()") >= 0, "Sources step");
   before(body("renderSources"), "heldOutNote()", "LOSSES_1998_SENTENCE", "Sources step: the note on the 1998 losses follows the sentence");
   // No copy calls the canals at the top of the list "the leakiest": the order is not a tested ranking.
@@ -1525,4 +1525,38 @@ test("the home page words the canal figures and the six-month forecast no more s
   assert.ok(landing.indexOf("a cost, a crew time and a modelled upper estimate of the water kept.") >= 0);
   assert.ok(landing.indexOf("The six-month forecast matched the simple rule and did not beat it:") >= 0);
   // The old wording is kept out by CI's banned-phrase step (.github/workflows/ci.yml), which searches this folder too.
+});
+
+/* ---------- The 90-day decision (round 8, A1) ---------- */
+test("ninetyDay: the three-month chance against the declared line, and null without either", () => {
+  const data = fake();
+  assert.strictEqual(logic(data).ninetyDay(["A"]), null);
+  data.HG.quarter = { chance: { A: 0.2, B: 0.4 }, test: { line: 0.25 } };
+  const n = logic(data).ninetyDay(["A", "B"]);
+  close(n.p, 0.3); assert.strictEqual(n.line, 0.25); assert.strictEqual(n.seal, true);
+  assert.strictEqual(logic(data).ninetyDay(["A"]).seal, false);
+  assert.strictEqual(logic(data).ninetyDay(["C"]), null);
+});
+
+test("ninetyDaySentence: pinned wording, and every number in it is read from the data", () => {
+  const t = { counties: 693, costChange: -0.055, missWeight: 3, breakEven: 2 }, east = { counties: 1666, costGapLow: 1206 };
+  assert.strictEqual(L.ninetyDaySentence(t, east),
+    "This three-month forecast was tested blind on 693 western counties and cost 5.5% less than the best simple rule (\"severe drought now\") when a missed drought season counts as 3 false alarms. " +
+    "It is no cheaper than that rule when a miss counts as about 2.0 false alarms or fewer. A map-only version of it lost its blind test on 1,666 eastern counties. " +
+    "The Rio Grande counties were used to design it, so they are not part of that test.");
+  // Change each number in the data and the sentence follows it.
+  const other = L.ninetyDaySentence({ counties: 700, costChange: -0.061, missWeight: 4, breakEven: 2.4 }, { counties: 1700, costGapLow: 1 });
+  for (const figure of ["700 western", "6.1% less", "counts as 4 false", "about 2.4 false", "1,700 eastern"]) assert.ok(other.indexOf(figure) >= 0, figure);
+  assert.ok(L.ninetyDaySentence(t, { counties: 1666, costGapLow: -5 }).indexOf("eastern") < 0, "the east sentence only when it was a loss");
+  assert.strictEqual(L.ninetyDaySentence(null), null);
+  assert.strictEqual(L.NINETY_DAY_COST_NOTE, "If sealant is cheap next to the water it saves, sealing every round can be the cheapest choice; " +
+    "the forecast matters most when the budget does not cover every canal.");
+  // The real build carries every number, and the page types none of them.
+  const real = realData().HG.quarter;
+  assert.strictEqual(real.test.line, 0.25);
+  assert.ok(L.ninetyDaySentence(real.test, real.east).indexOf(" western counties and cost ") > 0);
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  assert.ok(page.indexOf("ninetyDayHtml(d) + rows") >= 0, "the decision is on the budget step");
+  assert.ok(page.indexOf("U.esc(sentence)") >= 0 && page.indexOf("U.esc(window.HGLogic.NINETY_DAY_COST_NOTE)") >= 0);
+  for (const typed of ["5.5%", "1,666", "693 western"]) assert.ok(page.indexOf(typed) < 0, typed);
 });

@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT))                                                # s
 from app import contract  # noqa: E402
 from farmdrought.canal_class import OSM_KINDS, dense, line_near, point_grid  # noqa: E402
 from farmdrought.costs import LINING_LIFE_YEARS  # noqa: E402  (plain arithmetic, imports nothing)
+from farmdrought.costwindow import break_even, miss_weight  # noqa: E402  (plain arithmetic, reads no data)
 RAW = ROOT / "data" / "raw"
 LIVE = ROOT / "data" / "live"        # the daily refresh saves its downloads here; data/raw is a fixed snapshot
 PROCESSED = ROOT / "data" / "processed"
@@ -700,6 +701,10 @@ def quarter_outlook(reports=ROOT / "reports"):
             "costChange": test["cost_change_against_d2_now"], "years": gap["n_years"],
             "rioGrandeShareRight": rio["policies"]["model E"]["share_right"],
             "rioGrandeCost": rio["policies"]["model E"]["cost"], "rioGrandeCostRule": rio["policies"]["D2 now"]["cost"],
+            # the declared warning line, what a miss is worth at it, and the worth below which the
+            # model is no cheaper than the rule (break-even from the frozen counts, costwindow.py)
+            "line": test["model"]["line"], "missWeight": round(miss_weight(test["model"]["line"]), 2),
+            "breakEven": round(break_even(model, rule), 1),
         },
     }
 
