@@ -90,3 +90,45 @@ def test_rank_agreement_passes_on_a_perfect_order_and_not_on_a_reversed_one():
     assert ponding.rank_agreement(model, [2, 3, 5, 8, 9, 12, 20, 30])["passes"]
     reversed_order = ponding.rank_agreement(model, [30, 20, 12, 9, 8, 5, 3, 2])
     assert reversed_order["spearman"] == -1.0 and not reversed_order["passes"]
+
+
+# ---------------------------------------------------------------------------------------------
+# Round 5: the three-month outlook (quarter.py)
+# ---------------------------------------------------------------------------------------------
+import numpy as np
+
+from farmdrought import quarter
+from farmdrought.drought import label_season
+
+
+def test_quarter_answer_looks_only_at_the_next_13_weeks():
+    # One county, 40 weeks. Severe drought (class 3) in weeks 20 to 27 only: 8 weeks in a row.
+    classes = np.zeros((1, 40))
+    classes[0, 20:28] = 3
+    answer = label_season(classes, horizon=quarter.QUARTER_WEEKS)[0]
+    assert answer[19] == 1            # weeks 20..32 hold the whole run
+    assert answer[14] == 1            # weeks 15..27 just reach its last week
+    assert answer[13] == 0            # weeks 14..26 hold only 7 of the 8 weeks
+    assert answer[20] == 0            # the window starts at week 21, so week 20 is not counted: 7 left
+    assert np.isnan(answer[27])       # its 13 weeks are not over inside these 40 weeks
+
+
+def test_quarter_rivers_were_never_used_before():
+    from farmdrought.config import RIVERS
+    assert not set(quarter.QUARTER_RIVERS) & (set(RIVERS) | set(holdout.HOLDOUT_RIVERS))
+
+
+def test_quarter_model_never_trains_on_a_holdout_row(monkeypatch):
+    seen = []
+
+    def fake_chain(table, label, horizon, features, make_model, train_on, predict_on):
+        seen.append((label, horizon, train_on.copy()))
+        return pd.Series(0.5, index=table.index)
+
+    monkeypatch.setattr(quarter, "chain", fake_chain)
+    monkeypatch.setattr(quarter, "add_climate_features", lambda t: t.assign(**{c: 0.0 for c in quarter.FEATURES_G}))
+    monkeypatch.setattr(quarter, "add_quarter_label", lambda t: t.assign(**{quarter.LABEL: 0.0}))
+    table = quarter.forecasts(pd.DataFrame({"fips": ["a", "b"]}), pd.DataFrame({"fips": ["c"]}))
+    label, horizon, train_rows = seen[0]
+    assert (label, horizon) == (quarter.LABEL, 13)
+    assert not train_rows[table["holdout"]].any() and train_rows[~table["holdout"]].all()
