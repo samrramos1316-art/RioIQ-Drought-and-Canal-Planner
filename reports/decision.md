@@ -332,3 +332,36 @@ Run once, as declared. The result is in `reports/frozen/round3/ponding.json`. No
 - **Seepage-only tests alone.** Too few to say anything: for the permeability model a third of the bootstrap draws had no variation in the model rate and were skipped, so that interval is not reliable and is not used.
 - **Lined against unlined (not tested).** The 38 lined tests had a higher median loss (1.94) than the 16 unlined ones (1.25). Most lined tests were on old, cracked concrete. This matters for the website's assumption that every canal is bare earth: an old lining does not mean a canal holds water.
 - **What follows.** Nothing is refitted. The website keeps the texture table, keeps "upper estimate" on every volume, and now says that measured tests on 16 canals came in at roughly half the table's rate.
+
+## Round 5: a three-month outlook, tested on eight more unseen rivers (declared Nov 15, 2026, before any of those counties was loaded or scored)
+
+**Why.** The 6-month outlook is right in about 78% of forecasts and no change to the model has moved that: six months of weather is not in any input. A shorter horizon is more forecastable, and one horizon matches the decision exactly: a sealant application lasts about 90 days, so "will the next 13 weeks hold a drought season?" is the question a district faces each time it decides whether to seal again. This adds a forecast for that question. It does not replace version 1, and the 6-month results stay as reported.
+
+**The answer it predicts.** 1 if the next 13 weeks contain 8 or more weeks in a row at D2 or worse, otherwise 0. The same rule as the 6-month outlook with a 13-week window.
+
+**The model.** The general model of round 4 with nothing changed but the answer: the version 1 forest settings (80 trees, depth 10, at least 20 rows per leaf, seed 0), the same 47 inputs, trained on the 436 development counties by the same forward chaining (for each test year 2008 to 2025, only rows whose 13-week answer was known before 1 January of that year). Two warning lines are reported and neither is chosen on data: 0.25 (the break-even line for a miss costing three false alarms) and 0.50 (the line at which a forecast simply says the likelier outcome, which is the one plain accuracy is about).
+
+**What development showed (602 used counties; not blind).**
+
+| | Rio Grande (31 counties) | Six rivers of round 4 (166) |
+|---|---|---|
+| Base rate of a yes | 38.5% | 28.6% |
+| Right, model at 0.25 | 87.4% | 88.3% |
+| Right, model at 0.50 | 87.6% | 88.6% |
+| Right, "D2 or worse now" | 88.1% | 88.5% |
+| Right, "D1 or worse now" | 78.2% | 78.7% |
+| AUC | 0.937 | 0.944 |
+| Cost at 0.25 minus "D2 now" | -66 (-147 to 8) | -169 (-375 to 24) |
+| Cost at 0.25 minus "D1 now" | -235 (-558 to 52) | -1,668 (-2,559 to -731) |
+
+So on used data the model is right about 87 to 88 times in 100, and so is the rule "the county is in severe drought now". The version 1 recipe (Rio Grande rows, 34 inputs) gave nearly the same figures (87.0% and 86.4% at 0.25).
+
+**The new holdout.** Every county whose centre is within 50 km of the Red, North Platte, South Platte, Green, Yellowstone, Sacramento, San Joaquin or Humboldt river (same map file, same lower-48 box, same distance rule), minus the 602 counties already used in rounds 1 to 4. The file may hold more than one river of a given name; every one inside the box counts. No such county has been loaded for any purpose. Scored rows: monthly issue rows 2008 to 2025 whose full 52-week future was known by 2026-11-10.
+
+**What is reported.** Share of forecasts right, precision, recall and AUC, at both lines, beside "D2 or worse now", "D1 or worse now" and never warning, with the lowest and highest single-year accuracy. Two declared comparisons, each with a year-block interval (10,000 draws, seed 0; single years primary, pairs beside it): cost at the 0.25 line minus the cost of "D2 or worse now", and minus "D1 or worse now". A comparison is a win only if its primary interval lies wholly below zero.
+
+**Predictions, written before the result.** The model will be right in 85 to 90 of 100 forecasts. It will tie "D2 or worse now" and beat "D1 or worse now".
+
+**Limits, stated now.** New places, not new time. The horizon was chosen after seeing that six months could not be improved, and after seeing the figures above on used counties; only the new holdout is blind. A three-month warning gives a district less time to act than a six-month one.
+
+**Once.** Scored one time. After any number from the new holdout is seen only a crash may be fixed.
