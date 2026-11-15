@@ -14,7 +14,7 @@ const SOURCE = "https://www.waterdatafortexas.org/reservoirs/individual/";
 // Amistad and Falcon are run as one system, so their storage is added together.
 const SYSTEMS = { "Amistad-Falcon": ["amistad", "falcon"], "Elephant Butte": ["elephant-butte"] };
 
-const TIMEOUT_MS = 8000;   // give up on a slow source instead of hanging the page's request
+const TIMEOUT_MS = 15000;  // give up on a slow source instead of hanging the request (a cold start can take several seconds)
 
 /* The newest COMPLETE row of a reservoir file: its date, usable storage and usable capacity
    (acre-feet). The newest row is sometimes published with a blank field; a blank would be read
