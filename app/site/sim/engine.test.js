@@ -565,3 +565,32 @@ test("withFixed: false leaves out the fixed-physics run and changes nothing else
   assert.deepStrictEqual(lean.physics, full.physics);
   assert.deepStrictEqual(lean.fan, full.fan);
 });
+
+// ---- A run that starts part-way through a year (found in the code audit) ----
+test("a part-year does not squeeze a whole year's water into the weeks that are left", () => {
+  // One whole dry year, and the same year with only its weeks from October on.
+  const whole = scope(1, () => ({ pct: 30 }));
+  const tail = Object.assign({}, whole, { weeks: whole.weeks.filter((w) => w.month >= 10) });
+  const wholeYear = E.simulate(whole, { trigger: "never" }).years[0];
+  const lateStart = E.simulate(tail, { trigger: "never" }).years[0];
+  const weeksLeft = tail.weeks.filter((w) => w.month <= 10).length;                 // season weeks still to come
+  assert.ok(lateStart.demandAf < wholeYear.demandAf * (weeksLeft + 1) / 39);        // about weeksLeft / 39 of a year
+  assert.ok(lateStart.demandAf > 0);
+});
+
+test("from today: a run that starts in January covers five seasons, not six, and today's chance applies to this year", () => {
+  const january = Object.assign({}, today, { startDate: "2026-01-10", pNow: 1 });   // certain drought this coming season
+  const run = E.fromToday(history(), [{ trigger: "never" }], {}, january);
+  const sample = run.cases.likely.sample[0];
+  assert.strictEqual(sample.years.length, 5);
+  assert.strictEqual(sample.years[0].year, 2026);
+  assert.strictEqual(sample.years[4].year, 2030);
+  // pNow = 1 means the first season still to come (2026) is always a dry library year (odd years here).
+  for (const which of ["best", "likely", "worst"]) assert.strictEqual(run.cases[which].sourceYears[0] % 2, 1);   // the list is in year order, 2026 first
+});
+
+test("from today: a run that starts after the season covers the next five seasons", () => {
+  const run = E.fromToday(history(), [{ trigger: "never" }], {}, today);              // 14 November 2026
+  const years = run.cases.likely.sample[0].years.map((y) => y.year);
+  assert.deepStrictEqual(years.filter((y) => y > 2026), [2027, 2028, 2029, 2030, 2031]);
+});

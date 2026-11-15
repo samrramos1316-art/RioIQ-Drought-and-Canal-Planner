@@ -14,14 +14,26 @@ const SOURCE = "https://www.waterdatafortexas.org/reservoirs/individual/";
 // Amistad and Falcon are run as one system, so their storage is added together.
 const SYSTEMS = { "Amistad-Falcon": ["amistad", "falcon"], "Elephant Butte": ["elephant-butte"] };
 
-/* The last row of a reservoir file: its date, usable storage and usable capacity (acre-feet). */
+const TIMEOUT_MS = 8000;   // give up on a slow source instead of hanging the page's request
+
+/* The newest COMPLETE row of a reservoir file: its date, usable storage and usable capacity
+   (acre-feet). The newest row is sometimes published with a blank field; a blank would be read
+   as zero, so rows are walked back from the end until both numbers are really there. */
 async function latest(name) {
-  const reply = await fetch(SOURCE + name + ".csv", { headers: { "User-Agent": "Mozilla/5.0" } });
+  const reply = await fetch(SOURCE + name + ".csv", { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!reply.ok) throw new Error(name + " " + reply.status);
   const lines = (await reply.text()).split("\n").filter((line) => line && line[0] !== "#");
-  const header = lines[0].split(","), row = lines[lines.length - 1].split(",");
-  const get = (column) => row[header.indexOf(column)];
-  return { date: get("date"), storage: Number(get("conservation_storage")), capacity: Number(get("conservation_capacity")) };
+  const header = lines[0].split(",");
+  const at = (column) => header.indexOf(column);
+  for (let i = lines.length - 1; i >= 1; i--) {
+    const row = lines[i].split(",");
+    const storage = row[at("conservation_storage")], capacity = row[at("conservation_capacity")];
+    const filled = (text) => text != null && text.trim() !== "" && isFinite(Number(text));
+    if (filled(storage) && filled(capacity) && Number(capacity) > 0) {
+      return { date: row[at("date")], storage: Number(storage), capacity: Number(capacity) };
+    }
+  }
+  throw new Error(name + " has no complete row");
 }
 
 module.exports = async (request, response) => {
@@ -36,6 +48,9 @@ module.exports = async (request, response) => {
       }
     } catch (error) { /* leave this system out; the page falls back to the saved reading */ }
   }
-  response.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");   // the source updates once a day
+  // The source updates once a day, so a good answer is kept for an hour. An answer with a
+  // system missing is kept for only a minute, so one failed read does not last an hour.
+  const complete = Object.keys(systems).length === Object.keys(SYSTEMS).length;
+  response.setHeader("Cache-Control", complete ? "s-maxage=3600, stale-while-revalidate=86400" : "s-maxage=60");
   response.status(200).json({ systems, source: "Water Data for Texas (Texas Water Development Board)" });
 };
