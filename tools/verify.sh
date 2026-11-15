@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Check everything a reader can check in about a minute: both test folders and the four hash lists.
-# It scores nothing and writes nothing. Run it from the repository root:  bash scripts/verify.sh
+# It scores nothing and writes nothing. Run it from the repository root:  bash tools/verify.sh
 set -euo pipefail
 export PYTHONPATH=src
 python -m pytest tests/pipeline -q

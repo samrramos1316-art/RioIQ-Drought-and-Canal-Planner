@@ -528,3 +528,7 @@ Also still open and not touched: whether all 57 measured-canal tests match their
 - **The leak volumes were not recalibrated.** They are still upper estimates, about double what 16 measured canals showed (see the leak section of the README). A leave-one-out calibration was planned and not started; changing every gallon and dollar figure on the site without time to check it was judged worse than leaving the labelled upper estimate.
 - **Photo files were not converted and the site data file was not split.** The photos are already re-encoded, lazy-loaded and under a size gate. The old "HG" names are code identifiers only; no visible text carries them. A map label that sits behind the legend on the state view was reported and could not be checked here (the map did not draw in the headless browser).
 - **Model E was not scored in round 7**, because NOAA's climate record for the eastern counties was not cut.
+
+## A note on file locations (written Nov 15, 2026)
+
+The two helper scripts named above as `scripts/costratio.py` and `scripts/verify.sh` now live in `tools/` with the other helper scripts (`tools/costratio.py`, `tools/verify.sh`). Their contents are unchanged apart from the path in their own usage lines.

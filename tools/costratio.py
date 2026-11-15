@@ -20,7 +20,7 @@ WHAT THIS LEAVES OUT, and which way it pushes:
     full crop value: the true ratio is HIGHER.
 So the figures below are LOWER bounds on the ratio. Nobody at a district has given us a real one.
 
-Run it with:  PYTHONPATH=src python scripts/costratio.py
+Run it with:  PYTHONPATH=src python tools/costratio.py
 """
 from farmdrought.config import (COST_RATIOS, GALLONS_PER_ACRE_FOOT, SEALANT_CUT, SEALANT_DAYS, SEALANT_USD_PER_SQFT,
                                 SEEPAGE_GAL_SQFT_DAY)

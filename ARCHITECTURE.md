@@ -617,6 +617,12 @@ The sections above are left as they were written. This section says where they t
 - **New in round 4, not in this plan:** a check of the leak model against 16 measured canal tests (`ponding.py`, `data/round4/ponding_tests.csv`).
 - **New files not in section 2:** `manifest.py`, `round3.py`, `boosting.py`, `climate.py`, `holdout.py`, `ponding.py`, `tools/reproduce.py`, `tools/hash_list_gate.py`, `tools/site_size.py`, `vercel.json`, `api/live.js`.
 
+**Added after this section was first written (rounds 5 to 7)**
+- `quarter.py`: a three-month outlook, tested on eight more unseen rivers (a tie with "D2 or worse now").
+- `area.py`, `edge.py`: the Drought Monitor's county area shares as inputs; on 693 unseen western counties the three-month forecast beat that rule at a miss worth three false alarms.
+- `east.py`, `costwindow.py`, `live_m.py`: a map-only version tested on 1,666 eastern counties, where it lost at that cost; the cost window; and a weekly forecast log for it.
+- `data/round4/` with its own hash list, and `tools/verify.sh` and `tools/costratio.py`.
+
 **Still open, and only people can close them**
 - Section 9: the meaning of USGS code 33601; whether the 44,000 acre-feet figure is per year; the sealant price link; the district crosswalk (Donna, Bayview).
 - Section 10: emails to districts, the write-up, the video, `docs/OWNERS.md`, and the names and tools list in `README.md`.

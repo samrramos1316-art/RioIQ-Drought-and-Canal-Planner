@@ -74,15 +74,18 @@ In plain words:
 |---|---|
 | `app/site/` | The website. `index.html` (intro), `app.html` (platform), `js/`, `css/`, `sim/engine.js` (the simulation), `data/` (built files) |
 | `app/build_site.py` | Builds `app/site/data/` from the pipeline's outputs, after checking them against the data contract (`app/contract.py`) |
-| `src/farmdrought/` | The pipeline: drought panel and inputs, the three forecasts, the tests against simple rules, the canal and leak model |
+| `src/farmdrought/` | The pipeline: drought panel and inputs, the forecasts, the tests against simple rules, the canal and leak model. Each test round has its own file: `round3.py`, `holdout.py` (round 4), `quarter.py` (5), `edge.py` and `area.py` (6), `east.py` and `live_m.py` (7) |
 | `data/raw/` | The snapshot every frozen result was scored on (hashes in `data/manifest.json`) |
 | `data/round4/` | Inputs added for rounds 4 to 6: NOAA county climate cuts, the Drought Monitor's county area shares, measured canal tests and their sources (hashes in `data/round4.sha256`) |
 | `reports/frozen/` | Results scored once and never rewritten (hashes in `reports/frozen.sha256`, enforced in CI) |
 | `reports/decision.md` | Every experiment, written down before it was run, and what it showed |
-| `reports/prospective/` | Each week's forecast, logged before the answer is known |
+| `reports/prospective/`, `reports/prospective_m/` | Each week's forecasts, logged before the answer is known (six-month model; three-month map-only model) |
+| `reports/live/` | What the daily job writes: this week's forecasts and sealant plan |
 | `tests/` | `tests/app`, `tests/pipeline`; the site's own tests sit beside the code (`*.test.js`) |
-| `tools/` | Small scripts used by CI (`reproduce.py`, `site_size.py`, `hash_list_gate.py`) |
+| `tools/` | Helper scripts: `verify.sh` (every test and hash check in one command), `reproduce.py`, `site_size.py`, `hash_list_gate.py` (used by CI), `costratio.py` (what a missed drought might cost against a false alarm) |
 | `ARCHITECTURE.md` | The build plan for the last stretch, with its corrections |
+| `api/`, `vercel.json` | The live reservoir reading for a deployment from the repo root |
+| `notebooks/` | The first exploratory scripts and the El Nino index file |
 
 ## Run it
 
@@ -93,6 +96,9 @@ pip install -r requirements-pipeline.txt -r requirements-app.txt
 python -m pytest tests/app -q
 PYTHONPATH=src python -m pytest tests/pipeline -q
 node app/site/sim/engine.test.js && node app/site/js/logic.test.js
+
+# every test and hash check in one command
+bash tools/verify.sh
 
 # retrain version 1 and compare with the frozen numbers (a few minutes)
 PYTHONPATH=src python tools/reproduce.py
