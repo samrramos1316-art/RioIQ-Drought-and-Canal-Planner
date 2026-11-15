@@ -15,8 +15,9 @@ Farms and towns on the Texas Rio Grande get their water through earth canals, an
 
 ## How the forecast works
 
-- **Inputs (34):** each county's weekly U.S. Drought Monitor class and its history, its neighbours within 150 km, how drought-prone it has been over one to three years, the time of year, and the Pacific El Nino index.
-- **Model:** a random forest (80 trees). One for each question.
+- **Inputs, six-month outlook (34):** each county's weekly U.S. Drought Monitor class and its history, its neighbours within 150 km, how drought-prone it has been over one to three years, the time of year, and the Pacific El Nino index.
+- **Inputs, three-month outlook (66):** those 34, plus NOAA's county rain, temperature and Palmer drought index (13), plus the share of the county's area in each drought class and the same for its neighbours (19).
+- **Model:** a random forest for each question (80 trees for the six-month outlook, 300 for the three-month one).
 - **Testing:** always by time. For each test year from 2008 to 2025 a fresh model is trained only on answers that were fully known before that year began.
 - **Compared with simple rules**, such as "the county is already in moderate drought (D1) now". A result counts as a win only if its year-block bootstrap interval excludes zero.
 
@@ -33,15 +34,17 @@ Cost = 3 x missed drought seasons + false alarms (our assumption). Lower is bett
 | **Six rivers never used (166 counties, 35,690 forecasts)**, general model | 14,334 | 14,041 ("D1 now") | +293 (-819 to 1,537) | tie |
 | Same holdout, against "wait for D2" | 14,334 | 15,966 | -1,632 (-2,429 to -894) | ahead |
 | Which counties to fund first (March, 18 years), share that then had a drought season | 0.726 | 0.711 (rule A), 0.705 (rule B) | +0.015 (-0.003 to 0.035); +0.020 (0.001 to 0.046) | tie with A; unsettled against B (depends on how equal ranks are broken) |
-| **3-month outlook, eight more rivers never used (136 counties, 29,240 forecasts)**: share of forecasts right | 90.4% | 90.7% ("D2 now"), 79.8% ("D1 now") | cost -52 (-200 to 64) against "D2 now"; -1,810 (-2,437 to -1,153) against "D1 now" | tie with "D2 now", ahead of "D1 now" |
+| 3-month outlook, eight more rivers never used (136 counties, 29,240 forecasts), cost | 4,666 | 4,718 ("D2 now") | -52 (-200 to 64) | tie |
+| **3-month outlook with area inputs, 693 western counties never used (148,995 forecasts), cost** | **23,583** | 24,955 ("D2 now") | **-1,372 (-2,386 to -420)** | **ahead: 5.5% less cost, in all 17 states** |
+| The same on the Rio Grande (not blind) | 1,219 | 1,402 ("D2 now") | -183 (-290 to -82) | ahead: 13% less cost |
 
 In plain words:
 
-- **The forecast is about as good as the best simple rule at deciding whether to warn**, on the Rio Grande and on six rivers it had never seen. It is clearly better than waiting for severe drought to appear, and better than always acting.
-- **Six months ahead, on unseen rivers, it was right in 79% of forecasts** ("D1 now": 76%; "D2 now": 81%, but that rule misses far more drought seasons), with an AUC of 0.85. 73% of its warnings were followed by a drought season.
-- **Three months ahead it is right about nine times in ten:** 90.4% on 136 counties it had never seen (worst single year 83%), 87.4% on the Rio Grande, AUC 0.96. Three months is how long one sealant application lasts. The rule "severe drought now" does as well; the model matches the best rule at each horizon without being told which one that is.
-- **What it adds over the rule** is a probability and an order of counties, not a better yes or no.
-- **Things we tried that did not help:** rain, temperature and soil-moisture inputs; training on every river; gradient boosting; recalibrating the probability. All are reported in `reports/decision.md`.
+- **Three months ahead, the forecast beats the best simple rule.** Given how much of each county's area is in drought (not just its worst class), it cost 5.5% less than "severe drought now" on 693 counties it had never seen, and the whole interval is below zero. It missed a quarter fewer drought seasons (3,938 against 5,270) and raised more false alarms (11,769 against 9,145).
+- **It wins on cost, not on share right.** It was right in 89.5% of those forecasts and the rule in 90.3%. If a missed drought is worse than a false alarm, the model is the better tool; if they are equally bad, the rule is.
+- **Six months ahead it ties the best simple rule** ("moderate drought now"), on the Rio Grande and on six rivers it had never seen, with about 78 to 79% of forecasts right ("D2 now" is right 81% of the time there but misses far more drought seasons). It is clearly better than waiting for severe drought to appear.
+- **One model, both horizons.** The best rule of thumb changes with the horizon: "moderate drought now" at six months, "severe drought now" at three. The model matches or beats the better one each time.
+- **Things we tried that did not help:** rain, temperature and soil-moisture inputs at six months; gradient boosting; recalibrating the probability; a warning line picked from past years. All are reported in `reports/decision.md`.
 - **The start of a severe drought six months ahead** in a county that is not yet dry is close to unforecastable from these inputs (AUC about 0.6).
 
 ## The leak model, and how far to trust it
@@ -70,7 +73,7 @@ In plain words:
 | `app/build_site.py` | Builds `app/site/data/` from the pipeline's outputs, after checking them against the data contract (`app/contract.py`) |
 | `src/farmdrought/` | The pipeline: drought panel and inputs, the three forecasts, the tests against simple rules, the canal and leak model |
 | `data/raw/` | The snapshot every frozen result was scored on (hashes in `data/manifest.json`) |
-| `data/round4/` | Inputs added for rounds 4 and 5: NOAA county climate cut, measured canal tests and their sources (hashes in `data/round4.sha256`) |
+| `data/round4/` | Inputs added for rounds 4 to 6: NOAA county climate cuts, the Drought Monitor's county area shares, measured canal tests and their sources (hashes in `data/round4.sha256`) |
 | `reports/frozen/` | Results scored once and never rewritten (hashes in `reports/frozen.sha256`, enforced in CI) |
 | `reports/decision.md` | Every experiment, written down before it was run, and what it showed |
 | `reports/prospective/` | Each week's forecast, logged before the answer is known |
@@ -100,7 +103,7 @@ A daily job (`.github/workflows/refresh.yml`) downloads the newest drought map a
 
 ## Sources
 
-- Drought classes: U.S. Drought Monitor (NDMC, USDA, NOAA), https://droughtmonitor.unl.edu ; county archive by the Montana Climate Office
+- Drought classes: U.S. Drought Monitor (NDMC, USDA, NOAA), https://droughtmonitor.unl.edu ; county archive by the Montana Climate Office ; county area shares from the Drought Monitor's data service, https://usdmdataservices.unl.edu
 - El Nino index: NOAA Climate Prediction Center, https://www.cpc.ncep.noaa.gov
 - County rain, temperature and Palmer drought index: NOAA nClimDiv, https://www.ncei.noaa.gov/pub/data/cirs/climdiv/
 - River lines: Natural Earth (public domain), https://www.naturalearthdata.com ; canal detail: OpenStreetMap contributors
