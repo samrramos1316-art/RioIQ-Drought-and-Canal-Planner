@@ -1,5 +1,6 @@
 # Checks on every push and pull request: the two Python test folders, the simulation and site
-# logic tests, a banned-word gate, a frozen gate and a size gate (ARCHITECTURE.md section 5.3).
+# logic tests, a banned-word gate, a frozen gate, a size gate (ARCHITECTURE.md section 5.3) and
+# the site in a real browser with an accessibility check (tests/e2e).
 #
 # The "reproduce" job retrains version 1 on GitHub's computer and compares its three headline
 # numbers with the frozen ones. Random forests are not identical across computers (see
@@ -91,6 +92,27 @@ jobs:
           fi
           echo "base: ${BASE:-none}"
           python tools/hash_list_gate.py "$BASE" reports/frozen.sha256 reports/prospective.sha256 reports/prospective_m.sha256 data/round4.sha256
+
+  browser:
+    # Both pages in Chromium at phone and laptop width (tests/e2e): no page error, no sideways
+    # scroll, every platform step draws, the simulation runs, the data export downloads, and no
+    # "serious" or "critical" accessibility finding (axe-core). Versions pinned in package-lock.json.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests/e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tests/e2e/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The site in a browser, with axe-core
+        run: npx playwright test --trace off
 
   size-gate:
     # Prints the website's file sizes and fails if one grew past its limit (tools/site_size.py).

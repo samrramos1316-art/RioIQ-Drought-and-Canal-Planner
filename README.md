@@ -81,7 +81,7 @@ In plain words:
 | `reports/decision.md` | Every experiment, written down before it was run, and what it showed |
 | `reports/prospective/`, `reports/prospective_m/` | Each week's forecasts, logged before the answer is known (six-month model; three-month map-only model) |
 | `reports/live/` | What the daily job writes: this week's forecasts and sealant plan |
-| `tests/` | `tests/app`, `tests/pipeline`; the site's own tests sit beside the code (`*.test.js`) |
+| `tests/` | `tests/app`, `tests/pipeline`, `tests/e2e` (the site in a real browser, with an accessibility check); the site's own unit tests sit beside the code (`*.test.js`) |
 | `tools/` | Helper scripts: `verify.sh` (every test and hash check in one command), `reproduce.py`, `site_size.py`, `hash_list_gate.py` (used by CI), `costratio.py` (what a missed drought might cost against a false alarm) |
 | `ARCHITECTURE.md` | The build plan for the last stretch, with its corrections |
 | `api/`, `vercel.json` | The live reservoir reading for a deployment from the repo root |
@@ -100,6 +100,9 @@ node app/site/sim/engine.test.js && node app/site/js/logic.test.js
 # every test and hash check in one command
 bash tools/verify.sh
 
+# the site in a real browser at phone and laptop width, with axe-core (needs Node)
+cd tests/e2e && npm ci && npx playwright install chromium && npx playwright test && cd ../..
+
 # retrain version 1 and compare with the frozen numbers (a few minutes)
 PYTHONPATH=src python tools/reproduce.py
 
@@ -107,6 +110,8 @@ PYTHONPATH=src python tools/reproduce.py
 python app/build_site.py
 cd app/site && python -m http.server 8000
 ```
+
+**Accessibility.** CI's `browser` job fails on any "serious" or "critical" axe-core finding on either page. Three moderate findings remain and are listed here rather than hidden: the platform has no level-one heading on its main screen (the chooser's heading is the only one), and the platform's top strip and two sections of the home page (the people section and the closing section) sit outside a landmark.
 
 A daily job (`.github/workflows/refresh.yml`) downloads the newest drought map and reservoir readings and rebuilds this week's forecast. It never re-scores a model.
 

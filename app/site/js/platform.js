@@ -95,15 +95,15 @@
   const afPair = (n) => af(n) + (SCALE ? '<small class="meas">' + af(scaled(n)) + " at measured scale</small>" : "");
   const afMidPair = (n) => afMid(n) + (SCALE ? '<small class="meas">' + afMid(scaled(n)) + " at measured scale</small>" : "");
   /* A row of key figures: [[label, value, note], ...]. Plain rules between them, no boxes. */
-  const stats = (rows) => '<dl class="stats">' + rows.map((r) => "<div class=\"" + (r[3] || "") + "\"><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>" + (r[2] ? "<small>" + r[2] + "</small>" : "") + "</div>").join("") + "</dl>";
+  const stats = (rows) => '<dl class="stats">' + rows.map((r) => "<div class=\"" + (r[3] || "") + "\"><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>" + (r[2] ? "<dd class=\"note\"><small>" + r[2] + "</small></dd>" : "") + "</div>").join("") + "</dl>";
   /* The three numbers every canal decision comes down to. n = U.canalNumbers(...). oneCrew = time for a single crew. */
   function triple(n, oneCrew, cls) {
     const p = params(), days = oneCrew ? n.crewDays : n.days;
     return '<dl class="stats three ' + (cls || "") + '">' +
-      '<div class="cost"><dt>Cost</dt><dd>' + (n.usd >= 1e6 ? money(n.usd) : U.usd(n.usd)) + "</dd><small>sealant, " + U.num(n.km, n.km < 10 ? 2 : 1) + " km; labour extra</small></div>" +
-      '<div class="time"><dt>Time</dt><dd>' + U.workTime(days) + "</dd><small>" + (oneCrew ? "1 crew" : p.crews + (p.crews === 1 ? " crew" : " crews")) + ", " + p.kmPerCrewDay + " km a day</small></div>" +
-      '<div class="save"><dt>Water kept</dt><dd>' + (n.afHigh > 0 ? af(n) : "unknown") + "</dd><small>" + (n.afHigh > 0 ? "model's upper estimate, per 90-day application; " + money(n.worthLow) + " to " + money(n.worthHigh) + " in a shortage" +
-        (SCALE ? "<br>" + U.esc(window.HGLogic.measuredScaleLabel(SCALE)) + ": about " + af(scaled(n)) : "") : "no seepage rate for this soil") + "</small></div></dl>";
+      '<div class="cost"><dt>Cost</dt><dd>' + (n.usd >= 1e6 ? money(n.usd) : U.usd(n.usd)) + "</dd><dd class=\"note\"><small>sealant, " + U.num(n.km, n.km < 10 ? 2 : 1) + " km; labour extra</small></dd></div>" +
+      '<div class="time"><dt>Time</dt><dd>' + U.workTime(days) + "</dd><dd class=\"note\"><small>" + (oneCrew ? "1 crew" : p.crews + (p.crews === 1 ? " crew" : " crews")) + ", " + p.kmPerCrewDay + " km a day</small></dd></div>" +
+      '<div class="save"><dt>Water kept</dt><dd>' + (n.afHigh > 0 ? af(n) : "unknown") + "</dd><dd class=\"note\"><small>" + (n.afHigh > 0 ? "model's upper estimate, per 90-day application; " + money(n.worthLow) + " to " + money(n.worthHigh) + " in a shortage" +
+        (SCALE ? "<br>" + U.esc(window.HGLogic.measuredScaleLabel(SCALE)) + ": about " + af(scaled(n)) : "") : "no seepage rate for this soil") + "</small></dd></div></dl>";
   }
   function gauge(p) {
     const tier = U.tierFor(p);
