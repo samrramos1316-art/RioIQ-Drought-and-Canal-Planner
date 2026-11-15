@@ -1,6 +1,6 @@
 {
   "contract_version": 2,
-  "generated_at": "2026-11-15T05:54:23-08:00",
+  "generated_at": "2026-11-15T19:42:27+00:00",
   "is_final": true,
   "focus_river": "Rio Grande",
   "training_scope": "Rio Grande counties only",
@@ -986,13 +986,13 @@
         "name": "Amistad-Falcon",
         "counties": 10,
         "first_date": "1990-01-01",
-        "last_date": "2026-11-14"
+        "last_date": "2026-11-15"
       },
       {
         "name": "Elephant Butte",
         "counties": 4,
         "first_date": "1990-01-01",
-        "last_date": "2026-11-14"
+        "last_date": "2026-11-15"
       }
     ],
     "counties_without_reservoir": 17,

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-15T02:05:41+00:00",
+  "generated_at": "2026-11-15T19:42:38+00:00",
   "drought_week": "2026-11-10",
   "counts": {
     "Critical": 0,
-    "Important": 12,
+    "Important": 13,
     "Context": 2
   },
   "not_reached": [],
@@ -173,48 +173,63 @@
     },
     {
       "severity": "Important",
-      "title": "Winter Weather Advisory: Hinsdale, Colorado, San Juan, Colorado",
-      "detail": "Winter Weather Advisory issued November 14 at 10:32AM MST until November 14 at 9:00PM MST by NWS Grand Junction CO Weather service severity: Moderate.",
+      "title": "Coastal Flood Advisory: Willacy, Texas, Cameron, Texas",
+      "detail": "Coastal Flood Advisory issued November 15 at 2:27AM CST until November 17 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "08053",
-        "08111"
+        "48489",
+        "48061"
       ],
       "states": [
-        "Colorado"
+        "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-14T10:32",
+      "as_of": "2026-11-15T02:27",
       "rule": 8
     },
     {
       "severity": "Important",
-      "title": "Winter Weather Advisory: Taos, New Mexico",
-      "detail": "Winter Weather Advisory issued November 14 at 11:36AM MST until November 14 at 9:00PM MST by NWS Albuquerque NM Weather service severity: Moderate.",
+      "title": "High Surf Advisory: Willacy, Texas, Cameron, Texas",
+      "detail": "High Surf Advisory issued November 15 at 2:27AM CST until November 17 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "35055"
+        "48489",
+        "48061"
       ],
       "states": [
-        "New Mexico"
+        "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-14T11:36",
+      "as_of": "2026-11-15T02:27",
+      "rule": 8
+    },
+    {
+      "severity": "Important",
+      "title": "Rip Current Statement: Willacy, Texas, Cameron, Texas",
+      "detail": "Rip Current Statement issued November 15 at 2:27AM CST until November 17 at 6:00AM CST by NWS Brownsville TX Weather service severity: Moderate.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "48489",
+        "48061"
+      ],
+      "states": [
+        "Texas"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-15T02:27",
       "rule": 8
     },
     {
       "severity": "Context",
-      "title": "No real rain forecast this week for 11 of 12 Warning counties",
-      "detail": "Under 0.1 inch in the next 7 days at the county center: Costilla, Colorado, Saguache, Colorado, Santa Fe, New Mexico, Dimmit, Texas, Hidalgo, Texas, Hudspeth, Texas, Kinney, Texas, Maverick, Texas, Starr, Texas, Webb, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
+      "title": "No real rain forecast this week for 8 of 12 Warning counties",
+      "detail": "Under 0.1 inch in the next 7 days at the county center: Costilla, Colorado, Saguache, Colorado, Hudspeth, Texas, Kinney, Texas, Maverick, Texas, Starr, Texas, Webb, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
       "who": "Everyone planning water for the next week",
       "where": [
         "08023",
         "08109",
-        "35049",
-        "48127",
-        "48215",
         "48229",
         "48271",
         "48323",
@@ -224,18 +239,17 @@
       ],
       "states": [
         "Colorado",
-        "New Mexico",
         "Texas"
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-15T01:45",
+      "as_of": "2026-11-15T19:30",
       "rule": 9
     },
     {
       "severity": "Context",
       "title": "Live river flow in Big Bend",
-      "detail": "Rio Grande near Castolon: 24 cubic feet per second; Rio Grande at Rio Grande Village: 242 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
+      "detail": "Rio Grande near Castolon: 24 cubic feet per second; Rio Grande at Rio Grande Village: 223 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
       "who": "Water allocators",
       "where": [
         "48043"
@@ -245,7 +259,7 @@
       ],
       "district": "",
       "source": "USGS Water Data, provisional readings",
-      "as_of": "2026-11-15T01:15",
+      "as_of": "2026-11-15T19:15",
       "rule": 10
     }
   ]
