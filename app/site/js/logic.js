@@ -442,6 +442,25 @@
   const BENCHMARK_SOURCE = "https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico";
 
   /*
+    The 90-day sealing decision (round 8, A1). A sealant application lasts about 90 days, and the
+    three-month forecast (model E) is the one forecast that won a blind test. These two fixed
+    sentences go with the decision. Every number is read from the build (HG.quarter.test, made by
+    app/build_site.py from reports/frozen/round3/edge.json and east.json); none is typed here.
+      test  HG.quarter.test   east  HG.quarter.east (may be missing)
+    Returns null when the test is missing, so the page leaves the sentence out.
+  */
+  function ninetyDaySentence(test, east) {
+    if (!test || test.costChange == null || test.missWeight == null || test.breakEven == null) return null;
+    return "This three-month forecast was tested blind on " + num(test.counties) + " western counties and cost " +
+      num(Math.abs(test.costChange) * 100, 1) + "% " + (test.costChange < 0 ? "less" : "more") + " than the best simple rule (\"severe drought now\") when a missed drought season counts as " +
+      num(test.missWeight) + " false alarms. It is no cheaper than that rule when a miss counts as about " + num(test.breakEven, 1) + " false alarms or fewer." +
+      (east && east.costGapLow > 0 ? " A map-only version of it lost its blind test on " + num(east.counties) + " eastern counties." : "") +
+      " The Rio Grande counties were used to design it, so they are not part of that test.";
+  }
+  const NINETY_DAY_COST_NOTE = "If sealant is cheap next to the water it saves, sealing every round can be the cheapest choice; " +
+    "the forecast matters most when the budget does not cover every canal.";
+
+  /*
     The scorecard at the top of the Sources step: one row per forecast, numbers first.
       test  HG.quarter.test, the three-month forecast's one scored test (may be missing)
       six   { diff, lo, hi }: the six-month forecast's cost minus its best simple rule's, with
@@ -566,6 +585,14 @@
       const chance = (HG.quarter && HG.quarter.chance) || {};
       const have = fipsList.map((f) => chance[f]).filter((p) => typeof p === "number");
       return have.length ? have.reduce((s, p) => s + p, 0) / have.length : null;
+    }
+
+    /* The 90-day decision for a list of counties: the three-month chance (quarterChance) against
+       the declared warning line (HG.quarter.test.line). null when either is missing. */
+    function ninetyDay(fipsList) {
+      const p = quarterChance(fipsList), line = HG.quarter && HG.quarter.test ? HG.quarter.test.line : null;
+      if (p == null || typeof line !== "number") return null;
+      return { p, line, seal: p >= line };
     }
 
     /* What the engine needs for a list of districts (members): its weekly record, its canals and
@@ -743,7 +770,7 @@
       return { about: about(settings), tables };
     }
 
-    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions, researchExport };
+    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions, researchExport, ninetyDay };
   }
 
   return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber, csvTable, tableObjects,
@@ -751,5 +778,5 @@
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
-           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, makeLogic };
+           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, makeLogic };
 });

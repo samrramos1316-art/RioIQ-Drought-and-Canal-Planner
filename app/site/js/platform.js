@@ -376,7 +376,7 @@
         ["Sealant cost per million gallons kept", perAf(total.afHigh) + " to " + perAf(total.afLow), "a million gallons is worth about $" + U.num(U.USD_PER_AF * 1e6 / E.GALLONS_PER_ACRE_FOOT) + " to farms in a shortage"],
       ]) +
       '<p class="rec ' + act.key + '"><b>' + act.title + ".</b> At a " + U.pct(p) + " chance of a drought season" + (state.severity != null ? " (your setting)." : " (the forecast).") + "</p>" +
-      (piped ? '<p class="fn warn">' + piped + " funded segments are mapped as piped in OpenStreetMap. Check them first: a pipe does not seep.</p>" : "") + heldOutNote() + rows +
+      (piped ? '<p class="fn warn">' + piped + " funded segments are mapped as piped in OpenStreetMap. Check them first: a pipe does not seep.</p>" : "") + heldOutNote() + ninetyDayHtml(d) + rows +
       '<div class="rowBtns"><button class="btn" data-act="go" data-step="sim">Simulate this plan &rarr;</button><button class="btn ghost" data-act="csv">Download CSV</button></div>';
     $("budgetExtra").innerHTML =
       more("Field checklist", "<ol class=\"todo\">" +
@@ -386,6 +386,29 @@
         "<li><b>Measure flow in and out</b> of a sealed stretch before paying for the next application (" + U.esc(a.days_one_application_lasts) + " days each).</li></ol>") +
       '<p class="fn">An estimate from published figures, not a field result. Crew speed is our assumption. ' + U.esc(HG.plan.note) + "</p>";
     syncMap();
+  }
+  /* The second decision on the budget step (round 8, A1): seal again in the next 90 days? It reads
+     the three-month forecast, the one that won a blind test, against the declared warning line.
+     It sits beside the March decision above and does not replace it. The sentences under it are
+     built from the frozen test's numbers (js/logic.js, ninetyDaySentence). */
+  function ninetyDayHtml(d) {
+    const q = HG.quarter, sentence = window.HGLogic.ninetyDaySentence(q && q.test, q && q.east);
+    if (!sentence) return "";
+    let head;
+    if (d) {
+      const n = L.ninetyDay(d.fips);
+      if (!n) return "";
+      // A chance just under the line would round onto it ("25% ... wait"), so it gets one decimal there.
+      const shown = !n.seal && U.pct(n.p) === U.pct(n.line) ? U.num(n.p * 100, 1) + "%" : U.pct(n.p);
+      head = "<b>Next 90 days:</b> chance of a drought season " + shown + " (three-month forecast). At the " + U.pct(n.line) +
+        " warning line this says <b>" + (n.seal ? "seal again" : "wait") + "</b>.";
+    } else {
+      const all = HG.districts.map((x) => L.ninetyDay(x.fips)).filter((n) => n), seal = all.filter((n) => n.seal).length;
+      if (!all.length) return "";
+      head = "<b>Next 90 days:</b> " + seal + " of " + all.length + " districts are at or over the " + U.pct(all[0].line) +
+        " warning line on the three-month forecast, so it says <b>seal again</b> there and <b>wait</b> in the rest. Open a district for its chance.";
+    }
+    return "<h3>Seal again in the next 90 days?</h3><p>" + head + "</p><p class=\"fn\">" + U.esc(sentence) + "</p><p class=\"fn\">" + U.esc(window.HGLogic.NINETY_DAY_COST_NOTE) + "</p>";
   }
   function downloadCsv() {
     const plan = currentPlan(), P = params();
