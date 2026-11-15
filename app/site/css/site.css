@@ -440,6 +440,8 @@ details.assume summary { font-weight: 700; cursor: pointer; }
 .stats dt { font-size: .72rem; color: var(--muted); letter-spacing: .02em; }
 .stats dd { margin: 0; font: 600 1.6rem/1.2 var(--serif); color: var(--head); font-variant-numeric: tabular-nums lining-nums; }
 .stats small { display: block; font-size: .73rem; color: var(--muted); line-height: 1.35; }
+/* The note under a figure is its own <dd> (a <dl> may hold only dt and dd): it keeps the small text's look. */
+.stats dd.note, .stats.three dd.note { font: 400 1rem/1.35 var(--sans); color: inherit; }
 .stats.three { grid-template-columns: repeat(3, 1fr); }
 .stats.three dd { font-size: clamp(1.15rem, 1.55vw, 1.5rem); }
 .stats.three .cost dd { color: var(--watch); } .stats.three .time dd { color: var(--blue); } .stats.three .save dd { color: var(--low); }
