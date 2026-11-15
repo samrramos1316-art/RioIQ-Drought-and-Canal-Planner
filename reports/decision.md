@@ -430,3 +430,18 @@ Also tried and not chosen: regularised gradient boosting with the area inputs (w
 **Limits, stated now.** New places, not new time. The design was picked from about a dozen variants on used counties, and the last two columns of the table are from counties used to choose it. The Rio Grande figures can never be blind. A gain of a few percent in cost is real if it holds, and it is small.
 
 **Once.** Scored one time. After any number from the blind set is seen only a crash may be fixed.
+
+## Round 6 result: with area inputs the forecast beats the best simple rule on 693 unseen counties (written Nov 15, 2026, after the blind set was scored once)
+
+Scored one time, as declared. The result is in `reports/frozen/round3/edge.json`, produced from commit e2339d6 with no uncommitted source change. Nothing was rerun.
+
+- **The primary result is a win.** On 693 western counties never used before (148,995 forecasts, 18 years; a drought season followed in 25.7% of them), model E cost 23,583 against 24,955 for "D2 or worse now": **-1,372, interval -2,386 to -420** with single-year blocks and -2,582 to -195 with pairs of years. Both lie wholly below zero. That is 5.5% less cost. The model was ahead in 13 of the 18 years, and its cost was lower than the rule's in every one of the 17 states (from -2.1% in Texas to -16.5% in Wyoming).
+- **Where the gain comes from.** The model missed 3,938 drought seasons where the rule missed 5,270: a quarter fewer. It paid for that with more false alarms (11,769 against 9,145). At three false alarms to one miss that trade is worth making, which is what the cost says.
+- **Plain accuracy did not rise, as predicted.** The model was right in 89.5% of forecasts and the rule in 90.3%. Precision 74.5% against 78.3%; recall 89.7% against 86.2%. AUC 0.957. Anyone who values a false alarm as much as a missed drought would prefer the rule; anyone who thinks a missed drought is worse would prefer the model.
+- **Against "D1 or worse now":** -11,147, interval -13,406 to -8,836. Ahead in all 18 years.
+- **What the area inputs add.** Model E against the round-5 model on the same counties: -744, interval -1,379 to -153 (pairs: -1,489 to -2). The area inputs and the larger training set are a real part of the gain.
+- **A second finding.** The round-5 model (47 inputs, no area) was also ahead of "D2 now" on this larger blind set: -628, interval -1,037 to -242. On the 136 counties of round 5 the same model was not separated (-52, -200 to 64). With five times as many counties the small lead is visible. So part of the edge was already there and too small to see.
+- **On the Rio Grande (not blind).** Model E cost 1,219 against 1,402: -183, interval -290 to -82, which is 13% less. It missed 196 drought seasons against 304. Right in 87.6% of forecasts (the rule: 88.1%). These counties were used to choose the design, so this is not evidence by itself; the blind result above is.
+- **The prediction.** "3 to 6% less cost, the interval probably clear of zero, accuracy near 90%": 5.5%, clear of zero, 89.5%.
+- **What this does and does not show.** It shows that three months ahead, a forecast that sees how much of a county is in drought warns better than the best rule built on the county's single worst class, on places it never saw. It does not show a gain six months ahead: there the area inputs changed little in development and no test of them was declared. The edge is about one part in twenty of the cost. It is real and it is small.
+- **What follows.** Model E becomes the three-month outlook the website shows. Version 1 stays the six-month outlook, and every earlier result stays as reported. This week's three-month chances from model E are in `reports/live/edge.json` (issued 2026-11-03; not a scored result).
