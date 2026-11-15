@@ -117,6 +117,24 @@ def texas_counties(usdm, profiles, photo_files):
     return sorted(out, key=lambda c: c["name"])
 
 
+WARNING_LINE = 0.25   # the forecast warns at 0.25 or more (config.SEASON_THRESHOLD in the pipeline)
+
+
+def chance(value, digits):
+    """Round a forecast chance for the website WITHOUT moving it across the warning line.
+
+    Plain rounding turns 0.2496 into 0.25, and the site would then count a county that the
+    pipeline did not warn about as warned. When rounding would lift a value onto or over the
+    line, it is rounded down instead (0.2496 becomes 0.249 or 0.24).
+    """
+    value = float(value)
+    step = 10 ** -digits
+    shown = round(value, digits)
+    if value < WARNING_LINE <= shown:
+        shown = round(WARNING_LINE - step, digits)
+    return shown
+
+
 def river_counties(latest):
     """The 14 Texas counties on the Rio Grande, with this week's forecast."""
     rows = latest[(latest["state"] == "Texas") & (latest["river"] == "Rio Grande")]
@@ -125,7 +143,7 @@ def river_counties(latest):
         out.append({
             "fips": r.fips, "name": r.county, "lat": round(r.lat, 3), "lon": round(r.lon, 3),
             "cls": int(r.cls),                                   # same scale as "dm" above
-            "pSeason": round(float(r.p_season), 3),              # chance of a drought season in 6 months
+            "pSeason": chance(r.p_season, 3),              # chance of a drought season in 6 months
             "tier": r.season_tier,                               # Low, Watch or Warning
             "p4": round(float(r.p_model), 3),                    # chance of D2 within 4 weeks
             "weeks": round(float(r.weeks_model), 1),             # drought weeks expected in the next year
@@ -404,7 +422,7 @@ def weekly_history(usdm, fips_list):
     forecast, happened = {}, {}
     for fips, rows in outlook.groupby("fips"):
         rows = rows.set_index("date").reindex(weeks)
-        forecast[fips] = [None if pd.isna(v) else round(float(v), 2) for v in rows["p_season"]]
+        forecast[fips] = [None if pd.isna(v) else chance(v, 2) for v in rows["p_season"]]
         happened[fips] = [None if pd.isna(v) else int(v) for v in rows["y_season"]]
 
     # Reservoir storage as percent full, one reading a week. Amistad and Falcon are run as one system.

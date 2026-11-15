@@ -336,3 +336,11 @@ def test_three_month_outlook_is_packed_from_the_live_and_frozen_files(tmp_path):
 
 def test_three_month_outlook_is_left_out_when_a_file_is_missing(tmp_path):
     assert build_site.quarter_outlook(tmp_path) is None
+
+
+def test_rounding_a_chance_never_moves_it_across_the_warning_line():
+    assert build_site.chance(0.249626, 3) == 0.249      # plain rounding would give 0.25: a false warning
+    assert build_site.chance(0.2474, 2) == 0.24
+    assert build_site.chance(0.25, 3) == 0.25           # on the line stays on the line
+    assert build_site.chance(0.2504, 3) == 0.25
+    assert build_site.chance(0.613, 2) == 0.61 and build_site.chance(0.1, 3) == 0.1
