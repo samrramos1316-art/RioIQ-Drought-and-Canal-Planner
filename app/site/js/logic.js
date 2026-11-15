@@ -5,13 +5,14 @@
   TWO KINDS OF FUNCTION
     Plain ones need nothing but their arguments: esc, usd, num, pct, niceDate, workTime, gal,
     money, usesElephantButte, budgetScale, stepFromQuery, quarterScorecard, leakAcreFeet, and the guards safeUrl, safeDecode,
-    cssClass, finiteOrNull, percentOrNull, csvText, csvNumber.
+    cssClass, finiteOrNull, percentOrNull, csvText, csvNumber, csvTable, tableObjects.
     For the Sources step: sig, signed, verdictFor, forecastEffectSentence, levelLabel, perMillionGal.
     For the Simulation step: band, rangeText, rangeCell, rangeHeadline, replayBands and the fixed sentences.
 
     Bound ones read the generated data (window.HG and window.HG_SIM in the browser). They come
     from makeLogic(data), so a test can hand in a small made-up data object instead:
-      tierFor, actionFor, planFor, canalNumbers, scopeP, quarterChance, simScope, replayScope, hitRates, USD_PER_AF.
+      tierFor, actionFor, planFor, canalNumbers, scopeP, quarterChance, simScope, replayScope, hitRates, USD_PER_AF,
+      researchExport (the researcher export at the foot of the platform).
 
   WHO USES IT
     js/common.js calls makeLogic once with the real data and republishes the functions under
@@ -70,6 +71,15 @@
     return '"' + (/^[=+\-@\t\r]/.test(text) ? "'" : "") + text.replace(/"/g, '""') + '"';
   };
   const csvNumber = (value, digits) => (typeof value === "number" && isFinite(value) ? (digits == null ? String(value) : value.toFixed(digits)) : "");
+  /*
+    A whole CSV file from a table: { columns: [...names], rows: [[...values], ...] }. Each value is
+    written by its type: a number bare (csvNumber), true or false as yes or no, null as empty,
+    anything else as quoted text (csvText). Column names are plain words and are written bare.
+  */
+  const csvCell = (v) => (typeof v === "number" ? csvNumber(v) : typeof v === "boolean" ? (v ? "yes" : "no") : v == null ? "" : csvText(v));
+  const csvTable = (table) => [table.columns.join(",")].concat(table.rows.map((r) => r.map(csvCell).join(","))).join("\n") + "\n";
+  /* The same table as a list of objects, one per row, for the JSON export. */
+  const tableObjects = (table) => table.rows.map((r) => { const o = {}; table.columns.forEach((c, i) => { o[c] = r[i] === undefined ? null : r[i]; }); return o; });
 
   /* "3 hours", "2 days", "6 weeks": a length of working time (8-hour days, 5-day weeks) in plain words. */
   function workTime(days) {
@@ -650,10 +660,91 @@
       return c && typeof c.seepSd === "number" && isFinite(c.seepSd) && c.seepSd >= 0 ? { seepSd: c.seepSd } : {};
     }
 
-    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions };
+    /*
+      The researcher export: every figure the site shows, as tables a spreadsheet or a script can
+      read. Nothing here is computed afresh; it is the same data and the same rules the pages use.
+        drought    one row per county: drought now, and the 6-month and 3-month chance of a drought
+                   season where the model makes one (the river counties)
+        districts  one row per irrigation district: its counties, chances, risk and canal km
+        canals     one row per canal segment, with its line as WKT (longitude latitude)
+        plan       the budget plan on screen (planFor's result, priced with params): every rankable
+                   canal in sealing order, funded or not
+      settings describes what the user chose (scope, budget, severity, assumptions); it goes into
+      the plan's rows and into about().
+    */
+    const r4 = (x) => (typeof x === "number" && isFinite(x) ? Math.round(x * 1e4) / 1e4 : null);
+    const wkt = (line) => (Array.isArray(line) && line.length > 1 ? "LINESTRING(" + line.map((p) => p[0] + " " + p[1]).join(", ") + ")" : null);
+    const STATE_BY_FIPS = { "48": "Texas", "35": "New Mexico", "08": "Colorado" };   // the first two digits of a county FIPS code
+    const districtName = (i) => (i != null && i >= 0 && HG.districts[i] ? HG.districts[i].name : null);
+    function droughtTable() {
+      const chance3 = (HG.quarter && HG.quarter.chance) || {}, labels = HG.dmLabels || [];
+      const river = {}, texas = {}, seen = {};
+      (HG.river || []).forEach((c) => { river[c.fips] = c; });
+      (HG.texas || []).forEach((c) => { texas[c.fips] = c; });
+      const fipsList = Object.keys(river).concat(Object.keys(texas), Object.keys(chance3)).filter((f) => !seen[f] && (seen[f] = true)).sort();
+      return {
+        columns: ["county_fips", "state", "county", "drought_now", "chance_drought_season_6_months", "tier_6_months", "chance_drought_season_3_months",
+                  "expected_drought_weeks_next_year", "drought_weeks_low", "drought_weeks_high", "reservoir", "reservoir_pct"],
+        rows: fipsList.map((f) => {
+          const r = river[f], t = texas[f];
+          return [f, STATE_BY_FIPS[f.slice(0, 2)] || null, (r && r.name) || (t && t.name) || null, t && labels[t.dm] != null ? labels[t.dm] : null,
+                  r ? r4(r.pSeason) : null, r ? r.tier : null, r4(chance3[f]),
+                  r ? r4(r.weeks) : null, r ? r4(r.weeksLow) : null, r ? r4(r.weeksHigh) : null,
+                  r && r.reservoir && r.reservoir !== "none" ? r.reservoir : null, r ? r4(r.reservoirPct) : null];
+        }),
+      };
+    }
+    function districtTable() {
+      return {
+        columns: ["district", "kind", "counties", "county_fips", "chance_drought_season_6_months", "risk", "chance_drought_season_3_months", "canal_km", "treatable_km"],
+        rows: HG.districts.map((d) => [d.name, d.kind || null, (d.counties || []).join("; "), (d.fips || []).join("; "),
+                                       r4(d.pSeason), d.risk || null, r4(quarterChance(d.fips || [])), r4(d.canalKm), r4(d.treatableKm)]),
+      };
+    }
+    function canalTable() {
+      return {
+        columns: ["canal_id", "canal", "kind", "map_source", "mapped_as_piped", "district", "county_fips", "soil", "level",
+                  "seepage_gal_sqft_day", "chance_drought_season", "sealing_rank", "km", "sealant_usd_pipeline", "geometry_wkt"],
+        rows: canals.map((c) => [c.id, c.name, c.kind || null, c.source || null, !!c.piped, districtName(c.district), c.fips || null,
+                                 c.soil || null, c.level || null, r4(c.rate), r4(c.p), c.rank == null ? null : c.rank, r4(c.km), r4(c.usd), wkt(c.line)]),
+      };
+    }
+    function planTable(plan, params, settings) {
+      const s = settings || {};
+      return {
+        columns: ["order", "funded", "canal_id", "canal", "kind", "mapped_as_piped", "district", "county_fips", "soil",
+                  "seepage_gal_sqft_day", "km", "sealant_usd", "one_crew_days", "saved_acre_feet_low", "saved_acre_feet_high",
+                  "plan_scope", "plan_budget_usd", "plan_drought_chance", "plan_wetted_width_ft"],
+        rows: plan.ordered.map((c, i) => {
+          const n = canalNumbers([c], params);
+          return [i + 1, plan.fundedIds.has(c.id), c.id, c.name, c.kind || null, !!c.piped, districtName(c.district), c.fips || null, c.soil || null,
+                  r4(c.rate), r4(c.km), r4(n.usd), r4(n.crewDays), r4(n.afLow), r4(n.afHigh),
+                  s.scope || null, r4(s.budget), s.severity == null ? "forecast" : r4(s.severity), r4(params.widthFt || HG.plan.assumptions.wetted_width_ft)];
+        }),
+      };
+    }
+    /* What every export file carries about itself: the data's date, its sources and the rules. */
+    function about(settings) {
+      return {
+        title: "RioIQ data export",
+        dataWeek: HG.week || null, generatedAt: HG.generatedAt || null, refresh: HG.refresh || null,
+        warningLine: HG.threshold, levelRule: HG.levelRule || null,
+        plan: { rule: HG.plan.rule || null, assumptions: HG.plan.assumptions, note: HG.plan.note || null },
+        sources: { seepage: HG.seepageSource || null, soil: HG.soilSource || null, canals: HG.canalSource || null, districts: HG.plan.source || null },
+        limits: HG.limits || [],
+        settings: settings || null,
+        note: "Modelled figures, not field measurements. Water saved is a range from published seepage rates and sealant tests. The sealing order is an illustration of the method, not a tested ranking.",
+      };
+    }
+    function researchExport(plan, params, settings) {
+      const tables = { drought: droughtTable(), districts: districtTable(), canals: canalTable(), plan: plan ? planTable(plan, params, settings) : null };
+      return { about: about(settings), tables };
+    }
+
+    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions, researchExport };
   }
 
-  return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber,
+  return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber, csvTable, tableObjects,
            workTime, gal, money, usesElephantButte, EXTRAPOLATED_NOTE, budgetScale, stepFromQuery, leakAcreFeet, quarterScorecard, REPLAY_POLICIES, replay,
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,

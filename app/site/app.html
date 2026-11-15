@@ -85,6 +85,21 @@
     </aside>
   </main>
 
+  <!-- For researchers: every figure behind the page as files (js/platform.js, exportData).
+       Kept small and quiet on purpose; the menu opens only when asked. -->
+  <footer class="foot" id="foot">
+    <span>For researchers:</span>
+    <button class="footLink" id="exportBtn" aria-expanded="false" aria-controls="exportMenu">export the data</button>
+    <span class="exportMenu" id="exportMenu" hidden>
+      <button class="footLink" data-export="drought" title="Every county: drought now, and the 6-month and 3-month chance of a drought season">Drought likelihood (CSV)</button>
+      <button class="footLink" data-export="districts" title="Every irrigation district: counties, chances, risk and canal km">Districts (CSV)</button>
+      <button class="footLink" data-export="canals" title="Every mapped canal segment: soil, seepage rate, rank, cost and its line">Canals (CSV)</button>
+      <button class="footLink" data-export="plan" title="The budget plan with your current scope, budget, drought setting and canal width">Budget plan (CSV)</button>
+      <button class="footLink" data-export="all" title="All of the above in one file, with the data's date, sources, assumptions and limits">Everything (JSON)</button>
+    </span>
+    <span class="exportNote" id="exportNote" aria-live="polite"></span>
+  </footer>
+
   <!-- The chooser, shown on every visit: the state view, or one district from the list.
        tabindex -1: the page moves the keyboard focus here when it opens, so Tab starts inside it.
        tabindex 0 on its buttons: Safari only puts a button in the Tab order if it asks. -->

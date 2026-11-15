@@ -1461,3 +1461,60 @@ test("quarterChance: the plain mean of the counties that have a three-month chan
   const real = realData();
   real.HG.districts.forEach((d) => { const p = L.makeLogic(real).quarterChance(d.fips); assert.ok(p != null && p >= 0 && p <= 1, d.name); });
 });
+
+/* ---------- The researcher export ---------- */
+test("csvTable: a header line, then one line per row; numbers bare, yes/no, empty for null, text quoted and kept from formulas", () => {
+  const text = L.csvTable({ columns: ["a", "b", "c", "d"], rows: [[1.5, true, null, "=SUM(A1)"], [0, false, undefined, 'say "hi"']] });
+  assert.strictEqual(text, 'a,b,c,d\n1.5,yes,,"\'=SUM(A1)"\n0,no,,"say ""hi"""\n');
+  assert.deepStrictEqual(L.tableObjects({ columns: ["a", "b"], rows: [[1, undefined]] }), [{ a: 1, b: null }]);
+});
+
+test("researchExport: districts, canals and the plan come from the same data and the same rule as the page", () => {
+  const data = fake();
+  data.HG.week = "2026-11-10";
+  data.HG.quarter = { chance: { A: 0.2, B: 0.4 } };
+  data.HG.river = [{ fips: "A", name: "County A", pSeason: 0.6, tier: "Warning", weeks: 10, weeksLow: 2, weeksHigh: 20, reservoir: "Amistad-Falcon", reservoirPct: 40 }];
+  data.HG.texas = [{ fips: "A", name: "County A", dm: 2 }, { fips: "C", name: "County C", dm: 0 }];
+  data.HG.dmLabels = ["None", "D0", "D1"];
+  data.canals[0].line = [[-97.1, 26.1], [-97.2, 26.2]];
+  const lg = logic(data), params = { widthFt: 10, kmPerCrewDay: 5, crews: 1 };
+  const plan = lg.planFor(data.canals, 1000, null);
+  const out = lg.researchExport(plan, params, { scope: "State of Texas", budget: 1000, severity: null });
+  const T = out.tables, col = (t, name) => t.columns.indexOf(name);
+  // Drought: every county once, sorted; the 3-month chance even where there is no 6-month one.
+  assert.deepStrictEqual(T.drought.rows.map((r) => r[0]), ["A", "B", "C"]);
+  const a = T.drought.rows[0];
+  assert.strictEqual(a[col(T.drought, "drought_now")], "D1");
+  assert.strictEqual(lg.researchExport(null, params, {}).tables.drought.rows.length, 3);
+  assert.strictEqual(a[col(T.drought, "chance_drought_season_6_months")], 0.6);
+  assert.strictEqual(T.drought.rows[1][col(T.drought, "chance_drought_season_3_months")], 0.4);
+  assert.strictEqual(T.drought.rows[2][col(T.drought, "chance_drought_season_6_months")], null);
+  // Districts: one row each, with quarterChance's figure.
+  assert.strictEqual(T.districts.rows.length, 3);
+  close(T.districts.rows[0][col(T.districts, "chance_drought_season_3_months")], 0.3);
+  // Canals: every segment, the line as WKT, unranked ones kept.
+  assert.strictEqual(T.canals.rows.length, data.canals.length);
+  assert.strictEqual(T.canals.rows[0][col(T.canals, "geometry_wkt")], "LINESTRING(-97.1 26.1, -97.2 26.2)");
+  assert.strictEqual(T.canals.rows[1][col(T.canals, "sealing_rank")], null);
+  // Plan: the rankable canals in planFor's order; funded matches planFor; costs are canalNumbers'.
+  assert.deepStrictEqual(T.plan.rows.map((r) => r[col(T.plan, "canal")]), names(plan.ordered));
+  assert.deepStrictEqual(T.plan.rows.filter((r) => r[col(T.plan, "funded")]).map((r) => r[col(T.plan, "canal")]), names(plan.funded));
+  close(T.plan.rows[0][col(T.plan, "sealant_usd")], Math.round(lg.canalNumbers([plan.ordered[0]], params).usd * 1e4) / 1e4);
+  assert.strictEqual(T.plan.rows[0][col(T.plan, "plan_drought_chance")], "forecast");
+  assert.strictEqual(out.about.dataWeek, "2026-11-10");
+  assert.strictEqual(lg.researchExport(null, params, {}).tables.plan, null);   // no rankable canal: no plan table
+});
+
+test("real data: the export has every county with a forecast, every district and every canal, and its CSVs parse", () => {
+  const data = realData(), lg = L.makeLogic(data);
+  const out = lg.researchExport(lg.planFor(data.canals.filter((c) => c.district >= 0), 1e9, null), { widthFt: 20, kmPerCrewDay: 5, crews: 1 }, {});
+  assert.strictEqual(out.tables.districts.rows.length, data.HG.districts.length);
+  assert.strictEqual(out.tables.canals.rows.length, data.HG.canals.length);
+  for (const f of Object.keys(data.HG.quarter.chance)) assert.ok(out.tables.drought.rows.some((r) => r[0] === f), f);
+  assert.ok(out.tables.drought.rows.every((r) => r[1] != null), "every county has its state");
+  for (const t of Object.values(out.tables)) {
+    const lines = L.csvTable(t).trim().split("\n");
+    assert.strictEqual(lines.length, t.rows.length + 1);
+  }
+  assert.doesNotThrow(() => JSON.stringify(out));
+});

@@ -397,6 +397,38 @@
     document.body.appendChild(link); link.click(); link.remove();
   }
 
+  /* ---------- The researcher export (the quiet line at the foot of the page) ----------
+     Every table comes from U.logic.researchExport (js/logic.js), the same data and rules the
+     pages use. The budget plan is the one for the current scope, budget, drought setting and
+     canal width, so what is downloaded matches what is on screen. */
+  function saveFile(name, text, type) {
+    const link = U.el("a", { href: URL.createObjectURL(new Blob([text], { type })), download: name });
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+  }
+  function exportData(kind) {
+    const P = params(), settings = { scope: scopeName(), budget: state.budget, severity: state.severity, assumptions: P };
+    const plan = scopeCanals().some((c) => c.rank != null) ? currentPlan() : null;
+    const out = L.researchExport(plan, P, settings), T = out.tables, H = window.HGLogic;
+    const stamp = (HG.week || TODAY), slug = scopeName().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    if (kind === "all") {
+      const data = { about: out.about };
+      Object.keys(T).forEach((k) => { data[k] = T[k] ? H.tableObjects(T[k]) : null; });
+      saveFile("rioiq-all-data-" + stamp + ".json", JSON.stringify(data, null, 1), "application/json");
+    } else if (kind === "plan" && !T.plan) {
+      $("exportNote").textContent = "No canal here can be ranked, so there is no budget plan to export.";
+      return;
+    } else if (T[kind]) {
+      saveFile("rioiq-" + (kind === "drought" ? "drought-likelihood" : kind === "plan" ? "budget-plan-" + slug : kind) + "-" + stamp + ".csv", H.csvTable(T[kind]), "text/csv");
+    }
+    $("exportNote").textContent = "";
+  }
+  $("exportBtn").addEventListener("click", () => {
+    const menu = $("exportMenu"), open = menu.hidden;
+    menu.hidden = !open; $("exportBtn").setAttribute("aria-expanded", String(open));
+  });
+  $("exportMenu").addEventListener("click", (e) => { const b = e.target.closest("[data-export]"); if (b) exportData(b.dataset.export); });
+
   /* ---------- Step 3: Simulation ---------- */
   const POLICIES = [
     { trigger: "never", name: "Do nothing", css: "", blurb: "No canal work. Losses are paid for afterwards." },
@@ -1208,10 +1240,10 @@
      readers ("inert"), so Tab stays inside the chooser. Closing it switches the page back on. */
   function openChooser() {
     fillPick(""); $("pickSearch").value = "";
-    $("shell").inert = true; $("topbar").inert = true;
+    $("shell").inert = true; $("topbar").inert = true; $("foot").inert = true;
     $("onboard").classList.add("open"); $("onboard").scrollTop = 0; $("onboard").focus();
   }
-  function closeChooser() { $("onboard").classList.remove("open"); $("shell").inert = false; $("topbar").inert = false; }
+  function closeChooser() { $("onboard").classList.remove("open"); $("shell").inert = false; $("topbar").inert = false; $("foot").inert = false; }
   $("roleState").addEventListener("click", () => setScope(STATE));
   $("roleDistrict").addEventListener("click", () => { $("pickSearch").focus(); $("pick").scrollIntoView({ behavior: "smooth", block: "start" }); });
   $("pickSearch").addEventListener("input", (e) => fillPick(e.target.value));
