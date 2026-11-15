@@ -1560,3 +1560,35 @@ test("ninetyDaySentence: pinned wording, and every number in it is read from the
   assert.ok(page.indexOf("U.esc(sentence)") >= 0 && page.indexOf("U.esc(window.HGLogic.NINETY_DAY_COST_NOTE)") >= 0);
   for (const typed of ["5.5%", "1,666", "693 western"]) assert.ok(page.indexOf(typed) < 0, typed);
 });
+
+/* ---------- Leak volumes at measured scale (round 8, A3) ---------- */
+test("measured scale: the model's volume times the frozen factor, with its label and sentence", () => {
+  const scale = { factor: 0.425, tests: 15 };
+  assert.deepStrictEqual(L.scaledAf({ afLow: 100, afHigh: 200 }, scale), { afLow: 42.5, afHigh: 85 });
+  assert.strictEqual(L.measuredScaleLabel(scale), "Scaled to 15 measured canals (x0.425)");
+  assert.strictEqual(L.measuredScaleSentence(scale), "Water figures here are the leak model's upper estimates. In 15 measured unlined canals the measured rate was a median 0.425 times the model's rate (round 4), " +
+    "so at measured scale each water figure would be about 0.425 times as large. Crop loss and saving would shrink with it.");
+  assert.ok(L.measuredScaleLabel({ factor: 0.5, tests: 9 }).indexOf("9 measured canals (x0.5)") > 0, "both numbers come from the data");
+  const real = realData().HG.leakScale;
+  assert.strictEqual(real.factor, 0.425); assert.strictEqual(real.tests, 15);
+  assert.strictEqual(real.source, "reports/frozen/round3/ponding.json");
+});
+
+test("no leak volume without its measured-scale partner on the platform", () => {
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  // Table cells use the paired forms only.
+  assert.ok(!/af\((g\.n|n|r\.n)\) \+ "<\/td>|afMid\((n|r\.n)\) \+ "<\/td>/.test(page), "a bare volume in a table cell");
+  assert.ok(page.indexOf("afPair(g.n)") >= 0 && page.indexOf("afMidPair(n)") >= 0 && page.indexOf("afMidPair(r.n)") >= 0);
+  // The big figure, the map tip and the simulation each carry the partner.
+  const triple = page.slice(page.indexOf("function triple("), page.indexOf("function gauge("));
+  assert.ok(triple.indexOf("measuredScaleLabel(SCALE)") >= 0 && triple.indexOf("af(scaled(n))") >= 0);
+  assert.ok(page.indexOf('"<dt>Measured scale</dt><dd>about " + af(scaled(n))') >= 0);
+  assert.ok(page.indexOf("U.esc(window.HGLogic.measuredScaleSentence(SCALE))") >= 0);
+  // Every other use of af( or afMid( is inside one of those (the two definitions and the pairs).
+  const uses = page.split("\n").filter((line) => /[^A-Za-z](af|afMid)\(/.test(line) && !/afPair|afMidPair|scaled\(n\)|const af =|const afMid =/.test(line));
+  assert.deepStrictEqual(uses.map((l) => l.trim().slice(0, 40)), [
+    "'<div class=\"save\"><dt>Water kept</dt><d",
+    "return \"<b>\" + U.esc(c.name) + \"</b><dl>",
+  ]);
+  for (const typed of ["0.425", "0.43"]) assert.ok(page.indexOf(typed) < 0, typed);
+});

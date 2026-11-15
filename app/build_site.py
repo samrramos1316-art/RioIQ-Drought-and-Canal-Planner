@@ -709,6 +709,23 @@ def quarter_outlook(reports=ROOT / "reports"):
     }
 
 
+def leak_scale(reports=ROOT / "reports"):
+    """How the leak model's rates compare with measured canals (round 4), for the website.
+
+    Reads reports/frozen/round3/ponding.json and changes nothing. The factor is the median of
+    measured / texture-table rate over the unlined ponding tests that have a texture rate. The site
+    shows every leak volume twice: the model's upper estimate, and that estimate times this factor.
+    Nothing is refitted. Returns None when the file is missing.
+    """
+    path = reports / "frozen" / "round3" / "ponding.json"
+    if not path.exists():
+        return None
+    texture, seepage = load_json(path)["primary"]["texture table"], load_json(path)["seepage_only"]["texture table"]
+    return {"factor": texture["median_measured_over_model"], "tests": texture["n_tests"],                 # as frozen, not rounded
+            "seepageOnlyFactor": seepage["median_measured_over_model"], "seepageOnlyTests": seepage["n_tests"],
+            "source": "reports/frozen/round3/ponding.json"}
+
+
 # One sentence in the frozen list of limits has been overtaken by later work. The frozen file is
 # never edited, so the website swaps in the corrected sentence here (reports/decision.md,
 # "Corrections found in the code audit").
@@ -797,6 +814,7 @@ def build(out_dir=None):
         "forecastEffect": forecast_effect(plan, district_names),      # the plan with and without the forecast
         "frozen": frozen_summary(),                                    # the frozen round-3 results, in short
         "reconcile": reconciliation(canals, district_names, plan),     # modelled seepage against published figures
+        "leakScale": leak_scale(),                                     # measured canals against the leak model (round 4)
         "quarter": quarter_outlook(),                                  # the three-month chance per county and its test
         "threshold": metrics["trigger"]["threshold"],
         "trigger": metrics["trigger"],
