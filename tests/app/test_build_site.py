@@ -375,3 +375,14 @@ def test_an_overtaken_limit_sentence_is_replaced_and_the_rest_are_left_alone():
     out = build_site.corrected_limits(["Nothing here measures crop yields.", old])
     assert out[0] == "Nothing here measures crop yields."
     assert "round 4" in out[1] and "were not tested" not in out[1]
+
+
+def test_leak_scale_is_read_from_the_frozen_ponding_test(tmp_path):
+    (tmp_path / "frozen" / "round3").mkdir(parents=True)
+    block = lambda ratio, n: {"texture table": {"median_measured_over_model": ratio, "n_tests": n}}
+    (tmp_path / "frozen" / "round3" / "ponding.json").write_text(json.dumps(
+        {"primary": block(0.425, 15), "seepage_only": block(0.777, 8)}))
+    scale = build_site.leak_scale(tmp_path)
+    assert scale["factor"] == 0.425 and scale["tests"] == 15          # as frozen: not rounded
+    assert scale["seepageOnlyFactor"] == 0.777 and scale["seepageOnlyTests"] == 8
+    assert build_site.leak_scale(tmp_path / "missing") is None

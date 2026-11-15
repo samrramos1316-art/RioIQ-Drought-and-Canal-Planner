@@ -229,6 +229,8 @@ body.app { height: 100vh; display: flex; flex-direction: column; overflow: hidde
 .exportMenu { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; }
 .exportMenu[hidden] { display: none; }
 .exportNote:empty { display: none; }
+/* A leak volume's measured-scale partner (round 8, A3): a second, smaller line under the model's figure. */
+.meas { display: block; font-size: .78em; color: var(--muted); font-weight: 400; white-space: normal; }
 .shell { flex: 1; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(430px, 1fr); min-height: 0; }
 
 /* The stage: the hand-drawn map (js/scanmap.js) or, at the end of the Simulation step, the twin picture (js/twin.js). */

@@ -87,6 +87,13 @@
   /* Water is shown in gallons, which people can picture: gal() in js/logic.js converts from acre-feet. */
   const af = (n) => gal(n.afLow).replace(/ (million|billion) gal$/, (m, w) => (gal(n.afHigh).indexOf(w) > 0 ? "" : " " + w)) + " to " + gal(n.afHigh);   // a range, e.g. "20 to 63 billion gal"
   const afMid = (n) => gal((n.afLow + n.afHigh) / 2);
+  /* Every leak volume is shown twice (round 8, A3): the model's upper estimate, and the same
+     times the factor measured canals showed (HG.leakScale, from reports/frozen/round3/ponding.json
+     through the build). Nothing is refitted; the second figure is the first times one number. */
+  const SCALE = HG.leakScale && typeof HG.leakScale.factor === "number" ? HG.leakScale : null;
+  const scaled = (n) => window.HGLogic.scaledAf(n, SCALE);
+  const afPair = (n) => af(n) + (SCALE ? '<small class="meas">' + af(scaled(n)) + " at measured scale</small>" : "");
+  const afMidPair = (n) => afMid(n) + (SCALE ? '<small class="meas">' + afMid(scaled(n)) + " at measured scale</small>" : "");
   /* A row of key figures: [[label, value, note], ...]. Plain rules between them, no boxes. */
   const stats = (rows) => '<dl class="stats">' + rows.map((r) => "<div class=\"" + (r[3] || "") + "\"><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>" + (r[2] ? "<small>" + r[2] + "</small>" : "") + "</div>").join("") + "</dl>";
   /* The three numbers every canal decision comes down to. n = U.canalNumbers(...). oneCrew = time for a single crew. */
@@ -95,7 +102,8 @@
     return '<dl class="stats three ' + (cls || "") + '">' +
       '<div class="cost"><dt>Cost</dt><dd>' + (n.usd >= 1e6 ? money(n.usd) : U.usd(n.usd)) + "</dd><small>sealant, " + U.num(n.km, n.km < 10 ? 2 : 1) + " km; labour extra</small></div>" +
       '<div class="time"><dt>Time</dt><dd>' + U.workTime(days) + "</dd><small>" + (oneCrew ? "1 crew" : p.crews + (p.crews === 1 ? " crew" : " crews")) + ", " + p.kmPerCrewDay + " km a day</small></div>" +
-      '<div class="save"><dt>Water kept</dt><dd>' + (n.afHigh > 0 ? af(n) : "unknown") + "</dd><small>" + (n.afHigh > 0 ? "per 90-day application; " + money(n.worthLow) + " to " + money(n.worthHigh) + " in a shortage" : "no seepage rate for this soil") + "</small></div></dl>";
+      '<div class="save"><dt>Water kept</dt><dd>' + (n.afHigh > 0 ? af(n) : "unknown") + "</dd><small>" + (n.afHigh > 0 ? "model's upper estimate, per 90-day application; " + money(n.worthLow) + " to " + money(n.worthHigh) + " in a shortage" +
+        (SCALE ? "<br>" + U.esc(window.HGLogic.measuredScaleLabel(SCALE)) + ": about " + af(scaled(n)) : "") : "no seepage rate for this soil") + "</small></div></dl>";
   }
   function gauge(p) {
     const tier = U.tierFor(p);
@@ -200,6 +208,7 @@
       if (hit.canal) {
         const c = hit.canal, n = U.canalNumbers([c], params());
         return "<b>" + U.esc(c.name) + "</b><dl><dt>Costs</dt><dd class=\"big\">" + U.usd(n.usd) + "</dd><dt>Takes</dt><dd class=\"big\">" + U.workTime(n.crewDays) + "</dd><dt>Saves</dt><dd class=\"big\">" + (n.afHigh > 0 ? af(n) : "unknown") + "</dd>" +
+          (n.afHigh > 0 && SCALE ? "<dt>Measured scale</dt><dd>about " + af(scaled(n)) + "</dd>" : "") +
           "<dt>Length</dt><dd>" + U.num(c.km, 2) + " km</dd><dt>Soil</dt><dd>" + U.esc(c.soil || "not looked up") + "</dd><dt>Class</dt><dd>" + U.esc(levelLabel(c.level)) + "</dd></dl>" +
           "<small>" + U.esc((c.kind || "Canal or ditch") + (c.piped ? ", mapped as piped" : "") + ". Click for the full card.") + "</small>";
       }
@@ -303,7 +312,7 @@
         "<h3>Canal length by soil</h3>" + mixBar(list, (c) => c.soil || "Not looked up", (k) => { const r = HG.seepage[k]; return r == null ? U.LEVEL_COLOR["Unknown soil"] : r >= 7.48 ? U.TIER_COLOR.Warning : r >= 2.9 ? U.TIER_COLOR.Watch : U.TIER_COLOR.Low; }) +
         (named.length ? "<h3>Named canals (" + named.length + ")</h3><div class=\"scroll\"><table class=\"t\"><tr><th>Canal</th><th class=\"r\">km</th><th class=\"r\">Cost</th><th class=\"r\">Time</th><th class=\"r\">Water kept</th></tr>" +
           named.slice(0, 80).map((g) => '<tr class="click"' + ROW_BUTTON + ' data-act="canal" data-id="' + U.esc(g.segs[0].id) + '"><td>' + U.esc(g.name) + ' <span class="muted">(' + g.segs.length + ")</span></td><td class=\"r\">" + U.num(g.km, 1) + "</td>" +
-            (g.n.km > 0 ? '<td class="r">' + U.usd(g.n.usd) + '</td><td class="r">' + U.workTime(g.n.crewDays) + '</td><td class="r">' + af(g.n) + "</td>" : '<td class="r muted" colspan="3">not rankable</td>') + "</tr>").join("") +
+            (g.n.km > 0 ? '<td class="r">' + U.usd(g.n.usd) + '</td><td class="r">' + U.workTime(g.n.crewDays) + '</td><td class="r">' + afPair(g.n) + "</td>" : '<td class="r muted" colspan="3">not rankable</td>') + "</tr>").join("") +
           '</table></div><p class="fn">One crew, one application. Segment count in brackets. Select a row to find it on the map.</p>' : "") +
         more("What the forecast changes in the sealing order", forecastEffectHtml(d)) +
         more("Open issues from live data", issuesFor(d)) +
@@ -359,14 +368,14 @@
     let rows;
     if (d) {
       rows = "<h3>Canals in sealing order</h3><div class=\"scroll\"><table class=\"t\"><tr><th>#</th><th>Canal</th><th class=\"r\">km</th><th class=\"r\">Cost</th><th class=\"r\">Time</th><th class=\"r\">Water kept</th></tr>" +
-        plan.ordered.slice(0, 250).map((c, i) => { const n = U.canalNumbers([c], P), on = plan.fundedIds.has(c.id); return '<tr class="click ' + (on ? "" : "off") + '"' + ROW_BUTTON + ' data-act="canal" data-id="' + U.esc(c.id) + '"><td>' + (i + 1) + "</td><td>" + U.esc(c.name) + (c.piped ? '<span class="flag">piped?</span>' : "") + ' <span class="muted">' + U.esc(c.soil) + '</span></td><td class="r">' + U.num(c.km, 2) + '</td><td class="r">' + U.usd(n.usd) + '</td><td class="r">' + U.workTime(n.crewDays) + '</td><td class="r">' + afMid(n) + "</td></tr>"; }).join("") +
+        plan.ordered.slice(0, 250).map((c, i) => { const n = U.canalNumbers([c], P), on = plan.fundedIds.has(c.id); return '<tr class="click ' + (on ? "" : "off") + '"' + ROW_BUTTON + ' data-act="canal" data-id="' + U.esc(c.id) + '"><td>' + (i + 1) + "</td><td>" + U.esc(c.name) + (c.piped ? '<span class="flag">piped?</span>' : "") + ' <span class="muted">' + U.esc(c.soil) + '</span></td><td class="r">' + U.num(c.km, 2) + '</td><td class="r">' + U.usd(n.usd) + '</td><td class="r">' + U.workTime(n.crewDays) + '</td><td class="r">' + afMidPair(n) + "</td></tr>"; }).join("") +
         "</table></div><p class=\"fn\">Greyed rows are not funded. One crew; water kept is the middle of the tested range." + (plan.ordered.length > 250 ? " First 250 of " + plan.ordered.length + " shown; the CSV has every funded canal." : "") + "</p>";
     } else {
       const by = {};
       plan.funded.forEach((c) => { (by[c.district] = by[c.district] || []).push(c); });
       const order = Object.keys(by).map((i) => ({ i, n: U.canalNumbers(by[i], P), count: by[i].length })).sort((x, y) => y.n.usd - x.n.usd);
       rows = "<h3>Allocation by district</h3><div class=\"scroll\"><table class=\"t\"><tr><th>District</th><th class=\"r\">Segments</th><th class=\"r\">km</th><th class=\"r\">Cost</th><th class=\"r\">Time</th><th class=\"r\">Water kept</th></tr>" +
-        order.map((r) => '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>' + U.esc(HG.districts[r.i].name) + '</td><td class="r">' + r.count + '</td><td class="r">' + U.num(r.n.km, 1) + '</td><td class="r">' + U.usd(r.n.usd) + '</td><td class="r">' + U.workTime(r.n.crewDays) + '</td><td class="r">' + afMid(r.n) + "</td></tr>").join("") +
+        order.map((r) => '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>' + U.esc(HG.districts[r.i].name) + '</td><td class="r">' + r.count + '</td><td class="r">' + U.num(r.n.km, 1) + '</td><td class="r">' + U.usd(r.n.usd) + '</td><td class="r">' + U.workTime(r.n.crewDays) + '</td><td class="r">' + afMidPair(r.n) + "</td></tr>").join("") +
         "</table></div><p class=\"fn\">" + order.length + " of " + HG.districts.length + " districts funded. One crew per district. Select a district for its canal list.</p>";
     }
     $("budgetResult").innerHTML =
@@ -697,6 +706,7 @@
     const lines = window.HGLogic.replayBandsLines(result), shared = window.HGLogic.sharedForecastSentence(result);
     return window.HGLogic.replayBandsTable(result) +
       '<p class="fn">Each figure is the middle of ' + U.esc(result.draws) + " draws of what is not known about the canals; under it, the range 8 in 10 draws fall in. Sealant spent, water kept (in billions of gallons), crop loss and saving against doing nothing are all modelled.</p>" +
+      (SCALE ? '<p class="fn">' + U.esc(window.HGLogic.measuredScaleSentence(SCALE)) + "</p>" : "") +
       '<p class="rec">' + U.esc(window.HGLogic.replayBandsSentence(result).text) + "</p>" +
       (withScoredTest ? '<p class="rec">' + U.esc(window.HGLogic.SCORED_TEST_SENTENCE) + "</p>" : "") +
       (shared ? '<p class="fn">' + U.esc(shared) + "</p>" : "") +

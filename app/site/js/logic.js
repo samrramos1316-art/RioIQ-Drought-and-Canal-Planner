@@ -442,6 +442,18 @@
   const BENCHMARK_SOURCE = "https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico";
 
   /*
+    Leak volumes at measured scale (round 8, A3). scale = HG.leakScale from the build: factor is the
+    median of measured / model rate over the unlined ponding tests with a texture rate (round 4,
+    reports/frozen/round3/ponding.json), tests is how many. Every volume is shown beside the
+    model's upper estimate times this factor; nothing is refitted.
+  */
+  const scaledAf = (n, scale) => ({ afLow: n.afLow * scale.factor, afHigh: n.afHigh * scale.factor });
+  const measuredScaleLabel = (scale) => "Scaled to " + num(scale.tests) + " measured canals (x" + scale.factor + ")";
+  const measuredScaleSentence = (scale) => "Water figures here are the leak model's upper estimates. In " + num(scale.tests) +
+    " measured unlined canals the measured rate was a median " + scale.factor + " times the model's rate (round 4), so at measured scale each water figure would be about " +
+    scale.factor + " times as large. Crop loss and saving would shrink with it.";
+
+  /*
     The 90-day sealing decision (round 8, A1). A sealant application lasts about 90 days, and the
     three-month forecast (model E) is the one forecast that won a blind test. These two fixed
     sentences go with the decision. Every number is read from the build (HG.quarter.test, made by
@@ -739,15 +751,16 @@
       };
     }
     function planTable(plan, params, settings) {
-      const s = settings || {};
+      const s = settings || {}, scale = HG.leakScale && typeof HG.leakScale.factor === "number" ? HG.leakScale : null;
       return {
         columns: ["order", "funded", "canal_id", "canal", "kind", "mapped_as_piped", "district", "county_fips", "soil",
                   "seepage_gal_sqft_day", "km", "sealant_usd", "one_crew_days", "saved_acre_feet_low", "saved_acre_feet_high",
-                  "plan_scope", "plan_budget_usd", "plan_drought_chance", "plan_wetted_width_ft"],
+                  "saved_acre_feet_low_measured_scale", "saved_acre_feet_high_measured_scale", "plan_scope", "plan_budget_usd", "plan_drought_chance", "plan_wetted_width_ft"],
         rows: plan.ordered.map((c, i) => {
           const n = canalNumbers([c], params);
           return [i + 1, plan.fundedIds.has(c.id), c.id, c.name, c.kind || null, !!c.piped, districtName(c.district), c.fips || null, c.soil || null,
                   r4(c.rate), r4(c.km), r4(n.usd), r4(n.crewDays), r4(n.afLow), r4(n.afHigh),
+                  scale ? r4(n.afLow * scale.factor) : null, scale ? r4(n.afHigh * scale.factor) : null,
                   s.scope || null, r4(s.budget), s.severity == null ? "forecast" : r4(s.severity), r4(params.widthFt || HG.plan.assumptions.wetted_width_ft)];
         }),
       };
@@ -759,6 +772,7 @@
         dataWeek: HG.week || null, generatedAt: HG.generatedAt || null, refresh: HG.refresh || null,
         warningLine: HG.threshold, levelRule: HG.levelRule || null,
         plan: { rule: HG.plan.rule || null, assumptions: HG.plan.assumptions, note: HG.plan.note || null },
+        leakScale: HG.leakScale || null,
         sources: { seepage: HG.seepageSource || null, soil: HG.soilSource || null, canals: HG.canalSource || null, districts: HG.plan.source || null },
         limits: HG.limits || [],
         settings: settings || null,
@@ -778,5 +792,5 @@
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
-           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, makeLogic };
+           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, scaledAf, measuredScaleLabel, measuredScaleSentence, makeLogic };
 });
