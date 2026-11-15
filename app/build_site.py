@@ -535,6 +535,14 @@ def seepage_summary(data, errata):
             "gaps": {name: {"diff": short(g["gap"]), "lo": short(g["lo"]), "hi": short(g["hi"])} for name, g in held["gaps"].items()}}
 
 
+# A row name in a frozen file that claims more than the row shows. The frozen file is never
+# edited, so the corrected name is swapped in here (reports/decision.md, "Round 6, checked").
+ROW_NAME_CORRECTIONS = {
+    "The same: what the area inputs add over the round-5 model (cost)":
+        "The same: model E minus the round-5 model (cost; differs in inputs, forest size and training counties)",
+}
+
+
 def frozen_summary(folder=FROZEN_ROUND3):
     """A few kilobytes about the frozen round-3 results, for the Sources step. Read only.
 
@@ -562,7 +570,7 @@ def frozen_summary(folder=FROZEN_ROUND3):
         if isinstance(data.get("site_summary"), list):
             # "stated" is the file's own verdict word; "lower" (True if a lower number is better) only if the file gives it
             extra.append({"file": path.stem, "what": data.get("what"), "rows": [
-                {"name": r.get("name"), "diff": short(r.get("value")), "lo": short(r.get("lo")), "hi": short(r.get("hi")),
+                {"name": ROW_NAME_CORRECTIONS.get(r.get("name"), r.get("name")), "diff": short(r.get("value")), "lo": short(r.get("lo")), "hi": short(r.get("hi")),
                  "n": r.get("n_years"), "stated": r.get("verdict"), "lower": r.get("lower_is_better")}
                 for r in data["site_summary"]]})
             continue

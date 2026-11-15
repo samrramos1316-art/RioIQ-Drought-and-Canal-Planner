@@ -26,11 +26,12 @@
   const STATE = -1;
   const FROZEN = SIM.pre2020;                           // the forecast model trained only on data before 2020
   const TODAY = new Date().toISOString().slice(0, 10);
-  const SEVERITIES = [                                  // the "what if" drought choices in the budget planner
+  // The "what if" choice in the budget planner. There is only one: any single chance given to
+  // every county puts the canals in the same order (by leak rate alone), so 25%, 50% and 80%
+  // would all give the same plan.
+  const SEVERITIES = [
     { p: null, label: "This week's forecast" },
-    { p: 0.25, label: "Moderate (25%)" },
-    { p: 0.5, label: "Severe (50%)" },
-    { p: 0.8, label: "Extreme (80%)" },
+    { p: 1, label: "Drought everywhere" },
   ];
   const SHOCKS = [                                      // "what if" blows the simulation can add; sizes are our assumptions
     { key: "mexico", label: "Mexico misses a delivery", note: "storage drops 8 points in the first spring", shock: { year: 1, month: 3, points: -8 } },
@@ -50,6 +51,8 @@
   /* The chance of a drought season used by the planner: the "what if" value, or the forecast. */
   function scopeP() { return L.scopeP(state.severity, district()); }
   function scopeP0() { const keep = state.severity; state.severity = null; const p = scopeP(); state.severity = keep; return p; }
+  /* The three-month chance of a drought season for a list of counties, or null if the data has none. */
+  const quarterP = (fipsList) => L.quarterChance(fipsList);
   /* Today's reading for one reservoir system from api/live, or null if there is none or its
      figure is not a percentage (then the page keeps, and says it shows, the saved reading). */
   function liveReading(name) {
@@ -128,6 +131,7 @@
       (river ? chip(river.tier, river.tier + " · " + U.pct(river.pSeason)) : "") + "</div>" +
       '<div class="small muted" style="margin:2px 0 8px">Drought now: ' + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) +
       (c.pop ? " · Population (2020): " + U.num(c.pop) : "") +
+      (river && quarterP([fips]) != null ? " · Drought season chance: next 3 months " + U.pct(quarterP([fips])) + ", next 6 months " + U.pct(river.pSeason) : "") +
       (river ? " · Expected drought weeks in the next year: " + U.esc(river.weeksLow) + " to " + U.esc(river.weeksHigh) : " · Not a river county, so no forecast") + "</div>" +
       (photos ? '<div class="photos">' + photos + "</div>" : "") +
       (c.about ? '<p class="small" style="margin:0 0 4px">' + U.esc(c.about) + (safeUrl(c.page) == null ? "" : " " + anchor("Wikipedia", c.page, true)) + "</p>" : "") +
@@ -207,6 +211,7 @@
       if (hit.district != null) { const d = HG.districts[hit.district]; return "<b>" + U.esc(d.name) + "</b><dl><dt>Risk</dt><dd>" + U.esc(d.risk) + ", " + U.pct(d.pSeason) + "</dd><dt>Canals</dt><dd>" + U.num(d.canalKm) + " km</dd></dl><small>Click to open this district.</small>"; }
       const c = U.countyByFips[hit.county], river = U.riverByFips[hit.county];
       return "<b>" + U.esc(c.name) + " County</b><dl><dt>Drought now</dt><dd>" + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) + "</dd>" +
+        (river && quarterP([hit.county]) != null ? "<dt>3-month chance</dt><dd>" + U.pct(quarterP([hit.county])) + "</dd>" : "") +
         (river ? "<dt>6-month chance</dt><dd>" + U.pct(river.pSeason) + ", " + U.esc(river.tier) + "</dd>" : "") + "</dl><small>Click for photos and a profile.</small>";
     },
   });
@@ -244,18 +249,23 @@
   /* ---------- The budget plan for the current scope, budget and severity ---------- */
   let planCache = null, planKey = "";
   function currentPlan() {
-    const k = [state.scope, state.budget, state.severity].join("|");
-    if (k !== planKey) { planCache = U.planFor(scopeCanals(), state.budget, state.severity); planKey = k; }
+    const width = params().widthFt;                      // the canal-width slider prices the plan too
+    const k = [state.scope, state.budget, state.severity, width].join("|");
+    if (k !== planKey) { planCache = U.planFor(scopeCanals(), state.budget, state.severity, width); planKey = k; }
     return planCache;
   }
-  const costAll = () => U.planFor(scopeCanals(), 0, null).costAll;
+  /* What sealing every rankable canal here costs: the engine's own bill at the current canal
+     width, so the budget's ceiling and the simulation agree. */
+  const costAll = () => E.fundCanals(scopeCanals().filter((c) => c.rank != null), Infinity, params()).spent;
   function defaultBudget() {
     // Start with every treatable canal funded. The simulation shows each extra dollar of sealant
     // still returns far more than it costs, so the full network is the plan the numbers favour.
     return maxBudget();
   }
-  const maxBudget = () => Math.max(100, Math.ceil(costAll() / 100) * 100);
-  const budgetStep = () => (maxBudget() > 200000 ? 5000 : maxBudget() > 20000 ? 500 : 100);
+  /* The slider's top and step (budgetScale in js/logic.js): the top is the cost of everything,
+     rounded up to a whole step, so the slider can reach it. */
+  const maxBudget = () => window.HGLogic.budgetScale(costAll()).max;
+  const budgetStep = () => window.HGLogic.budgetScale(costAll()).step;
   /* The two sliders behind "how long it takes". Used on the budget step and the simulation step. */
   function crewFields() {
     const p = params();
@@ -275,17 +285,18 @@
       const act = U.actionFor(d.pSeason);
       const worst = Math.max.apply(null, d.fips.map((f) => U.countyByFips[f].dm || 0));
       const treatable = list.filter((c) => c.rank != null), all = U.canalNumbers(treatable, params());
-      const named = namedCanals(list);
+      const named = namedCanals(list), q3 = quarterP(d.fips);
       html += '<button class="back" data-act="state">&larr; All districts</button>' +
         "<h2>" + U.esc(d.name) + "</h2><div class=\"sub\">" + U.esc(d.kind) + " · " + U.esc(d.counties.join(", ")) + " · week of " + U.niceDate(HG.week) + "</div>" +
         stats([
           ["Drought season, next 6 months", U.pct(d.pSeason), U.esc(d.risk) + "; warning line " + U.pct(HG.threshold)],
+        ].concat(q3 == null ? [] : [["Drought season, next 3 months", U.pct(q3), "about one sealant application"]]).concat([
           ["Drought now", worst ? "D" + (worst - 1) : "None", U.DM_TEXT[worst].replace(/^D\d /, "")],
           resStat,
           ["Canals", U.num(d.canalKm) + " km", U.num(list.length) + " segments, " + U.num(treatable.length) + " rankable"],
-        ]) + gauge(d.pSeason) +
+        ])) + gauge(d.pSeason) +
         '<p class="rec ' + act.key + '"><b>' + act.title + ".</b> " + act.text.split(". ").slice(1).join(". ") + "</p>" +
-        "<h3>All rankable canals sealed, one application</h3>" + (treatable.length ? triple(all) : '<p class="fn">No canal here can be ranked: drains, or soil with no published seepage rate.</p>') +
+        "<h3>All rankable canals sealed, one application</h3>" + (treatable.length ? triple(all) + extrapolatedNote(d) : '<p class="fn">No canal here can be ranked: drains, or soil with no published seepage rate.</p>') +
         '<div class="rowBtns"><button class="btn" data-act="go" data-step="budget">Budget plan &rarr;</button><button class="btn ghost" data-act="go" data-step="sim">Simulation &rarr;</button></div>' +
         "<h3>Canal length by leak class</h3>" + mixBar(list, (c) => c.level, (k) => U.LEVEL_COLOR[k], levelLabel) +
         '<p class="fn">' + U.esc(window.HGLogic.LEVEL_NOTE) + "</p>" +
@@ -299,21 +310,22 @@
         more("County profile and photos", d.fips.map((f) => countyCard(f, false)).join(""));
     } else {
       const inDrought = HG.texas.filter((c) => c.dm != null && c.dm >= 2).length;
-      const warned = HG.river.filter((c) => c.pSeason >= HG.threshold).length;
+      const warned = HG.river.filter((c) => c.tier === "Warning").length;      // the pipeline's own label, not a rounded number compared again
+      const hasQ = !!HG.quarter;                                               // is there a three-month forecast to show?
       const dWarn = HG.districts.filter((x) => x.risk === "Warning").length;
       const all = U.canalNumbers(list.filter((c) => c.rank != null), params());
       html += "<h2>Texas, Rio Grande districts</h2><div class=\"sub\">" + HG.districts.length + " irrigation and water districts · 254 counties · week of " + U.niceDate(HG.week) + "</div>" +
         stats([
           ["Counties in drought (D1+)", inDrought + " / 254", "U.S. Drought Monitor"],
-          ["River counties over warning line", warned + " / 14", "6-month forecast at " + U.pct(HG.threshold) + " or more"],
+          ["River counties over warning line", warned + " / " + HG.river.length, "6-month forecast at " + U.pct(HG.threshold) + " or more"],
           resStat,
           ["Districts at Warning", dWarn + " / " + HG.districts.length, U.num(HG.plan.canal_km_in_districts) + " km of canal"],
         ]) +
         "<h3>All rankable canals sealed, one application</h3>" + triple(all) +
         '<div class="rowBtns"><button class="btn" data-act="go" data-step="budget">Budget plan &rarr;</button><button class="btn ghost" data-act="go" data-step="sim">Simulation &rarr;</button></div>' +
-        "<h3>Districts by 6-month drought chance</h3><div class=\"scroll\" style=\"max-height:440px\"><table class=\"t\"><tr><th>District</th><th>Tier</th><th class=\"r\">Chance</th><th class=\"r\">Canal km</th></tr>" +
+        "<h3>Districts by 6-month drought chance</h3><div class=\"scroll\" style=\"max-height:440px\"><table class=\"t\"><tr><th>District</th><th>Tier</th>" + (hasQ ? "<th class=\"r\">Next 3 months</th><th class=\"r\">Next 6 months</th>" : "<th class=\"r\">Chance</th>") + "<th class=\"r\">Canal km</th></tr>" +
         HG.districts.map((x, i) => ({ x, i })).sort((a, b) => b.x.pSeason - a.x.pSeason).map(({ x, i }) =>
-          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + '</td><td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
+          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + "</td>" + (hasQ ? '<td class="r">' + U.pct(quarterP(x.fips)) + "</td>" : "") + '<td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
         '</table></div><p class="fn">Select a district to open it. Select a county on the map for its profile.</p>' +
         more("Open issues from live data", issuesFor(null));
     }
@@ -334,7 +346,7 @@
       '<div class="fn">Every rankable canal: ' + U.usd(all) + " in sealant.</div></div>" +
       '<div class="field"><label>Drought chance to plan for</label><div class="seg" id="sev">' +
       SEVERITIES.map((s) => '<button data-p="' + (s.p == null ? "" : s.p) + '" class="' + (state.severity === s.p ? "on" : "") + '"' + pressed(state.severity === s.p) + ">" + (s.p == null ? "Forecast (" + U.pct(scopeP0()) + ")" : s.label) + "</button>").join("") +
-      "</div></div></div><div id=\"budgetResult\" aria-live=\"polite\"></div>" +
+      "</div><div class=\"fn\">Drought everywhere: order by leak rate alone.</div></div></div><div id=\"budgetResult\" aria-live=\"polite\"></div>" +
       '<details class="more"><summary>Crew assumptions</summary>' + crewFields() + "</details>" +
       '<div id="budgetExtra"></div>');
     if (all > 0) renderBudgetResult();
@@ -369,7 +381,7 @@
     $("budgetExtra").innerHTML =
       more("Field checklist", "<ol class=\"todo\">" +
         "<li><b>Walk the " + plan.funded.length + " funded segments (" + U.num(plan.km, 1) + " km).</b> Strike any that are lined or piped.</li>" +
-        "<li><b>Order sealant for " + U.num(plan.sqft) + " sq ft</b> (" + U.esc(a.wetted_width_ft) + " ft wetted width assumed): " + U.usd(plan.spent) + ". Labour and equipment are extra.</li>" +
+        "<li><b>Order sealant for " + U.num(plan.sqft) + " sq ft</b> (" + U.esc(P.widthFt) + " ft wetted width assumed): " + U.usd(plan.spent) + ". Labour and equipment are extra.</li>" +
         "<li><b>" + P.crews + (P.crews === 1 ? " crew" : " crews") + ", about " + U.workTime(total.days) + ",</b> done before first irrigation (early March).</li>" +
         "<li><b>Measure flow in and out</b> of a sealed stretch before paying for the next application (" + U.esc(a.days_one_application_lasts) + " days each).</li></ol>") +
       '<p class="fn">An estimate from published figures, not a field result. Crew speed is our assumption. ' + U.esc(HG.plan.note) + "</p>";
@@ -515,7 +527,10 @@
     // Water leaking out of this district's canals in a week, if none were sealed. The rate per
     // square foot comes from each canal's soil (Fipps, Texas A&M, 1998). A canal cannot leak more
     // than the water released into it, and leaks nothing outside the season.
-    const leakWeek = E.savedAcreFeet(E.fundCanals(scope.canals, Infinity, P).gallonsPerDay, 7, 1);
+    // The two runs the picture plays hold each canal unknown at the middle of its range (about a
+    // third of the length already lined). The leak is counted the same way, so the water
+    // "saved" on one side is part of the water "leaked" on the other and the two add up.
+    const leakWeek = window.HGLogic.leakAcreFeet(E.fundCanals(scope.canals, Infinity, P).gallonsPerDay, 7, E.centralPhysics(L.physicsOptions()));
     const a = flat(nothing), b = flat(act), blank = () => ({ spend: 0, loss: 0, saved: 0, recovered: 0, leak: 0 }), sums = [blank(), blank()];
     const add = (sum, w) => {
       sum.spend += w.spend; sum.loss += w.loss; sum.saved += w.saved; sum.recovered += w.recovered;
@@ -557,7 +572,7 @@
     if (key !== tableKey) {
       tableCache = HG.districts.map((d, i) => ({ d, i })).filter((r) => APPLICABLE[r.i]).map(({ d, i }) => {
         const scope = simScope([d]), res = reservoirFor(d);
-        const budget = scope.canals.reduce((s, c) => s + c.usd, 0) + 1;
+        const budget = E.fundCanals(scope.canals, Infinity, E.makeParams(over)).spent + 1;   // every canal, at the current canal width
         const r = E.fromToday(scope, [{ trigger: "never" }, { trigger: "forecast" }], Object.assign({}, over, { budget }), {
           startDate: TODAY, pctNow: res.pct == null ? 50 : res.pct, pNow: scope.pNow, years: 5, draws: 100, seed: 11, cutoffYear: 2020,
           recall: hit.recall, falseAlarm: hit.falseAlarm, shocks: on.filter((x) => x.shock).map((x) => x.shock), secondDryYear: on.some((x) => x.secondDryYear),
@@ -578,7 +593,7 @@
     const tail = (r) => '<td class="r">' + U.num(r.d.canalKm) + ' km</td><td class="r">' + rangeCell(r.saved, money, "future") + "</td></tr>";
     $("simRows").innerHTML = '<table class="t replay pick"><tr><th></th><th>District</th><th class="r">Canals</th><th class="r">Saving</th></tr>' +
       rows.map((r) => r.alone
-        ? '<tr class="go"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>&rarr;</td><td>' + U.esc(r.d.name) + ' <span class="muted">own reservoir: opens alone</span></td>' + tail(r)
+        ? '<tr class="go"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(r.i) + '"><td>&rarr;</td><td>' + U.esc(r.d.name) + ' <span class="muted">own reservoir: opens alone; ' + U.esc(window.HGLogic.EXTRAPOLATED_NOTE) + "</span></td>" + tail(r)
         : '<tr class="go' + (state.simSel.has(r.i) ? " on" : "") + '"' + rowCheckbox(state.simSel.has(r.i)) + ' data-act="simPick" data-i="' + U.esc(r.i) + '"><td><input type="checkbox" tabindex="-1" aria-hidden="true"' + (state.simSel.has(r.i) ? " checked" : "") + "></td><td>" + U.esc(r.d.name) + ' <span class="muted">' + U.esc(r.d.counties.join(", ")) + "</span></td>" + tail(r)).join("") +
       (rows.length ? "" : '<tr><td colspan="4" class="muted">No district matches.</td></tr>') + "</table>";
   }
@@ -595,6 +610,8 @@
   const regimeSentence = (calibrated) => (calibrated
     ? "Leak rates are calibrated to each district's published loss, so the share of that loss that is seepage is drawn too."
     : "Leak rates are the published rates for each soil; calibrating them to district losses did not predict a hidden district better than canal length alone.");
+  /* For a district on Elephant Butte: one line saying its dollar figures are extrapolated. Empty for any other. */
+  const extrapolatedNote = (d) => (d && usesElephantButte(d) ? '<p class="fn warn">' + U.esc(window.HGLogic.EXTRAPOLATED_NOTE.replace(/^e/, "E")) + ".</p>" : "");
   /* What the held-out test of the leak model found. Shown wherever volumes and dollars are. */
   const heldOutNote = () => '<p class="note">' + U.esc(window.HGLogic.HELD_OUT_SENTENCE) + "</p>";
   /* The unknowns every run draws, with their ranges. Shown next to the sliders. */
@@ -668,6 +685,7 @@
     return '<div class="saveHero"><span>Acting on the forecast, against doing nothing' + TAG_MODELLED + "</span>" +
       window.HGLogic.rangeHeadline(forecast.saving, money) +
       "<small>Crops kept minus sealant. " + U.esc(result.firstYear) + " to " + U.esc(result.lastYear) + ", replayed.</small></div>" +
+      (scope.system === "Elephant Butte" ? extrapolatedNote(simMembers()[0]) : "") +
       trustLine() +
       window.HGLogic.replayBandsTable(result, true) +
       pictureKey();
@@ -939,6 +957,18 @@
      Everything a researcher needs to check the numbers: each dataset, what it was used for,
      and where it came from. The simulation's own inputs are listed last. */
   let simFacts = null;
+  /* The scorecard that opens "How far to trust this": one row per forecast, numbers first. Every
+     figure is read from the data (HG.quarter.test, and the six-month row of the frozen results);
+     quarterScorecard in js/logic.js writes the words. Empty if the data has neither. */
+  function scorecardHtml() {
+    const season = ((HG.frozen && HG.frozen.groups) || []).find((g) => g.section === "season");
+    const row = season && season.rows.find((r) => r[0] === "6-month system cost minus D1 now");   // "already in moderate drought", its best simple rule
+    const rows = window.HGLogic.quarterScorecard(HG.quarter && HG.quarter.test, row ? { diff: row[1], lo: row[2], hi: row[3] } : null);
+    if (!rows.length) return "";
+    return '<table class="t"><tr><th>Forecast</th><th>Against the best simple rule</th></tr>' +
+      rows.map((r) => "<tr><td><b>" + U.esc(r.label) + "</b></td><td>" + U.esc(r.text) + "</td></tr>").join("") + "</table>" +
+      '<p class="fn">Cost = 3 x missed drought seasons + false alarms; lower is better. A drought season is 8 straight weeks at D2 or worse.</p>';
+  }
   function renderSources() {
     // Run the simulation's sums once so its inputs can be listed (nothing is drawn by this).
     if (!district() || APPLICABLE[state.scope]) simCompute(true); else simFacts = null;
@@ -950,6 +980,7 @@
       "<h2>Data and sources</h2><div class=\"sub\">Every dataset, what it is used for and where it comes from. Data as of " + U.niceDate(HG.week) + ".</div>" +
       // First, how far to trust the site: the held-out test of the leak model, then the limits.
       "<h3>How far to trust this</h3>" +
+      scorecardHtml() +
       heldOutNote() + '<p class="fn">' + U.esc(window.HGLogic.LOSSES_1998_SENTENCE) + "</p>" +
       "<ul class=\"plain\"><li>Saved water counts only in a shortage. Above " + P.fullAt + "% storage, sealing earns nothing.</li><li>The sealant has not been field-tested on the Rio Grande. Prices are materials only.</li>" +
       "<li>How a district shape fills in the simulation picture is illustration; the share is the model's.</li><li>" + U.esc(HG.plan.note) + "</li></ul>" +
@@ -971,7 +1002,7 @@
       ]) +
       "<h3>3. Water leaking from canals</h3>" + table([
         ["Leak rate by soil, unlined canals", Object.keys(HG.seepage).filter((k) => !/sand$/i.test(k) || k === "Sand").map((k) => U.esc(k + " " + HG.seepage[k])).join(" · ") + " gallons per sq ft per day", link("Fipps, Texas A&M, 1998, Tables 6 to 8", "https://gfipps.tamu.edu/files/2019/12/RGV-Potential-Water-Savings.pdf") + " (Table 7 quotes the Texas Board of Water Engineers, 1946)"],
-        ["Canal size", U.esc(a.wetted_width_ft) + " ft wetted width for every canal", "Ours" + tag("assumption")],
+        ["Canal size", U.esc(P.widthFt) + " ft wetted width for every canal", "Ours" + tag("assumption")],
         ["Units", "Water agencies count in acre-feet. One acre-foot is 325,851 gallons, about half an Olympic pool. The platform shows gallons.", "Conversion"],
         ["Scale check", "Published potential saving in 28 Valley districts: 54,000 to 223,000 acre-feet a year. The simulation's own water figures are ranges, on the Simulation step.", link("Fipps, 1998", "https://gfipps.tamu.edu/files/2019/12/RGV-Potential-Water-Savings.pdf")],
       ]) +
@@ -980,7 +1011,7 @@
       "<h3>4. Sealant</h3>" + table([
         ["Price", "$" + U.esc(a.sealant_usd_per_sqft) + " per sq ft, materials only", link("U.S. Bureau of Reclamation", "https://www.usbr.gov/research/projects/detail.cfm?id=845")],
         ["Share of leakage stopped", Math.round(a.sealant_cut_low * 100) + "% to " + Math.round(a.sealant_cut_high * 100) + "% in field trials; every simulation run draws a value from this range", "Desert Research Institute field trials"],
-        ["How long it lasts", "About " + U.esc(a.days_one_application_lasts) + " days; " + P.applications + " applications cover a season", "Lund et al., 2021"],
+        ["How long it lasts", "About " + U.esc(a.days_one_application_lasts) + " days each; up to " + P.applications + (P.applications === 1 ? " round" : " rounds") + " from March", "Lund et al., 2021"],
         ["Crew speed", P.kmPerCrewDay + " km per crew per day, " + P.crews + " crews", "Ours" + tag("assumption")],
       ]) +
       (HG.forecastEffect ? "<h3>What the forecast changes</h3>" + forecastEffectHtml(district()) : "") +
@@ -1017,6 +1048,8 @@
   }
 
   /* ---------- Putting it together ---------- */
+  /* The four steps and the function that draws each. A link may name only one of these. */
+  const STEPS = { risk: renderRisk, budget: renderBudget, sim: renderSim, sources: renderSources };
   function refresh(refit) {
     document.querySelectorAll("#stepper button").forEach((b) => {
       b.classList.toggle("on", b.dataset.step === state.step);
@@ -1034,7 +1067,7 @@
     simChrome();
     $("scopeBtn").innerHTML = "<small>" + (district() ? "District" : "View") + "</small>" + U.esc(scopeName()) + " &#9662;";
     $("viewScope").textContent = district() ? "My district" : "All of Texas";
-    ({ risk: renderRisk, budget: renderBudget, sim: renderSim, sources: renderSources })[state.step]();
+    STEPS[state.step]();
     syncMap();
     $("view").scrollTop = 0;
     if (picture) twin.play(); else twin.pause();
@@ -1069,7 +1102,12 @@
     if (act === "closeCounty") { state.county = null; refresh(false); }
     if (act === "closeCanal") { state.canal = null; refresh(false); }
     if (act === "csv") downloadCsv();
-    if (act === "resetAssume") { state.overrides = {}; renderSim(); }
+    if (act === "resetAssume") {
+      const wasFull = state.budget >= maxBudget();            // the canal width goes back to its default, and the budget's ceiling with it
+      state.overrides = {};
+      state.budget = wasFull ? maxBudget() : Math.min(state.budget, maxBudget());
+      renderSim();
+    }
     if (act === "simPick") tapDistrict(Number(t.dataset.i));              // the same as a tap on the map
     if (act === "simAll") { state.simSel = new Set(GROUPABLE); pickChanged(); }
     if (act === "simNone") { state.simSel = new Set(); pickChanged(); }
@@ -1114,7 +1152,15 @@
     if (e.target.id === "simBudget") { state.budget = Number(e.target.value); $("simBudgetOut").textContent = U.usd(state.budget); laterSim(); }
     if (e.target.dataset.param) {
       const k = e.target.dataset.param, row = SLIDERS.find((s) => s[0] === k);
+      const wasFull = state.budget >= maxBudget();              // was every rankable canal funded before this change?
       state.overrides[k] = Number(e.target.value);
+      if (k === "widthFt") {
+        // A wider canal costs more to seal, so the budget's ceiling moves with the width. A plan
+        // that funded everything still does; any other budget is kept, up to the new ceiling.
+        state.budget = wasFull ? maxBudget() : Math.min(state.budget, maxBudget());
+        const slider = $("simBudget");
+        if (slider) { slider.max = maxBudget(); slider.step = budgetStep(); slider.value = state.budget; $("simBudgetOut").textContent = U.usd(state.budget); }
+      }
       if (k === "fullAt" || k === "zeroAt") {                   // keep "none" below "all"
         const p = params();
         if (p.zeroAt >= p.fullAt) state.overrides.zeroAt = p.fullAt - 1;
@@ -1197,7 +1243,7 @@
   // A link that names a scope (#state or #d=District name) skips the question.
   const byName = (name) => HG.districts.findIndex((d) => d.name === name);
   const hash = window.HGLogic.safeDecode(location.hash.slice(1));   // a malformed link must not stop the page from starting
-  if (location.search.indexOf("step=") >= 0) state.step = location.search.split("step=")[1].split("&")[0];   // for links straight to a step
+  state.step = window.HGLogic.stepFromQuery(location.search, Object.keys(STEPS), state.step);   // a link straight to a step; an unknown step is ignored
   if (hash === "state") setScope(STATE);
   else if (hash.indexOf("d=") === 0 && byName(hash.slice(2)) >= 0) setScope(byName(hash.slice(2)));
   else { state.scope = STATE; state.budget = defaultBudget(); refresh(true); openChooser(); }

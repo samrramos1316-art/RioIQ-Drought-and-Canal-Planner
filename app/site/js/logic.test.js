@@ -683,10 +683,19 @@ test("replay: a row's totals are the sums of its per-year results", () => {
 /* ---------- Ranges, and the replay across draws of the canal unknowns ---------- */
 test("band gives the 10th, 50th and 90th percentile of a list, whatever its order", () => {
   const list = []; for (let i = 100; i >= 1; i--) list.push(i);            // 100 down to 1
-  assert.deepStrictEqual(L.band(list), { low: 11, mid: 51, high: 91 });
+  const same = (b, low, mid, high) => { close(b.low, low); close(b.mid, mid); close(b.high, high); };
+  same(L.band(list), 10.9, 50.5, 90.1);                                    // position q x 99 in the sorted list
   assert.deepStrictEqual(L.band([7]), { low: 7, mid: 7, high: 7 });
-  assert.deepStrictEqual(L.band([3, 1, 2]), { low: 1, mid: 2, high: 3 });
+  same(L.band([3, 1, 2]), 1.2, 2, 2.8);
   assert.deepStrictEqual(list[0], 100);                                    // the list is left as it was
+});
+
+test("band of 10 values: the high is below the largest and the low above the smallest, by the same amount (found in the code audit)", () => {
+  const b = L.band([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  close(b.low, 1.9); close(b.mid, 5.5); close(b.high, 9.1);
+  assert.ok(b.high < 10 && b.low > 1);
+  close(10 - b.high, b.low - 1);
+  assert.deepStrictEqual(L.band([4, 4, 4, 4]), { low: 4, mid: 4, high: 4 });   // equal values stay exactly equal
 });
 
 test("rangeText writes the middle with its low and high, and says so when there is no spread", () => {
@@ -1238,4 +1247,199 @@ test("the packed frozen summary agrees with the fixed sentences and holds no per
   assert.strictEqual(HG.forecastEffect.overall.length, 5);
   // the site still carries no calibration for the simulation
   assert.strictEqual(HG.calibration, undefined);
+});
+
+/* ---------- Found in the code audit ---------- */
+test("money and gal change unit where the rounded figure would reach 1,000: no \"$1000k\" and no \"1,000 million gal\"", () => {
+  assert.strictEqual(L.money(999499), "$999k");
+  assert.strictEqual(L.money(999500), "$1.0M");
+  assert.strictEqual(L.money(999999), "$1.0M");
+  assert.strictEqual(L.money(-999600), "-$1.0M");
+  assert.strictEqual(L.money(999.4e6), "$999M");
+  assert.strictEqual(L.money(999.5e6), "$1.00B");
+  const af = (gallons) => gallons / E.GALLONS_PER_ACRE_FOOT;
+  assert.strictEqual(L.gal(af(999.4e6)), "999 million gal");
+  assert.strictEqual(L.gal(af(999.6e6)), "1.0 billion gal");
+  assert.strictEqual(L.gal(af(999.9e6), true), "1.0 billion gallons");
+});
+
+test("planFor and canalNumbers price canals at the width they are given, and at the pipeline's width when given none", () => {
+  const data = fake(), { planFor, canalNumbers } = logic(data);           // the pipeline's width here is 10 ft
+  const narrow = planFor(data.canals, 1e9, null), wide = planFor(data.canals, 1e9, null, 20);
+  close(narrow.costEvery, 7.5 * USD_PER_KM);                               // the engine's bill for all 7.5 km
+  close(wide.costEvery, 2 * 7.5 * USD_PER_KM);                             // twice the width, twice the sealant
+  close(wide.spent, 2 * narrow.spent); close(wide.sqft, 2 * narrow.sqft); close(wide.savedLow, 2 * narrow.savedLow);
+  assert.strictEqual(wide.costAll, narrow.costAll);                        // the pipeline's own figure does not move
+  // The bug: a budget that funds every canal at 10 ft does not fund them all at 20 ft.
+  assert.strictEqual(planFor(data.canals, narrow.costEvery, null, 10).funded.length, 4);
+  assert.ok(planFor(data.canals, narrow.costEvery, null, 20).funded.length < 4);
+  assert.strictEqual(planFor(data.canals, wide.costEvery, null, 20).funded.length, 4);
+  const P = { kmPerCrewDay: 4, crews: 2 }, one = canalNumbers([{ km: 2, rate: 5 }], P), two = canalNumbers([{ km: 2, rate: 5 }], Object.assign({ widthFt: 20 }, P));
+  close(two.usd, 2 * one.usd); close(two.afLow, 2 * one.afLow); close(two.days, one.days);
+  // The plan's bill and the engine's bill are the same number at every width on the slider.
+  for (const widthFt of [10, 20, 33, 40]) {
+    const engine = E.fundCanals(planFor(data.canals, 0, null).ordered, Infinity, E.makeParams({ widthFt, usdPerSqft: 0.01 })).spent;
+    close(planFor(data.canals, 0, null, widthFt).costEvery, engine);
+  }
+});
+
+test("budgetScale: the slider's top is the cost of everything rounded UP to a whole step, so \"fund everything\" can be reached", () => {
+  assert.deepStrictEqual(L.budgetScale(2460.63), { step: 100, max: 2500 });
+  assert.deepStrictEqual(L.budgetScale(20000.5), { step: 500, max: 20500 });
+  assert.deepStrictEqual(L.budgetScale(1261948.33), { step: 5000, max: 1265000 });
+  assert.deepStrictEqual(L.budgetScale(500), { step: 100, max: 500 });      // already a whole step
+  assert.deepStrictEqual(L.budgetScale(0), { step: 100, max: 100 });
+  // On the real canals, at every width on the slider, the top of the slider funds every rankable canal.
+  const data = realData(), lg = L.makeLogic(data), inDistricts = data.canals.filter((c) => c.district >= 0);
+  const rankable = inDistricts.filter((c) => c.rank != null).length;
+  for (const widthFt of [10, 20, 21, 30, 40]) {
+    const scale = L.budgetScale(lg.planFor(inDistricts, 0, null, widthFt).costEvery);
+    assert.strictEqual(scale.max % scale.step, 0);
+    assert.strictEqual(lg.planFor(inDistricts, scale.max, null, widthFt).funded.length, rankable, widthFt + " ft");
+  }
+  // The old ceiling (the pipeline's 20 ft cost) does not fund them all at 30 ft.
+  assert.ok(lg.planFor(inDistricts, lg.planFor(inDistricts, 0, null).costAll, null, 30).funded.length < rankable);
+});
+
+test("simScope: several counties are weighted by the ranked canal km in each, with the plain mean when there is none", () => {
+  // District X sits in counties A and B. Put 1 km of its ranked canal in A and 2 km in B.
+  const data = fake();
+  data.canals[3].fips = "A"; data.canals[0].fips = "B"; data.canals[1].fips = "A";   // the drain has no rank and must not count
+  const s = logic(data).simScope([data.X]), fc = s.weeks.map((w) => w.forecast);
+  close(fc[1], 0.1);                                                       // 7 Jan: only A has a forecast
+  close(fc[2], (0.1 * 1 + 0.3 * 2) / 3);                                   // 14 Jan: A 0.1, B 0.3
+  close(fc[3], (0.5 * 1 + 0.3 * 2) / 3);                                   // 21 Jan: A 0.5, B 0.3
+  // Drought class, A "012345" and B "1.4.0.": week 0 (0 x 1 + 1 x 2) / 3 = 0.67, rounds to 1; week 2 (2 + 8) / 3 = 3.33, rounds to 3;
+  // week 4 (4 x 1 + 0 x 2) / 3 = 1.33, rounds to 1 (the plain mean, 2, was the old answer).
+  assert.deepStrictEqual(s.weeks.map((w) => w.cls), [1, 1, 3, 3, 1, 5]);
+  // No ranked canal km in either county (the made-up canals carry no county): the plain mean, as before.
+  const plain = logic(fake()).simScope([fake().X]);
+  close(plain.weeks[2].forecast, 0.2);
+  assert.deepStrictEqual(plain.weeks.map((w) => w.cls), [1, 1, 3, 3, 2, 5]);
+  // All the km in one county: the other county's readings do not move the answer.
+  const oneSided = fake(); oneSided.canals[3].fips = "A"; oneSided.canals[0].fips = "A";
+  close(logic(oneSided).simScope([oneSided.X]).weeks[3].forecast, 0.5);
+});
+
+test("the note for Elephant Butte districts is fixed wording and is shown in the district list, on the result headline and on the risk profile", () => {
+  assert.strictEqual(L.EXTRAPOLATED_NOTE, "extrapolated: Valley water rules and crop values applied to another reservoir");
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  const body = (name) => { const a = page.indexOf("function " + name + "("); assert.ok(a >= 0, name); return page.slice(a, page.indexOf("\n  }\n", a)); };
+  assert.ok(body("renderPickRows").indexOf("window.HGLogic.EXTRAPOLATED_NOTE") >= 0);
+  assert.ok(body("simHeadHtml").indexOf("extrapolatedNote(") >= 0);
+  assert.ok(body("renderRisk").indexOf("extrapolatedNote(d)") >= 0);
+  assert.ok(page.indexOf("const extrapolatedNote = (d) => (d && usesElephantButte(d) ?") >= 0);   // only for those districts
+});
+
+test("stepFromQuery accepts only a step the page knows; anything else gives the fallback", () => {
+  const steps = ["risk", "budget", "sim", "sources"];
+  assert.strictEqual(L.stepFromQuery("?step=sim", steps, "risk"), "sim");
+  assert.strictEqual(L.stepFromQuery("?noscan&step=sources", steps, "risk"), "sources");
+  assert.strictEqual(L.stepFromQuery("?step=budget&noscan", steps, "risk"), "budget");
+  for (const bad of ["", "?noscan", "?step=", "?step=simulation", "?step=Sim", "?step=constructor", "?step=toString", "?mystep=sim", "?step=sim%20", null, undefined]) {
+    assert.strictEqual(L.stepFromQuery(bad, steps, "risk"), "risk", String(bad));
+  }
+  // The page hands it its own list of steps and never calls a step it does not have.
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  assert.ok(page.indexOf("state.step = window.HGLogic.stepFromQuery(location.search, Object.keys(STEPS), state.step);") >= 0);
+  assert.ok(page.indexOf("const STEPS = { risk: renderRisk, budget: renderBudget, sim: renderSim, sources: renderSources };") >= 0);
+});
+
+test("leakAcreFeet counts the leak the way the engine counts the water kept, so leaked and saved add up", () => {
+  const data = replayFake(), scope = logic(data).replayScope([data.X]), central = E.centralPhysics();
+  const gallonsPerDay = E.fundCanals(scope.canals, Infinity, E.makeParams()).gallonsPerDay;
+  const run = E.simulate(Object.assign({}, scope, { physics: central }), { trigger: "always" }, { budget: 1e9 });
+  const sealedWeek = run.years[0].weekly.find((w) => w.sealed && w.saved > 0);
+  const leak = L.leakAcreFeet(gallonsPerDay, 7, central);
+  close(sealedWeek.saved, leak * central.cut);                             // saved = the leak x the share the sealant stops
+  assert.ok(sealedWeek.saved < leak);                                      // so what still leaks is never below zero
+  // The old counter took every canal as unlined; the middle physics takes about a third as lined.
+  close(L.leakAcreFeet(gallonsPerDay, 7, null), E.savedAcreFeet(gallonsPerDay, 7, 1));
+  close(leak, E.savedAcreFeet(gallonsPerDay, 7, 1) * central.widthMult * (1 - central.linedShare));
+  close(L.leakAcreFeet(1000, 7, { calibrated: true, seepMult: 0.7, widthMult: 1.4, linedShare: 0.5 }), E.savedAcreFeet(700, 7, 1));
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  assert.ok(page.indexOf("window.HGLogic.leakAcreFeet(E.fundCanals(scope.canals, Infinity, P).gallonsPerDay, 7, E.centralPhysics(L.physicsOptions()))") >= 0);
+});
+
+test("wording found in the audit: the home page's leak, the sealant rounds, the what-if buttons, the counties over the warning line", () => {
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8"), home = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  // The leak figure covers every district's canals (El Paso to Brownsville), so it is not tied to the two reservoirs of the beat before.
+  const block = home.slice(home.indexOf('id="nGal"'), home.indexOf("</section>", home.indexOf('id="nGal"')));
+  assert.ok(block.indexOf("from Texas Rio Grande irrigation canals, El Paso to Brownsville.") >= 0);
+  assert.ok(block.indexOf("that water") < 0);
+  // Three rounds do not cover the season (February is never sealed), and the page no longer says they do.
+  assert.ok(!/cover (a|the) season/.test(page));
+  assert.ok(page.indexOf('" days each; up to " + P.applications') >= 0 && page.indexOf('" from March"') >= 0);
+  // 25%, 50% and 80% gave one and the same plan, so there is one what-if left.
+  assert.ok(!/Moderate \(25%\)|Severe \(50%\)|Extreme \(80%\)/.test(page));
+  const data = fake(), { planFor } = logic(data);
+  assert.deepStrictEqual(names(planFor(data.canals, 1200, 0.25).funded), names(planFor(data.canals, 1200, 1).funded));
+  // Counties over the warning line are counted from the pipeline's own label.
+  assert.ok(page.indexOf('HG.river.filter((c) => c.tier === "Warning").length') >= 0);
+  assert.ok(page.indexOf("c.pSeason >= HG.threshold") < 0);
+  realData().HG.river.forEach((c) => assert.ok(L.TIER_CLASSES.indexOf(c.tier) >= 0, c.fips));
+});
+
+/* ---------- The three-month forecast ---------- */
+const QUARTER_TEST = { forecasts: 148995, counties: 693, auc: 0.957, shareRight: 0.895, shareRightRule: 0.903, missed: 3938, missedRule: 5270,
+  falseAlarms: 11769, falseAlarmsRule: 9145, cost: 23583, costRule: 24955, costGap: -1372, costGapLow: -2386, costGapHigh: -420, costChange: -0.055, years: 18 };
+
+test("quarterScorecard: numbers first, and it says the three-month forecast wins on cost, not on share right", () => {
+  const rows = L.quarterScorecard(QUARTER_TEST, { diff: -58, lo: -276, hi: 171 });
+  assert.deepStrictEqual(rows, [
+    { label: "3 months ahead", text: "beats the best simple rule on cost, not on share right. Cost 5.5% lower on 693 unseen counties (interval -2,386 to -420). " +
+      "Missed 3,938 drought seasons vs 5,270; false alarms 11,769 vs 9,145; share right 89.5% vs 90.3%." },
+    { label: "6 months ahead", text: "ties the best simple rule on cost (gap -58, interval -276 to +171)." },
+  ]);
+  assert.ok(rows.map((r) => r.label + " " + r.text).join(" ").split(/\s+/).length <= 60, "about 60 words at most");
+});
+
+test("quarterScorecard: the word comes from the interval, and missing data gives no row", () => {
+  assert.deepStrictEqual(L.quarterScorecard(null, null), []);
+  assert.deepStrictEqual(L.quarterScorecard(undefined, undefined), []);
+  assert.deepStrictEqual(L.quarterScorecard(null, { diff: -58, lo: -276, hi: 171 }).map((r) => r.label), ["6 months ahead"]);
+  assert.deepStrictEqual(L.quarterScorecard(QUARTER_TEST, null).map((r) => r.label), ["3 months ahead"]);
+  // An interval that reaches zero is a tie, whatever the gap looks like.
+  const tie = L.quarterScorecard(Object.assign({}, QUARTER_TEST, { costGapHigh: 0 }), null)[0].text;
+  assert.ok(tie.indexOf("ties the best simple rule on cost. ") === 0 && tie.indexOf("beats") < 0, tie);
+  // An interval wholly above zero: the forecast cost more.
+  const worse = L.quarterScorecard(Object.assign({}, QUARTER_TEST, { costGapLow: 100, costGapHigh: 900, costChange: 0.02 }), null)[0].text;
+  assert.ok(worse.indexOf("loses to the best simple rule on cost. Cost 2.0% higher") === 0, worse);
+  // If its share right were the higher one, the words "not on share right" would be untrue and are left out.
+  const both = L.quarterScorecard(Object.assign({}, QUARTER_TEST, { shareRight: 0.91 }), null)[0].text;
+  assert.ok(both.indexOf("beats the best simple rule on cost. ") === 0, both);
+  assert.strictEqual(L.quarterScorecard(null, { diff: -900, lo: -1500, hi: -200 })[0].text, "beats the best simple rule on cost (gap -900, interval -1,500 to -200).");
+});
+
+test("real data: the scorecard reads the packed three-month test and the six-month row, and the pages take their figures from the data", () => {
+  const HG = realData().HG, t = HG.quarter.test;
+  const season = HG.frozen.groups.find((g) => g.section === "season"), row = season.rows.find((r) => r[0] === "6-month system cost minus D1 now");
+  const rows = L.quarterScorecard(t, { diff: row[1], lo: row[2], hi: row[3] });
+  assert.strictEqual(rows.length, 2);
+  for (const figure of [L.num(t.counties), L.num(t.missed), L.num(t.missedRule), L.num(t.falseAlarms), L.num(t.falseAlarmsRule), L.signed(t.costGapLow), L.signed(t.costGapHigh)]) {
+    assert.ok(rows[0].text.indexOf(figure) >= 0, figure);
+  }
+  assert.ok(rows[0].text.indexOf("beats the best simple rule on cost, not on share right.") === 0);   // today's result
+  assert.ok(rows[1].text.indexOf("ties ") === 0);
+  // None of the test's figures is typed into the pages.
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8"), landing = fs.readFileSync(path.join(__dirname, "landing.js"), "utf8");
+  for (const typed of ["693", "3,938", "5,270", "11,769", "9,145", "89.5", "90.3", "2,386"]) assert.ok(page.indexOf(typed) < 0 && landing.indexOf(typed) < 0, typed);
+  const body = page.slice(page.indexOf("function renderSources("));
+  assert.ok(body.indexOf('"<h3>How far to trust this</h3>" +\n      scorecardHtml() +\n      heldOutNote()') >= 0, "the scorecard opens the section");
+  assert.ok(landing.indexOf("q && q.costGapHigh < 0") >= 0, "the home page says \"beat\" only if the interval is wholly below zero");
+});
+
+test("quarterChance: the plain mean of the counties that have a three-month chance, and null when there is none", () => {
+  const data = fake();
+  assert.strictEqual(logic(data).quarterChance(["A", "B"]), null);         // no HG.quarter: the page renders as before
+  data.HG.quarter = { chance: { A: 0.2, B: 0.4 } };
+  const { quarterChance } = logic(data);
+  close(quarterChance(["A", "B"]), 0.3);
+  close(quarterChance(["A", "C"]), 0.2);                                   // county C has none
+  assert.strictEqual(quarterChance(["C"]), null);
+  assert.strictEqual(quarterChance([]), null);
+  data.HG.quarter = {};
+  assert.strictEqual(logic(data).quarterChance(["A"]), null);
+  const real = realData();
+  real.HG.districts.forEach((d) => { const p = L.makeLogic(real).quarterChance(d.fips); assert.ok(p != null && p >= 0 && p <= 1, d.name); });
 });

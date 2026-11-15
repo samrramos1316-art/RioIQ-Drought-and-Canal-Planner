@@ -207,3 +207,17 @@ def test_model_e_never_trains_on_a_blind_row(monkeypatch):
     assert len(edge.FEATURES_E) == 66 and len(set(edge.FEATURES_E)) == 66
     assert not seen[66][table["blind"]].any() and seen[66][~table["blind"]].all()      # model E: every used row, no blind row
     assert list(table.loc[seen[47], "group"]) == ["dev"]                               # the round-5 model: the 436 only
+
+
+def test_neighbour_area_inputs_look_only_backwards(monkeypatch):
+    # Two counties 0.1 degrees apart, so each is the other's only neighbour.
+    monkeypatch.setattr(area, "load_county_centers", lambda: {"A": (-98.0, 26.0), "B": (-98.1, 26.0)})
+    data = made_up_area()
+    before = area.neighbour_features(data, ["B"]).set_index("date")
+    cut = data["date"].sort_values().unique()[30]
+    data.loc[data["date"] > cut, ["a_d2", "dsci"]] = 9.0          # change every later week of both counties
+    after = area.neighbour_features(data, ["B"]).set_index("date")
+    pd.testing.assert_frame_equal(before.loc[:cut], after.loc[:cut])
+    week20 = before.iloc[20]
+    assert week20["nb_a2"] == 0.20 and week20["nb_a2_l4"] == 0.16          # county A's D2 share, now and 4 weeks ago
+    assert abs(week20["nb_dsci_minus"] - 2.20) < 1e-12                     # A's index (2.20) minus B's own (0)

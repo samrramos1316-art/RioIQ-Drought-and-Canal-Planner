@@ -55,7 +55,7 @@
     kmPerCrewDay:  { value: 6,      tag: "assumption", label: "Kilometres of canal one crew seals in a working day" },
     crews:         { value: 2,      tag: "assumption", label: "Crews working at the same time" },
     // One application lasts about 90 days and the season is about nine months, so three
-    // applications keep the canals sealed for the whole season. Each one is paid for in full.
+    // applications are bought from March on (about 270 days of cover; February is not sealed). Each one is paid for in full.
     applications:  { value: 3,      tag: "assumption", label: "Sealant applications in a season you act (each lasts about 90 days)" },
     // The ranges samplePhysics() draws from (see PHYSICAL UNCERTAINTY below). Used only when a
     // run asks for physics; a plain run never reads them.
