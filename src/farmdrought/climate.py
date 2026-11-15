@@ -41,6 +41,10 @@ from farmdrought.config import ROOT
 ROUND4_DATA = ROOT / "data" / "round4"
 CLIMATE_CSV = ROUND4_DATA / "climate_counties.csv.gz"
 NORMALS_CSV = ROUND4_DATA / "climate_normals.csv"
+# Round 6 added more counties. The first pair of files is never rewritten (its hashes are
+# recorded), so the new counties sit in a second pair with the same columns.
+MORE_CLIMATE_CSV = ROUND4_DATA / "climate_west.csv.gz"
+MORE_NORMALS_CSV = ROUND4_DATA / "climate_west_normals.csv"
 
 FEATURES_W = ["rain3", "rain6", "rain12", "heat3", "heat12"]
 FEATURES_P = ["pdsi", "pdsi_chg3", "pdsi_min12", "z1", "z3", "z6"]
@@ -87,12 +91,15 @@ def read_noaa_file(path, wanted, missing_at_or_below=-90.0):
     return pd.DataFrame(rows, columns=["fips", "year", "month", "value"])
 
 
-def extract(noaa_folder, fips_list):
-    """Cut the two small files in data/round4 out of NOAA's four big ones (run once, by hand).
+def extract(noaa_folder, fips_list, climate_csv=None, normals_csv=None):
+    """Cut two small files out of NOAA's four big ones (run once, by hand).
 
     noaa_folder : a folder holding the four downloaded files (climdiv-pcpncy-..., and so on)
     fips_list   : the counties to keep
+    climate_csv, normals_csv : where to save (the first pair of files by default)
     """
+    climate_csv = CLIMATE_CSV if climate_csv is None else climate_csv
+    normals_csv = NORMALS_CSV if normals_csv is None else normals_csv
     wanted, months = set(fips_list), None
     for column, code in NOAA_FILES.items():
         path = sorted(glob.glob(f"{noaa_folder}/climdiv-{code}-*"))[-1]
@@ -104,9 +111,9 @@ def extract(noaa_folder, fips_list):
     normals = old.groupby(["fips", "month"])[["rain_in", "temp_f"]].mean().reset_index()
     normals = normals.rename(columns={"rain_in": "rain_normal", "temp_f": "temp_normal"})
     ROUND4_DATA.mkdir(parents=True, exist_ok=True)
-    normals.to_csv(NORMALS_CSV, index=False)
+    normals.to_csv(normals_csv, index=False)
     recent = months[months["year"] >= FIRST_YEAR_KEPT].sort_values(["fips", "year", "month"])
-    recent.to_csv(CLIMATE_CSV, index=False)
+    recent.to_csv(climate_csv, index=False)
     print(f"saved {recent['fips'].nunique()} counties, {recent['year'].min()} to {recent['year'].max()}")
 
 
@@ -116,6 +123,9 @@ def monthly_features():
     """
     data = pd.read_csv(CLIMATE_CSV, dtype={"fips": str})
     normals = pd.read_csv(NORMALS_CSV, dtype={"fips": str})
+    if MORE_CLIMATE_CSV.exists() and MORE_NORMALS_CSV.exists():     # the counties added in round 6
+        data = pd.concat([data, pd.read_csv(MORE_CLIMATE_CSV, dtype={"fips": str})], ignore_index=True)
+        normals = pd.concat([normals, pd.read_csv(MORE_NORMALS_CSV, dtype={"fips": str})], ignore_index=True)
     data = data.merge(normals, on=["fips", "month"], how="left")
     data["period"] = pd.PeriodIndex.from_fields(year=data["year"], month=data["month"], freq="M")
     out = []
