@@ -1,6 +1,6 @@
 # RioIQ: Rio Grande drought forecast and canal sealing planner
 
-**Track:** AI + Climate | **Team:** [TEAM: names and schools] | **Live site:** https://hackathon-drought.vercel.app | **Video:** [TEAM: paste the video link]
+**Track:** AI + Climate | **Team:** Team Credo | **Live site:** https://hackathon-drought.vercel.app | **Video:** [TEAM: paste the video link]
 
 ## The problem
 
