@@ -118,6 +118,13 @@ A daily job (`.github/workflows/refresh.yml`) downloads the newest drought map a
 - Valley lining programme ($164 million, 44,000 acre-feet, 12 districts): https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico
 - Stories and photographs on the intro page carry their own source links there.
 - Libraries: pandas, NumPy, scikit-learn, pyarrow, requests, dataretrieval, pytest. The website uses no library.
-- AI tools used, and what for: [TEAM: list every AI tool and what it was used for, as the hackathon rules require]
+
+
+## AI tools used, and what for
+
+- **Claude Code** (Anthropic's coding assistant): wrote most of the code under our direction, including the data pipeline, the forecasting and test scripts, the simulation engine, the website and the automated tests. We also used it to run the experiments, to audit the code for bugs and data leakage, and to draft documentation, including this README and `reports/decision.md`.
+- **Perplexity:** research. Finding and reading sources on the Rio Grande, irrigation districts, canal seepage and sealants, and drought programmes.
+
+What the team did: chose the problem and the users, decided what to build and what to test, set the rules in `reports/decision.md` (declare before running, nothing tuned on test years, report ties and losses), reviewed results, and made every call on wording and claims. The forecast itself is a random forest (scikit-learn); no large language model is part of the product or of any prediction.
 
 Licence: MIT for the code (see `LICENSE`). Data and photographs keep their sources' terms.
