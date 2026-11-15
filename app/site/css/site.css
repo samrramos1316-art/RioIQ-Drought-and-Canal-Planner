@@ -222,6 +222,13 @@ body.app { height: 100vh; display: flex; flex-direction: column; overflow: hidde
 .topbar a.plain { color: #c9d8e8; font-size: .86rem; text-decoration: none; }
 .topbar a.plain:hover { color: #fff; }
 
+/* The researcher export at the foot of the platform: one quiet line, the menu opens on request. */
+.foot { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 3px 16px; font-size: .72rem; color: var(--muted); background: var(--soft); border-top: 1px solid var(--line); }
+.footLink { background: none; border: 0; padding: 2px 0; color: var(--muted); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.footLink:hover, .footLink:focus-visible { color: var(--ink); }
+.exportMenu { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; }
+.exportMenu[hidden] { display: none; }
+.exportNote:empty { display: none; }
 .shell { flex: 1; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(430px, 1fr); min-height: 0; }
 
 /* The stage: the hand-drawn map (js/scanmap.js) or, at the end of the Simulation step, the twin picture (js/twin.js). */
