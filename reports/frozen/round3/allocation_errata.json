@@ -1,0 +1,62 @@
+{
+  "erratum_for": "reports/frozen/round3/allocation.json",
+  "written": "2026-11-15",
+  "the_frozen_file_is_not_changed": true,
+  "what_is_wrong": "Counties with the same rank are funded lowest county code first, as declared. Rule A is tied at the funding cut in 48 of 90 year-by-budget cells and the model in 1, so the direction of that arbitrary choice moves the rules' scores. The one comparison reported as 'ahead' (model minus rule B, average over k: +0.020, interval 0.001 to 0.046) does not survive the opposite choice.",
+  "descriptive_only": "The figures below were computed after the result was known, were not declared, and are not a new test.",
+  "model_minus_rule_b_average_over_k": {
+    "lowest county code first (the frozen result)": {
+      "diff": 0.0202,
+      "lo": 0.0011,
+      "hi": 0.0462
+    },
+    "highest county code first": {
+      "diff": 0.0276,
+      "lo": -0.0024,
+      "hi": 0.0754
+    },
+    "ties scored at their expected value": {
+      "diff": 0.024,
+      "lo": 0.0007,
+      "hi": 0.0597
+    }
+  },
+  "model_minus_rule_a_average_over_k": {
+    "lowest county code first (the frozen result)": {
+      "diff": 0.0145,
+      "lo": -0.0032,
+      "hi": 0.0347
+    },
+    "highest county code first": {
+      "diff": 0.0203,
+      "lo": -0.0109,
+      "hi": 0.0702
+    },
+    "ties scored at their expected value": {
+      "diff": 0.0187,
+      "lo": -0.0017,
+      "hi": 0.0491
+    }
+  },
+  "what_to_read_instead": "Against rule B the forecast is ahead under two of three ways of breaking ties and not separated under the third. Report it as unsettled, not as a win.",
+  "site_summary": [
+    {
+      "name": "Budget ranking, forecast minus rule B, ties broken the other way (checker's figure, not declared)",
+      "value": 0.0276,
+      "lo": -0.0024,
+      "hi": 0.0754,
+      "n_years": 18,
+      "verdict": "not separated",
+      "lower_is_better": false
+    },
+    {
+      "name": "Budget ranking, forecast minus rule B, ties at their expected value (checker's figure, not declared)",
+      "value": 0.024,
+      "lo": 0.0007,
+      "hi": 0.0597,
+      "n_years": 18,
+      "verdict": "model better",
+      "lower_is_better": false
+    }
+  ]
+}

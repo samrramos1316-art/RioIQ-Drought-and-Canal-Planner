@@ -669,6 +669,22 @@ def quarter_outlook(reports=ROOT / "reports"):
     }
 
 
+# One sentence in the frozen list of limits has been overtaken by later work. The frozen file is
+# never edited, so the website swaps in the corrected sentence here (reports/decision.md,
+# "Corrections found in the code audit").
+LIMIT_CORRECTIONS = {
+    "Weather inputs (rain, temperature, soil moisture) were not tested.":
+        "Weather inputs are not part of the system. Rain and temperature were tested in version 2, and rain, "
+        "temperature and a soil-moisture index were tested on rivers never used before (round 4). Neither helped "
+        "the 6-month outlook.",
+}
+
+
+def corrected_limits(limits):
+    """The limits list with any overtaken sentence replaced by its correction."""
+    return [LIMIT_CORRECTIONS.get(sentence, sentence) for sentence in limits]
+
+
 def write_js(path, variable, data):
     """Save data as a JavaScript file that sets one global variable."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -747,7 +763,7 @@ def build(out_dir=None):
         "season": metrics["season"]["focus"],
         "trainYears": metrics.get("train_years"), "testYears": metrics.get("test_years"),
         "issues": optional("issues.json"),
-        "limits": metrics["limits"],
+        "limits": corrected_limits(metrics["limits"]),
         "reservoirNote": metrics["reservoir"].get("note"),
     }
     write_js(out_dir / "core.js", "HG", core)

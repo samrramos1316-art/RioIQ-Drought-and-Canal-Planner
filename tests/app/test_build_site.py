@@ -344,3 +344,10 @@ def test_rounding_a_chance_never_moves_it_across_the_warning_line():
     assert build_site.chance(0.25, 3) == 0.25           # on the line stays on the line
     assert build_site.chance(0.2504, 3) == 0.25
     assert build_site.chance(0.613, 2) == 0.61 and build_site.chance(0.1, 3) == 0.1
+
+
+def test_an_overtaken_limit_sentence_is_replaced_and_the_rest_are_left_alone():
+    old = "Weather inputs (rain, temperature, soil moisture) were not tested."
+    out = build_site.corrected_limits(["Nothing here measures crop yields.", old])
+    assert out[0] == "Nothing here measures crop yields."
+    assert "round 4" in out[1] and "were not tested" not in out[1]

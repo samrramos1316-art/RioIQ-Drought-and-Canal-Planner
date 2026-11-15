@@ -60,11 +60,18 @@ NOAA_TO_FIPS = {f"{i + 1:02d}": fips for i, fips in enumerate(FIPS_IN_NOAA_ORDER
 NOAA_FILES = {"rain_in": "pcpncy", "temp_f": "tmpccy", "pdsi": "pdsicy", "zndx": "zndxcy"}
 
 
-def read_noaa_file(path, wanted):
+# NOAA marks a month that is not published yet with a negative code: -9.99 in the rain file and
+# -99.9 or -99.99 in the others. A real value is never that low, so anything at or below these
+# floors is skipped. (Rain is never negative; the Palmer indexes stay well inside -20.)
+MISSING_AT_OR_BELOW = {"pcpncy": -9.0, "tmpccy": -90.0, "pdsicy": -90.0, "zndxcy": -90.0}
+
+
+def read_noaa_file(path, wanted, missing_at_or_below=-90.0):
     """Read one NOAA county file. Returns a table: fips, year, month, value.
 
     Each line: characters 1-2 NOAA state code, 3-5 county, 6-7 what is measured, 8-11 year,
-    then 12 monthly values. A value below -90 means "not published yet" and is skipped.
+    then 12 monthly values. A value at or below missing_at_or_below means "not published yet"
+    and is skipped.
     wanted : the set of county codes (FIPS) to keep.
     """
     rows = []
@@ -75,7 +82,7 @@ def read_noaa_file(path, wanted):
                 continue
             year = int(line[7:11])
             for month, value in enumerate(line[11:].split(), start=1):
-                if float(value) > -90:
+                if float(value) > missing_at_or_below:
                     rows.append((state + line[2:5], year, month, float(value)))
     return pd.DataFrame(rows, columns=["fips", "year", "month", "value"])
 
@@ -89,7 +96,7 @@ def extract(noaa_folder, fips_list):
     wanted, months = set(fips_list), None
     for column, code in NOAA_FILES.items():
         path = sorted(glob.glob(f"{noaa_folder}/climdiv-{code}-*"))[-1]
-        table = read_noaa_file(path, wanted).rename(columns={"value": column})
+        table = read_noaa_file(path, wanted, MISSING_AT_OR_BELOW[code]).rename(columns={"value": column})
         months = table if months is None else months.merge(table, on=["fips", "year", "month"], how="outer")
         print(f"{path.split('/')[-1]}: {table['fips'].nunique()} counties")
     # "normal" for each calendar month, from 1901-1999 only

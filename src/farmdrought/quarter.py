@@ -33,7 +33,7 @@ from farmdrought.config import D2_CLASS, FOCUS_RIVER, FROZEN, LIVE, ROOT, ROUND3
 from farmdrought.drought import build_panel, label_season, load_usdm
 from farmdrought.evaluate import tally
 from farmdrought.holdout import FEATURES_G, HOLDOUT_RIVERS, development_table, holdout_table
-from farmdrought.manifest import add_new_frozen_files
+from farmdrought.manifest import add_new_frozen_files, check_round4
 from farmdrought.outlook import chain, issue_rows, make_classifier
 from farmdrought.round3 import compare, cost_by_year, header, write_items
 
@@ -179,6 +179,10 @@ def this_weeks_forecast(dev):
 def main():
     if (ROUND3 / OUTPUT).exists():
         write_items({OUTPUT: None})   # raises: already scored, and this test is run once
+    problems = check_round4()
+    if problems:
+        raise RuntimeError("an input under data/round4 differs from data/round4.sha256, so nothing was scored:\n  "
+                           + "\n  ".join(problems))
     with open(FROZEN / "metrics.json") as f:
         frozen = json.load(f)
     dev = development_table()

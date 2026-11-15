@@ -132,3 +132,23 @@ def test_quarter_model_never_trains_on_a_holdout_row(monkeypatch):
     label, horizon, train_rows = seen[0]
     assert (label, horizon) == (quarter.LABEL, 13)
     assert not train_rows[table["holdout"]].any() and train_rows[~table["holdout"]].all()
+
+
+# ---------------------------------------------------------------------------------------------
+# Found in the code audit
+# ---------------------------------------------------------------------------------------------
+def test_noaa_missing_rain_code_is_skipped(tmp_path):
+    # Alabama (NOAA 01), county 001, rain (01), 2026: ten real months, then two "not published" codes.
+    line = "0100101" + "2026" + "".join(f"{v:7.2f}" for v in [1.0] * 10 + [-9.99, -9.99]) + "\n"
+    path = tmp_path / "climdiv-pcpncy-test"
+    path.write_text(line)
+    table = climate.read_noaa_file(path, {"01001"}, climate.MISSING_AT_OR_BELOW["pcpncy"])
+    assert len(table) == 10 and table["value"].min() == 1.0
+    # the old single floor of -90 would have kept the two -9.99 codes as if they were rain
+    assert len(climate.read_noaa_file(path, {"01001"})) == 12
+
+
+def test_rank_agreement_gives_no_interval_when_the_model_has_too_few_different_rates():
+    result = ponding.rank_agreement([19.08] * 8 + [2.12], [1, 2, 3, 4, 5, 6, 7, 8, 0.1])
+    assert result["lo"] is None and result["hi"] is None and result["passes"] is None
+    assert result["draws_used"] == 0 and "no interval" in result["note"]

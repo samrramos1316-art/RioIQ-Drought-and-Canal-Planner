@@ -8,7 +8,7 @@ Farms and towns on the Texas Rio Grande get their water through earth canals, an
 
 ## What we built
 
-1. **A drought forecast.** For each of the 31 Rio Grande counties: the chance of a severe-drought season in the next six months (8 or more weeks in a row at D2 or worse), a 4-week alert and a 12-month outlook.
+1. **A drought forecast.** For each of the 31 Rio Grande counties: the chance of a severe-drought season (8 or more weeks in a row at D2 or worse) in the next three months and in the next six, a 4-week alert and a 12-month outlook.
 2. **A canal ranking.** Every mapped canal segment in the Texas districts, with the soil under it and a modelled seepage rate, ranked so a budget goes to the leakiest canals first.
 3. **A simulation.** One district, several, or all of them, replayed through the real years 2008 to 2025 and through 300 possible futures: doing nothing beside sealing early. Every dollar and gallon figure is a range and is labelled "modelled, not measured".
 4. **A website** (plain HTML and JavaScript, no build step): an intro page and a platform with four steps (risk, budget plan, simulation, sources).
@@ -32,12 +32,14 @@ Cost = 3 x missed drought seasons + false alarms (our assumption). Lower is bett
 | 6-month outlook against "wait for D2" | 2,324 | 3,133 | 26% cheaper | ahead |
 | **Six rivers never used (166 counties, 35,690 forecasts)**, general model | 14,334 | 14,041 ("D1 now") | +293 (-819 to 1,537) | tie |
 | Same holdout, against "wait for D2" | 14,334 | 15,966 | -1,632 (-2,429 to -894) | ahead |
-| Which counties to fund first (March, 18 years), share that then had a drought season | 0.726 | 0.711 (rule A), 0.705 (rule B) | +0.015 (-0.003 to 0.035); +0.020 (0.001 to 0.046) | tie with A, ahead of B |
+| Which counties to fund first (March, 18 years), share that then had a drought season | 0.726 | 0.711 (rule A), 0.705 (rule B) | +0.015 (-0.003 to 0.035); +0.020 (0.001 to 0.046) | tie with A; unsettled against B (depends on how equal ranks are broken) |
+| **3-month outlook, eight more rivers never used (136 counties, 29,240 forecasts)**: share of forecasts right | 90.4% | 90.7% ("D2 now"), 79.8% ("D1 now") | cost -52 (-200 to 64) against "D2 now"; -1,810 (-2,437 to -1,153) against "D1 now" | tie with "D2 now", ahead of "D1 now" |
 
 In plain words:
 
 - **The forecast is about as good as the best simple rule at deciding whether to warn**, on the Rio Grande and on six rivers it had never seen. It is clearly better than waiting for severe drought to appear, and better than always acting.
-- **On the unseen rivers it was right in 79% of forecasts** (the rule: 76%), with an AUC of 0.85. 73% of its warnings were followed by a drought season.
+- **Six months ahead, on unseen rivers, it was right in 79% of forecasts** ("D1 now": 76%; "D2 now": 81%, but that rule misses far more drought seasons), with an AUC of 0.85. 73% of its warnings were followed by a drought season.
+- **Three months ahead it is right about nine times in ten:** 90.4% on 136 counties it had never seen (worst single year 83%), 87.4% on the Rio Grande, AUC 0.96. Three months is how long one sealant application lasts. The rule "severe drought now" does as well; the model matches the best rule at each horizon without being told which one that is.
 - **What it adds over the rule** is a probability and an order of counties, not a better yes or no.
 - **Things we tried that did not help:** rain, temperature and soil-moisture inputs; training on every river; gradient boosting; recalibrating the probability. All are reported in `reports/decision.md`.
 - **The start of a severe drought six months ahead** in a county that is not yet dry is close to unforecastable from these inputs (AUC about 0.6).
@@ -46,7 +48,10 @@ In plain words:
 
 - Seepage rates come from a published table by soil texture (Texas A&M, 1998, quoting 1946 measurements).
 - **Against 1998 district loss estimates** it did not predict held-out districts better than canal length alone (32.7% against 36.5% median error; the interval includes zero).
-- **Against 16 measured tests on unlined canals** (Texas A&M ponding tests, 1998-2005) soil permeability put the canals in roughly the right order (rank correlation 0.58, interval 0.23 to 0.78), but the measured leak was about half the table's rate. So every leak volume on the site is an upper estimate.
+- **Against 16 measured tests on unlined canals** (Texas A&M ponding tests, 1998-2005):
+  - Soil permeability put the canals in roughly the right order (rank correlation 0.58, interval 0.23 to 0.78), but its level is about 14 times too high.
+  - The soil-texture table, which is what the site ranks canals with, is closer in level (the measured leak was about half its rate) but its order is not shown to be better than chance (0.25, interval -0.23 to 0.63).
+  - So every leak volume on the site is an upper estimate, and the canal order is an illustration of the method.
 - No public source says which canals are already lined, so every canal is treated as bare earth.
 - Sealant price, effect and life are published figures; nothing was field-tested on the Rio Grande.
 
@@ -65,7 +70,7 @@ In plain words:
 | `app/build_site.py` | Builds `app/site/data/` from the pipeline's outputs, after checking them against the data contract (`app/contract.py`) |
 | `src/farmdrought/` | The pipeline: drought panel and inputs, the three forecasts, the tests against simple rules, the canal and leak model |
 | `data/raw/` | The snapshot every frozen result was scored on (hashes in `data/manifest.json`) |
-| `data/round4/` | Inputs added for the round-4 tests: NOAA county climate cut, measured canal tests and their sources |
+| `data/round4/` | Inputs added for rounds 4 and 5: NOAA county climate cut, measured canal tests and their sources (hashes in `data/round4.sha256`) |
 | `reports/frozen/` | Results scored once and never rewritten (hashes in `reports/frozen.sha256`, enforced in CI) |
 | `reports/decision.md` | Every experiment, written down before it was run, and what it showed |
 | `reports/prospective/` | Each week's forecast, logged before the answer is known |

@@ -35,6 +35,7 @@ import requests
 
 from farmdrought.canals import inside_county
 from farmdrought.config import (CANALS_GEOJSON, DISTRICTS_GEOJSON, DISTRICTS_RAW, FEET_PER_KM, GALLONS_PER_ACRE_FOOT,
+                                LEAKY_SOIL_RATE,
                                 LATEST, MIN_DISTRICT_CANAL_KM, SEALANT_BUDGET_USD, SEALANT_CUT, SEALANT_DAYS,
                                 SEALANT_USD_PER_SQFT, SEASON_THRESHOLD, WETTED_WIDTH_FT)
 from farmdrought.leaks import rate_canals
@@ -210,7 +211,11 @@ def run_districts(latest, budget=SEALANT_BUDGET_USD):
             "p_season": round(p, 3), "risk": risk_level(p),
             "canal_km": round(km, 1),
             "treatable_km": round(float(own.loc[own["seal_rank"].notna(), "length_km"].sum()), 1),
-            "leaky_soil_km": round(float(own.loc[own["level"] == "Inspect first", "length_km"].sum()), 1),
+            # km on soil that counts as leaky (loam or sandier), whatever the forecast says.
+            # Drains are left out: they are never sealed. (This used to count only the canals that
+            # were on leaky soil AND had a forecast warning, under the same name.)
+            "leaky_soil_km": round(float(own.loc[(own["seepage_rate"] >= LEAKY_SOIL_RATE) & (own["level"] != "Drain"),
+                                                 "length_km"].sum()), 1),
             "sealed_km": round(float(funded["length_km"].sum()), 1),
             "sealant_sqft": int(round(funded["seal_sqft"].sum())),
             "sealant_usd": int(round(funded["seal_usd"].sum())),
