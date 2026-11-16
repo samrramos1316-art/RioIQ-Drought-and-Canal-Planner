@@ -12,7 +12,7 @@ Team Credo / RioIQ. Re-fetched all 298 READMEs on 2026-11-16; 32 had changed.
 ## What changed since the first pass
 - #34 Platonic Earth: 78 -> 88 (live demo, 2-min video, write-up, honest takeaway added)
 - #137 XRayNPC: unscored stub -> 82 (full README, live site, video, Colab)
-- #10 RioIQ (us): stays 94 if video and one-pager land (about 86 today); farmer quote and write-up link added, video placeholder still present
+- #10 RioIQ (us): now 88 on the final repo (video and write-up linked; 94 was the conditional assumption)
 - #30 Handover: 80 -> 84 (video added)
 - #20 Blok 70: 80 -> 83; #17 Clear Voice: 80 -> 82; #134 SigapBumil: 76 -> 79
 - #26 FINIQ: 62 -> 70; #25/#31 48toNone fraud entry: now scored 66/60
@@ -22,20 +22,23 @@ Team Credo / RioIQ. Re-fetched all 298 READMEs on 2026-11-16; 32 had changed.
 ## Rubric (100 pts)
 Problem and user 15 / technical substance 25 / evaluation honesty 25 / demo and deliverability 15 / write-up and template 10 / originality 10. Letters: A 85+, B+ 78-84, B 70-77, C 60-69, D 40-59, F under 40.
 
-## Our position, honestly
-- **Facts:** frozen hash-checked results, CI on three OSes, preregistered experiments, losses reported (East loss, canal model failed validation). The README now opens with a named farmer (Brian Jones, Texas Tribune) and links a write-up. The video link is still a placeholder.
-- **Score 94** assumes the strong video and one-pager land (full marks on both communication parts). Today, with the video placeholder still in the README, I would say about 86.
-- **Biggest new threat in Climate: Platonic Earth (#34, 88).** It has the clear user, live demo, video, and honest ties up front that we are planning.
-- **Realistic odds (my judgment, wide error bars):** about 1 in 3 for 1st in Climate, about 1 in 7 for 1st overall, and about 60% for top 5 overall.
+## Our position, honestly (final repo, `origin/main` at ccc420f)
+- **Facts:** 200 pipeline tests and 46 app tests passed when I ran them; JS tests passed; site passes its size gate. The README now links a video and a write-up and opens with a named farmer (Brian Jones, Texas Tribune). Results are frozen, hash-checked and pre-declared, and the East loss and failed canal validation are reported openly.
+- **Not verified:** I could not open the video, write-up or live site, could not read CI status, and did not run the browser tests.
+- **Score 88 (A):** problem 14/15, technical substance 23/25, evaluation honesty 24/25, demo and deliverability 13/15 (links exist, live site unchecked), write-up and template 7/10 (no "What we added" / "What we'd do next", no top summary, 22 KB README, placeholders in `AGENTS.md`), originality 8/10.
+- **Why not 94:** that number assumed full marks on both communication parts. The final README earns most but not all of them. Fixing the summary box, the 810M-gallon framing and the template headings could restore about 3 to 5 points.
+- **Ties at the top:** Utter (88), Platonic Earth (88) and RioIQ (88) share rank 1. Gaps this small are noise.
+- **Realistic odds (my judgment, wide error bars):** about 30% for 1st in Climate, about 12% for 1st overall, about 60% for top 5 overall. Platonic Earth is the closest Climate rival; Utter and Roshni are the strongest overall.
+- **No rival in the top 30 changed** since the last re-fetch.
 
 ## Final ranking: all scored entries
 Ties share a rank (`=`). Reasons are README-based, three sentences max. Our row is bold.
 
 | Rank | Score | Grade | Track | Repo | Why it ranks here |
 |---|---|---|---|---|---|
-| **1** | 94 | A | Climate | **[samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) (#10)** | Most rigorous evaluation in the field: frozen held-out tests, CI on three systems, open reporting of losses, and a named farmer quote now opens the story. The README still shows a video placeholder, and results are mostly ties with an unvalidated canal ranking. The 94 assumes the strong video and one-pager are submitted (full communication marks); with the video placeholder still in the README it is about 86. |
-| 2= | 88 | A | Languages | [TomasZitko/utter](https://github.com/TomasZitko/utter) (#54) | Dysarthria voice control; app, video, held-out tests on dysarthric speech; polished. Nothing is missing from the README, so it ranks on strength of evidence. |
-| 2= | 88 | A | Climate | [JohnPoole3rd/veritas](https://github.com/JohnPoole3rd/veritas) (#34) | Now a complete package: live demo, 2-minute video, write-up and a takeaway up front with honest ties (64% vs 62% baseline) and a 96% search result on 4,050 unseen photos. It pairs a clear user (urban foresters) with a measured heat effect. Its main limit is that the classification result trails a fully trained ResNet, which it admits. |
+| 1= | 88 | A | Languages | [TomasZitko/utter](https://github.com/TomasZitko/utter) (#54) | Dysarthria voice control; app, video, held-out tests on dysarthric speech; polished. Nothing is missing from the README, so it ranks on strength of evidence. |
+| 1= | 88 | A | Climate | [JohnPoole3rd/veritas](https://github.com/JohnPoole3rd/veritas) (#34) | Now a complete package: live demo, 2-minute video, write-up and a takeaway up front with honest ties (64% vs 62% baseline) and a 96% search result on 4,050 unseen photos. It pairs a clear user (urban foresters) with a measured heat effect. Its main limit is that the classification result trails a fully trained ResNet, which it admits. |
+| **1=** | 88 | A | Climate | **[samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) (#10)** | Most rigorous evaluation in the field: frozen held-out tests, CI on three systems, open reporting of losses, a named farmer opening the story, and now a linked video and write-up. It is held back by mostly-tie headline results, a canal ranking that failed validation, the 810M-gallon figure sitting in the opening, a long README with no summary box, and unfilled `AGENTS.md` placeholders. I could not open the video, write-up or live site from here, so those are assumed to work. |
 | 4 | 87 | A | Health | [MACVXACE/roshni](https://github.com/MACVXACE/roshni) (#77) | Offline diabetic-eye triage; AUC 0.911 on unseen hospitals; clinic-level cutoff insight; live demo. Held back by: no demo video link seen. |
 | 5= | 86 | A | Languages | [brandonlign/verbatim](https://github.com/brandonlign/verbatim) (#51) | Whisper code-switch failures quantified; demo+video; honest results section. Nothing is missing from the README, so it ranks on strength of evidence. |
 | 5= | 86 | A | Climate | [dede-bebe-lele/saqshy](https://github.com/dede-bebe-lele/saqshy) (#170) | Kazakhstan wildfire risk; notebook, live site, video; many metrics. Nothing is missing from the README, so it ranks on strength of evidence. |
