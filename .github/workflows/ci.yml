@@ -16,7 +16,12 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    # Run on all three systems, so the commands in the README are known to work on each.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -29,14 +34,18 @@ jobs:
       - run: pip install -r requirements-pipeline.txt -r requirements-app.txt
       # The two folders are run separately: both hold a file named test_contract.py,
       # so `pytest tests` fails to collect them together.
+      # -X utf8: text files are read as UTF-8 on every system (Windows has another default).
+      # No PYTHONPATH is needed: pytest.ini puts src/ on the import path.
       - name: App tests
-        run: python -m pytest tests/app -q
+        run: python -X utf8 -m pytest tests/app -q
       - name: Pipeline tests
-        run: PYTHONPATH=src python -m pytest tests/pipeline -q
+        run: python -X utf8 -m pytest tests/pipeline -q
       - name: Simulation tests
         run: node app/site/sim/engine.test.js
       - name: Site logic tests
         run: node app/site/js/logic.test.js
+      - name: Every check in one command (the README's command)
+        run: python tools/verify.py
 
   banned-words:
     runs-on: ubuntu-latest
