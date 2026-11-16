@@ -1299,10 +1299,20 @@
         rows.map(({ d, i }) => '<button tabindex="0" data-i="' + U.esc(i) + '"><span class="n"><b>' + U.esc(d.name) + "</b><small>" + U.esc(d.counties.join(", ")) + '</small></span><span class="k">' + U.num(d.canalKm) + ' km</span><span class="risk ' + cssClass(d.risk, window.HGLogic.TIER_CLASSES) + '">' + U.esc(d.risk) + "</span></button>").join("")
       : '<p class="none">No district matches. The portal covers the ' + HG.districts.length + " Texas districts on the Rio Grande.</p>";
   }
+  /* Three plain facts for the left side of the chooser, all read from the data. */
+  function fillFacts() {
+    const atWarning = HG.districts.filter((x) => x.risk === "Warning").length;
+    const row = (label, value) => "<div><dt>" + U.esc(label) + "</dt><dd>" + U.esc(value) + "</dd></div>";
+    $("facts").innerHTML =
+      row("Irrigation districts", String(HG.districts.length)) +
+      row("Mapped canals", U.num(HG.plan.canal_km_in_districts) + " km") +
+      row("Districts at Warning", atWarning + " of " + HG.districts.length) +
+      '<p class="when">Drought Monitor, week of ' + U.esc(U.niceDate(HG.week)) + ". Warning means a 25% or higher chance of a drought season in the next six months.</p>";
+  }
   /* While the chooser is open, the page behind it is switched off for the keyboard and for screen
      readers ("inert"), so Tab stays inside the chooser. Closing it switches the page back on. */
   function openChooser() {
-    fillPick(""); $("pickSearch").value = "";
+    fillPick(""); fillFacts(); $("pickSearch").value = "";
     $("shell").inert = true; $("topbar").inert = true; $("foot").inert = true;
     $("onboard").classList.add("open"); $("onboard").scrollTop = 0; $("onboard").focus();
   }

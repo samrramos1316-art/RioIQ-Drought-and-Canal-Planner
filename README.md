@@ -6,7 +6,7 @@
 
 ## The problem
 
-Farms and towns along the Texas Rio Grande get their water through about 4,800 km of earth canals, and some of that water soaks into the ground before it arrives. By our upper estimate, as much as 810 million gallons a day can leak out. In a dry year, that lost water can be the difference between a harvest and a field that is ploughed under: Texas A&M puts the crop loss from a year without irrigation water at $495.8 million in the Lower Valley alone.
+RioIQ helps Rio Grande irrigation districts decide when to temporarily seal leaking earth canals and which ones to prioritize to minimize water waste and maximize community impact. Farms and towns along the Texas Rio Grande get their water through about 4,800 km of earth canals, and some of that water soaks into the ground before it arrives. By our upper estimate, as much as 810 million gallons a day can leak out. In a dry year, that lost water can be the difference between a harvest and a field that is ploughed under: Texas A&M puts the crop loss from a year without irrigation water at $495.8 million in the Lower Valley alone.
 
 An irrigation district can seal its leakiest canals before the season starts. Sealant for every rankable canal costs about $1.3 million per application. But the district has to decide months ahead, on a small budget, which canals to seal and whether this is the year to do it.
 

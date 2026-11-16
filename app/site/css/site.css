@@ -508,6 +508,32 @@ ul.plain { margin: 0; padding-left: 18px; font-size: .84rem; } ul.plain li { mar
 .onboard.open { display: block; }
 .onboard:focus { outline: none; }                       /* focused by the page when it opens, not by the user */
 .onboard .sheet { max-width: 680px; margin: 0 0 0 clamp(18px, 9vw, 150px); padding: clamp(28px, 7vh, 72px) 18px 80px 0; }
+/* On a wide screen the chooser uses the whole width: the title and the two choices on the left,
+   the list of districts on the right (it scrolls inside its own column, so the page never gets
+   taller than the window). Below 1000px wide it is one column again, as on a phone. */
+@media (min-width: 1000px) {
+  .onboard .sheet { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 9vh, 96px) clamp(24px, 5vw, 72px) 40px;
+    display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: auto auto auto 1fr; column-gap: clamp(36px, 6vw, 96px); align-content: start; }
+  .onboard .kicker, .onboard h1, .onboard .roles, .onboard .chooserFacts { grid-column: 1; }
+  /* In the narrow left column each choice's description goes under its name (as on a phone). */
+  .onboard .role { grid-template-columns: minmax(0, 1fr) auto; }
+  .role span { grid-column: 1; grid-row: 2; }
+  .role i, .role#roleDistrict::after { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  .onboard .pick { grid-column: 2; grid-row: 1 / 5; margin-top: 0; display: flex; flex-direction: column; min-height: 0;
+    max-height: calc(100vh - clamp(28px, 9vh, 96px) - 40px); }
+  .onboard .pickList { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  .onboard .pickList { border-bottom: 1px solid var(--line); }
+  /* The list is beside the choices, not below them, so this row points the same way as the other. */
+  .role#roleDistrict i { display: none; }
+  .role#roleDistrict::after { content: "\2192"; font-size: 1.15rem; color: var(--blue); }
+}
+/* Three numbers under the choices: a ruled list, big figure on the right, no boxes. */
+.onboard .chooserFacts { display: none; margin: 38px 0 0; border-top: 1px solid var(--line); }
+@media (min-width: 1000px) { .onboard .chooserFacts { display: block; } }
+.onboard .chooserFacts div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.onboard .chooserFacts dt { color: var(--muted); font-size: .92rem; }
+.onboard .chooserFacts dd { margin: 0; font: 600 1.5rem/1.2 var(--serif); color: var(--head); font-variant-numeric: lining-nums tabular-nums; }
+.onboard .chooserFacts .when { margin: 12px 0 0; color: var(--muted); font-size: .8rem; line-height: 1.45; }
 .onboard .kicker { font-size: .72rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
 .onboard h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -.01em; margin: 0 0 22px; }
 .roles { border-top: 2px solid var(--head); }
