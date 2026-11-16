@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner/actions/workflows/ci.yml/badge.svg)](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner/actions/workflows/ci.yml)
 
-**Track:** AI + Climate | **Team:** Team Credo | **Live site:** https://rioiq.vercel.app | **Video:** [TEAM: paste the video link]
+**Track:** AI + Climate | **Team:** Team Credo | **Live site:** https://rioiq.vercel.app | **Video:** [TEAM: paste the video link] | Write-up link: https://docs.google.com/document/d/1ZmnUSpK7vQjyBmzdYcK3h1vmR-DE6PFl5GtyiPElBJE/edit?usp=sharing
 
 ## The problem
 
