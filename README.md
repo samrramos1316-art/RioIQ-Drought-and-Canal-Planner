@@ -1,8 +1,8 @@
 # RioIQ: Rio Grande drought forecast and canal sealing planner
 
-[![CI](https://github.com/samrramos1316-art/Veritas-hackathon/actions/workflows/ci.yml/badge.svg)](https://github.com/samrramos1316-art/Veritas-hackathon/actions/workflows/ci.yml)
+[![CI](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner/actions/workflows/ci.yml/badge.svg)](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner/actions/workflows/ci.yml)
 
-**Track:** AI + Climate | **Team:** Team Credo | **Live site:** https://hackathon-drought.vercel.app | **Video:** [TEAM: paste the video link]
+**Track:** AI + Climate | **Team:** Team Credo | **Live site:** https://rioiq.vercel.app | **Video:** [TEAM: paste the video link]
 
 ## The problem
 
