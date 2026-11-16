@@ -2,6 +2,8 @@
 
 Team Credo (RioIQ). All 298 READMEs re-fetched three times; the third pass found only three changed. For the top 30 I also read results sections and fetched the code files each repo names.
 
+> **Update:** see `TOP10_DEEPDIVE.md`. It checks the ten strongest entries against their own data and code, finds the official rubric as quoted by Roshni's README (Technical execution 30 / Originality 20 / Impact 20 / Testing and honesty 15 / Communication 15), and corrects several claims below (Saqshy's real lead is about 3 points, Utter's baseline is unfair, Verbatim and Stability headlines are not supported by their own results). Under that rubric we tie for 2nd behind Roshni.
+
 ## 1. What this is, and its limits
 - **Basis:** public READMEs, results documents and code files reachable on `raw.githubusercontent.com`. I cannot clone, list folders, run rivals' code, see commit history or open live demos.
 - **Code analysis limits:** "code reached" means files named in the README plus standard names. It is a lower bound. For BleedCheck, Handover and XRayNPC I reached almost no code, so those are unverified, not bad.
