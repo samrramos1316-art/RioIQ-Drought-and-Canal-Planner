@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-11-15T20:08:41+00:00",
+  "generated_at": "2026-11-16T23:38:51+00:00",
   "latest_week": "2026-11-10",
   "reservoir_systems": [
     {
       "name": "Amistad-Falcon",
       "counties": 10,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-15"
+      "last_date": "2026-11-16"
     },
     {
       "name": "Elephant Butte",
       "counties": 4,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-15"
+      "last_date": "2026-11-16"
     }
   ],
   "canals": {
@@ -993,7 +993,7 @@
         "risk": "Watch",
         "canal_km": 155.6,
         "treatable_km": 111.2,
-        "leaky_soil_km": 0.0,
+        "leaky_soil_km": 0.1,
         "sealed_km": 29.4,
         "sealant_sqft": 1929678,
         "sealant_usd": 7719,
@@ -1476,7 +1476,7 @@
         "risk": "Low",
         "canal_km": 5.7,
         "treatable_km": 5.2,
-        "leaky_soil_km": 0.0,
+        "leaky_soil_km": 0.5,
         "sealed_km": 0.0,
         "sealant_sqft": 0,
         "sealant_usd": 0,
@@ -1495,7 +1495,7 @@
         "risk": "Low",
         "canal_km": 68.4,
         "treatable_km": 31.1,
-        "leaky_soil_km": 0.0,
+        "leaky_soil_km": 11.2,
         "sealed_km": 0.0,
         "sealant_sqft": 0,
         "sealant_usd": 0,
@@ -1514,7 +1514,7 @@
         "risk": "Low",
         "canal_km": 518.0,
         "treatable_km": 378.5,
-        "leaky_soil_km": 0.0,
+        "leaky_soil_km": 89.3,
         "sealed_km": 0.0,
         "sealant_sqft": 0,
         "sealant_usd": 0,
