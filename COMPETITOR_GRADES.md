@@ -24,9 +24,25 @@ Letters: A 85+, B+ 78-84, B 70-77, C 60-69, D 40-59, F under 40. Repos that are 
 ## Headline numbers
 - 298 repos listed. Only **115** are plausible Veritas AI hackathon entries I could score.
 - The other 183 are: other projects that match the word "Veritas" (backup software, a telescope, a game overlay, an FTC robotics SDK, Laravel boilerplate, etc.), other hackathons, duplicates, or empty/stub repos.
-- Of the 115: A 11, B+ 35, B 34, C 19, D 11, F 5.
+- Of the 115: A 12, B+ 34, B 34, C 19, D 11, F 5 (counts include our revised 94).
 
-## Our grade: RioIQ (#10): **84, B+ (top cluster, roughly rank 10-15 of 115)**
+## Our grade: RioIQ (#10): **94, A (rank 1 of 115 on this scale), assuming the video and one-pager are submitted**
+
+**Revised on request.** The first pass gave us 84 because the README had a missing video link and a long, non-template write-up. Assuming a real demo video and a one-page write-up are included, the communication parts are full marks.
+
+| Rubric part | Max | Before | Now |
+|---|---|---|---|
+| Real problem and a specific user | 15 | 14 | 14 |
+| Technical substance | 25 | 23 | 23 |
+| Evaluation honesty | 25 | 24 | 24 |
+| **Communication: demo, video, deliverability** | 15 | 9 | **15** |
+| **Communication: write-up, template, no placeholders** | 10 | 6 | **10** |
+| Originality | 10 | 8 | 8 |
+| **Total** | 100 | 84 | **94** |
+
+Conditions: the full marks only hold if the video is actually pasted in, the live site loads on a fresh browser and phone (I could not open it), and the one-pager leads with the key result. If any of those slips, drop back toward 84-88, which is rank 5-13.
+
+Caveat on rank 1: the next scores are Utter 88 and Roshni 87, a 6-point gap, but their scores come from READMEs only and mine from the full repo, so treat us as a top-3 contender rather than a certain first. What can still cost us: the ties in the headline table and the unvalidated leak model.
 **Facts from our repo**
 - Frozen held-out results with hashes enforced in CI, tests on Windows/macOS/Linux, a pre-declared test log (`reports/decision.md`), a live site, a reproduce job.
 - Headline table: most outcomes are **ties** with the best simple rule. The one clear win is 3-month outlook in western counties (-5.5% cost). It **lost in the East** (round 7).
@@ -48,18 +64,17 @@ Smaller: fill the `AGENTS.md` owner table; keep "modelled, not measured" on ever
 ## Who we are actually competing with (top 30, README-based)
 | Rank | # | Repo | Track | Score | Why (README-level) |
 |---|---|---|---|---|---|
-
-| 1 | 54 | [TomasZitko/utter](https://github.com/TomasZitko/utter) | Languages | 88 (A) | Dysarthria voice control; app, video, held-out tests on dysarthric speech; polished |
-| 2 | 77 | [MACVXACE/roshni](https://github.com/MACVXACE/roshni) | Health | 87 (A) | Offline diabetic-eye triage; AUC 0.911 on unseen hospitals; clinic-level cutoff insight; live demo |
-| 3 | 51 | [brandonlign/verbatim](https://github.com/brandonlign/verbatim) | Languages | 86 (A) | Whisper code-switch failures quantified; demo+video; honest results section |
-| 4 | 159 | [davie2009kh/lsir](https://github.com/davie2009kh/lsir) | Languages | 86 (A) | Armenian ASR LoRA; HF Space + model + video + report; WER tables |
-| 5 | 170 | [dede-bebe-lele/saqshy](https://github.com/dede-bebe-lele/saqshy) | Climate | 86 (A) | Kazakhstan wildfire risk; notebook, live site, video; many metrics |
-| 6 | 29 | [jacob-gorny/rosafe](https://github.com/jacob-gorny/rosafe) | Climate | 85 (A) | 855 DFW roads daily danger score + iPhone app; tests which inputs help |
-| 7 | 56 | [kabirshah4/race-blind-isnt-fair](https://github.com/kabirshah4/race-blind-isnt-fair) | Finance | 85 (A) | Mortgage fairness on real HMDA data; "3x" headline is striking; live demo+video |
-| 8 | 60 | [aarishasifkhan/veritas-hackathon-2026](https://github.com/aarishasifkhan/veritas-hackathon-2026) | Health | 85 (A) | Head-CT bleed vs ischemia; live demo, video, Kaggle notebook, failure section |
-| 9 | 110 | [ZemBono/qalaisyn](https://github.com/ZemBono/qalaisyn) | Languages | 85 (A) | Kazakh text normalisation engine; embeds in other sites; demo+video; reproducible |
-| 10 | 119 | [Mr-CEO-cloud/the-day-after](https://github.com/Mr-CEO-cloud/the-day-after) | Climate | 85 (A) | Gaza farmland recovery vs UN damage maps; HF Space; "how I kept it honest" |
-| 11 | 10 | [samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) | Climate | 84 (B+) | OURS. Frozen held-out tests, CI on 3 OSes, live site; but mostly ties, leak model unvalidated, video link missing |
+| 1 | 10 | [samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) | Climate | 94 (A) | OURS (revised; assumes a good video and one-pager). Frozen held-out tests, CI on 3 OSes, live site; mostly ties, leak model unvalidated |
+| 2 | 54 | [TomasZitko/utter](https://github.com/TomasZitko/utter) | Languages | 88 (A) | Dysarthria voice control; app, video, held-out tests on dysarthric speech; polished |
+| 3 | 77 | [MACVXACE/roshni](https://github.com/MACVXACE/roshni) | Health | 87 (A) | Offline diabetic-eye triage; AUC 0.911 on unseen hospitals; clinic-level cutoff insight; live demo |
+| 4 | 51 | [brandonlign/verbatim](https://github.com/brandonlign/verbatim) | Languages | 86 (A) | Whisper code-switch failures quantified; demo+video; honest results section |
+| 5 | 159 | [davie2009kh/lsir](https://github.com/davie2009kh/lsir) | Languages | 86 (A) | Armenian ASR LoRA; HF Space + model + video + report; WER tables |
+| 6 | 170 | [dede-bebe-lele/saqshy](https://github.com/dede-bebe-lele/saqshy) | Climate | 86 (A) | Kazakhstan wildfire risk; notebook, live site, video; many metrics |
+| 7 | 29 | [jacob-gorny/rosafe](https://github.com/jacob-gorny/rosafe) | Climate | 85 (A) | 855 DFW roads daily danger score + iPhone app; tests which inputs help |
+| 8 | 56 | [kabirshah4/race-blind-isnt-fair](https://github.com/kabirshah4/race-blind-isnt-fair) | Finance | 85 (A) | Mortgage fairness on real HMDA data; "3x" headline is striking; live demo+video |
+| 9 | 60 | [aarishasifkhan/veritas-hackathon-2026](https://github.com/aarishasifkhan/veritas-hackathon-2026) | Health | 85 (A) | Head-CT bleed vs ischemia; live demo, video, Kaggle notebook, failure section |
+| 10 | 110 | [ZemBono/qalaisyn](https://github.com/ZemBono/qalaisyn) | Languages | 85 (A) | Kazakh text normalisation engine; embeds in other sites; demo+video; reproducible |
+| 11 | 119 | [Mr-CEO-cloud/the-day-after](https://github.com/Mr-CEO-cloud/the-day-after) | Climate | 85 (A) | Gaza farmland recovery vs UN damage maps; HF Space; "how I kept it honest" |
 | 12 | 13 | [Mika1904/sentinel](https://github.com/Mika1904/sentinel) | Health | 84 (B+) | Cancer-drug response ranking; live app, 2-min video, write-up |
 | 13 | 109 | [arturbaimuratov1-sys/senim](https://github.com/arturbaimuratov1-sys/senim) | Languages | 84 (B+) | Kazakh translator warns on serious errors (6/8 vs 0 baseline); demo video |
 | 14 | 9 | [godtier812/veritashackathon](https://github.com/godtier812/veritashackathon) | Health | 82 (B+) | BRCA1 variant model; honest 94.4%/437-of-899 tradeoff; team name left blank |
@@ -100,7 +115,7 @@ Score = my README-based grade. Blank score = not scored (reason given).
 | 7 | [KnXper7/veritas-ai-hackathon](https://github.com/KnXper7/veritas-ai-hackathon) | Languages | 40 | D | Mixed Signals: draft, every TODO still open |
 | 8 | [uchijimatheloml-dev/VERITAS](https://github.com/uchijimatheloml-dev/VERITAS) |  |  |  | No README retrievable (private, empty, or no readme) |
 | 9 | [godtier812/veritashackathon](https://github.com/godtier812/veritashackathon) | Health | 82 | B+ | BRCA1 variant model; honest 94.4%/437-of-899 tradeoff; team name left blank |
-| 10 | [samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) | Climate | 84 | B+ | OURS. Frozen held-out tests, CI on 3 OSes, live site; but mostly ties, leak model unvalidated, video link missing |
+| 10 | [samrramos1316-art/RioIQ-Drought-and-Canal-Planner](https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner) | Climate | 94 | A | OURS (revised; assumes video and one-pager). Frozen held-out tests, CI on 3 OSes, live site; but mostly ties, leak model unvalidated, video link missing |
 | 11 | [ferreirajacicley7-cpu/tartarium-ai-core](https://github.com/ferreirajacicley7-cpu/tartarium-ai-core) |  |  |  | Other project: Portuguese textual AI box |
 | 12 | [nagarjunak-pixel/veritas-rl](https://github.com/nagarjunak-pixel/veritas-rl) |  |  |  | Other: RL post-training reference impl (strong engineering, not an entry) |
 | 13 | [Mika1904/sentinel](https://github.com/Mika1904/sentinel) | Health | 84 | B+ | Cancer-drug response ranking; live app, 2-min video, write-up |
