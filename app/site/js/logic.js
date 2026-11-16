@@ -8,10 +8,12 @@
     cssClass, finiteOrNull, percentOrNull, csvText, csvNumber, csvTable, tableObjects.
     For the Sources step: sig, signed, verdictFor, forecastEffectSentence, levelLabel, perMillionGal.
     For the Simulation step: band, rangeText, rangeCell, rangeHeadline, replayBands and the fixed sentences.
+    For the three-month forecast's date: quarterAgeDays, quarterIsStale, issuedNote, quarterWindow, quarterStaleText.
 
     Bound ones read the generated data (window.HG and window.HG_SIM in the browser). They come
     from makeLogic(data), so a test can hand in a small made-up data object instead:
-      tierFor, actionFor, planFor, canalNumbers, scopeP, quarterChance, simScope, replayScope, hitRates, USD_PER_AF,
+      tierFor, actionFor, planFor, canalNumbers, scopeP, quarterChance, districtCountyKm, districtQuarterChance, ninetyDay,
+      simScope, replayScope, hitRates, USD_PER_AF,
       researchExport (the researcher export at the foot of the platform).
 
   WHO USES IT
@@ -512,6 +514,63 @@
   const NINETY_DAY_COST_NOTE = "If sealant is cheap next to the water it saves, sealing every round can be the cheapest choice; " +
     "the forecast matters most when the budget does not cover every canal.";
 
+  /* ---------- When the three-month forecast was issued, and when it goes out of date ----------
+     The three-month chances (model E) are cut by hand into reports/live/edge.json. The daily
+     refresh does not rebuild them: it runs the forecast log and the map-only model (src/farmdrought/
+     refresh.py), and only src/farmdrought/edge.py, a frozen scoring script, ever wrote that file
+     (last in commit 0e440f1). So the forecast keeps its issue date while the page stays up, and it
+     covers the 13 weeks from that date. After QUARTER_STALE_DAYS a third of that window has passed:
+     the page then says the forecast is out of date and shows no 90-day decision. */
+  const QUARTER_STALE_DAYS = 31;
+  const QUARTER_UPDATE_NOTE = "This three-month forecast is updated by hand, not by the daily refresh.";
+  const DAY_MS = 86400000;
+  /* "2026-11-03" as a count of milliseconds at midnight UTC, or null if it is not a real date.
+     Whole calendar days are compared in UTC, so a daylight-saving change never moves the count. */
+  function isoDay(iso) {
+    const m = typeof iso === "string" ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso) : null;
+    if (!m) return null;
+    const ms = Date.UTC(+m[1], +m[2] - 1, +m[3]), back = new Date(ms);
+    return back.getUTCFullYear() === +m[1] && back.getUTCMonth() === +m[2] - 1 && back.getUTCDate() === +m[3] ? ms : null;
+  }
+  /* The calendar day of "today" (a Date, or a date string) as milliseconds at midnight UTC. */
+  function dayOf(today) {
+    const t = today instanceof Date ? today : new Date(today);
+    return isNaN(t.getTime()) ? null : Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());
+  }
+  /* Whole days from the issue date to today, or null if either is not a valid date. */
+  function quarterAgeDays(issued, today) {
+    const a = isoDay(issued), b = dayOf(today);
+    return a == null || b == null ? null : Math.round((b - a) / DAY_MS);
+  }
+  /* True when the forecast is more than QUARTER_STALE_DAYS old. A missing or unreadable issue date
+     counts as out of date: a decision is never shown without a date behind it. */
+  function quarterIsStale(issued, today) {
+    const age = quarterAgeDays(issued, today);
+    return age == null || age > QUARTER_STALE_DAYS;
+  }
+  const agoText = (age) => (age <= 0 ? "today" : age === 1 ? "1 day ago" : age + " days ago");
+  /* A short phrase for beside a three-month chance: "issued Nov 3, 2026, 12 days ago". short = true
+     leaves the age out ("issued Nov 3, 2026"). Out of date adds ", out of date" at the end. */
+  function issuedNote(issued, today, short) {
+    const age = quarterAgeDays(issued, today);
+    if (age == null) return "issue date not recorded, out of date";
+    return "issued " + niceDate(issued) + (short ? "" : ", " + agoText(age)) + (age > QUARTER_STALE_DAYS ? ", out of date" : "");
+  }
+  /* What the forecast covers: "the 13 weeks from Nov 3, 2026 (79 days left)". null if it cannot be worked out. */
+  function quarterWindow(issued, weeksAhead, today) {
+    const start = isoDay(issued), now = dayOf(today);
+    if (start == null || now == null || !(weeksAhead > 0)) return null;
+    const end = start + weeksAhead * 7 * DAY_MS, left = Math.round((end - now) / DAY_MS);
+    return "the " + weeksAhead + " weeks from " + niceDate(issued) + " (" +
+      (left > 0 ? left + (left === 1 ? " day" : " days") + " left" : "ended " + niceDate(new Date(end).toISOString().slice(0, 10))) + ")";
+  }
+  /* The message shown in place of a 90-day decision once the forecast is out of date. */
+  function quarterStaleText(issued) {
+    return "The three-month forecast is out of date. " +
+      (isoDay(issued) == null ? "Its issue date is not recorded" : "It was issued " + niceDate(issued) + ", more than a month ago, and has not been updated") +
+      ", so no 90-day decision is shown. The six-month forecast above is current.";
+  }
+
   /*
     The scorecard at the top of the Sources step: one row per forecast, numbers first.
       test  HG.quarter.test, the three-month forecast's one scored test (may be missing)
@@ -632,19 +691,46 @@
     }
 
     /* The three-month chance of a drought season for a list of counties: the plain mean of the
-       counties that have one (HG.quarter.chance). null if the data has no three-month forecast. */
+       counties that have one (HG.quarter.chance). null if the data has no three-month forecast.
+       Used for ONE county. For a district use districtQuarterChance, which weights by canal km. */
     function quarterChance(fipsList) {
       const chance = (HG.quarter && HG.quarter.chance) || {};
       const have = fipsList.map((f) => chance[f]).filter((p) => typeof p === "number");
       return have.length ? have.reduce((s, p) => s + p, 0) / have.length : null;
     }
 
-    /* The 90-day decision for a list of counties: the three-month chance (quarterChance) against
-       the declared warning line (HG.quarter.test.line). null when either is missing. */
-    function ninetyDay(fipsList) {
-      const p = quarterChance(fipsList), line = HG.quarter && HG.quarter.test ? HG.quarter.test.line : null;
+    /* A district's canal length in each county, in km: the canals the pipeline (src/farmdrought/
+       districts.py) weights its six-month chance by. That is every USGS canal in the district,
+       drains and canals that cannot be ranked included. Canals that come only from OpenStreetMap
+       are left out: the pipeline never sees them. Returns { county code: km }. */
+    function districtCountyKm(district) {
+      const index = HG.districts.indexOf(district), km = {};
+      canals.forEach((c) => { if (c.district === index && c.source !== "OpenStreetMap") km[c.fips] = (km[c.fips] || 0) + c.km; });
+      return km;
+    }
+
+    /* A district's three-month chance: its counties' chances, weighted by the district's canal km in
+       each county, the same way its six-month chance is made (districts.py: sum of chance x km / km).
+       If the weights add up to zero (no county has a canal of the district), it is the plain mean. */
+    function districtQuarterChance(district) {
+      const chance = (HG.quarter && HG.quarter.chance) || {};
+      const km = districtCountyKm(district);
+      const have = (district.fips || []).filter((f) => typeof chance[f] === "number");
+      if (!have.length) return null;
+      const total = have.reduce((s, f) => s + (km[f] || 0), 0);
+      return total > 0 ? have.reduce((s, f) => s + chance[f] * (km[f] || 0), 0) / total
+                       : have.reduce((s, f) => s + chance[f], 0) / have.length;
+    }
+
+    /* The 90-day decision for a district: its three-month chance (districtQuarterChance) against the
+       declared warning line (HG.quarter.test.line). null when the forecast or the line is missing.
+       Once the forecast is out of date (quarterIsStale) there is no decision: { stale: true }. */
+    function ninetyDay(district, today) {
+      const now = today || new Date(), q = HG.quarter;
+      const p = districtQuarterChance(district), line = q && q.test ? q.test.line : null;
       if (p == null || typeof line !== "number") return null;
-      return { p, line, seal: p >= line };
+      if (quarterIsStale(q.issued, now)) return { stale: true };
+      return { p, line, seal: p >= line, window: quarterWindow(q.issued, q.weeksAhead, now), note: issuedNote(q.issued, now) };
     }
 
     /* What the engine needs for a list of districts (members): its weekly record, its canals and
@@ -779,7 +865,7 @@
       return {
         columns: ["district", "kind", "counties", "county_fips", "chance_drought_season_6_months", "risk", "chance_drought_season_3_months", "canal_km", "treatable_km"],
         rows: HG.districts.map((d) => [d.name, d.kind || null, (d.counties || []).join("; "), (d.fips || []).join("; "),
-                                       r4(d.pSeason), d.risk || null, r4(quarterChance(d.fips || [])), r4(d.canalKm), r4(d.treatableKm)]),
+                                       r4(d.pSeason), d.risk || null, r4(districtQuarterChance(d)), r4(d.canalKm), r4(d.treatableKm)]),
       };
     }
     function canalTable() {
@@ -813,6 +899,7 @@
         warningLine: HG.threshold, levelRule: HG.levelRule || null,
         plan: { rule: HG.plan.rule || null, assumptions: HG.plan.assumptions, note: HG.plan.note || null },
         leakScale: HG.leakScale || null,
+        threeMonthForecast: HG.quarter ? { issued: HG.quarter.issued || null, weeksAhead: HG.quarter.weeksAhead || null, note: QUARTER_UPDATE_NOTE } : null,
         sources: { seepage: HG.seepageSource || null, soil: HG.soilSource || null, canals: HG.canalSource || null, districts: HG.plan.source || null },
         limits: HG.limits || [],
         settings: settings || null,
@@ -824,7 +911,7 @@
       return { about: about(settings), tables };
     }
 
-    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, simScope, replayScope, hitRates, physicsOptions, researchExport, ninetyDay };
+    return { actionFor, tierFor, planFor, canalNumbers, USD_PER_AF, scopeP, quarterChance, districtCountyKm, districtQuarterChance, simScope, replayScope, hitRates, physicsOptions, researchExport, ninetyDay };
   }
 
   return { usd, num, pct, niceDate, esc, safeUrl, safeDecode, cssClass, TIER_CLASSES, SEVERITY_CLASSES, finiteOrNull, percentOrNull, csvText, csvNumber, csvTable, tableObjects,
@@ -832,5 +919,6 @@
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
-           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, scaledAf, measuredScaleLabel, measuredScaleSentence, findings, forecastLogSentence, makeLogic };
+           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, scaledAf, measuredScaleLabel, measuredScaleSentence, findings, forecastLogSentence,
+           QUARTER_STALE_DAYS, QUARTER_UPDATE_NOTE, quarterAgeDays, quarterIsStale, issuedNote, quarterWindow, quarterStaleText, makeLogic };
 });

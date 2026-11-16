@@ -544,7 +544,7 @@ function realData() {
     new Function("window", fs.readFileSync(path.join(__dirname, "..", "data", file), "utf8"))(window);
   }
   // The canal fields the plan needs, by their position in the generated list (see js/common.js).
-  const canals = window.HG.canals.map((c, i) => ({ id: i, km: c[4], rate: c[5], district: c[7], rank: c[8], usd: c[9] }));
+  const canals = window.HG.canals.map((c, i) => ({ id: i, fips: c[3], km: c[4], rate: c[5], district: c[7], rank: c[8], usd: c[9], source: c[13] === 1 ? "OpenStreetMap" : "USGS" }));
   return { HG: window.HG, SIM: window.HG_SIM, canals, published: { worstCaseRevenue: 1, valleyIrrigationAf: 1 } };
 }
 
@@ -1528,14 +1528,159 @@ test("the home page words the canal figures and the six-month forecast no more s
 });
 
 /* ---------- The 90-day decision (round 8, A1) ---------- */
+const NOV15 = new Date(2026, 10, 15, 9, 0);          // a fixed "today": 12 days after the forecast below was issued
+
 test("ninetyDay: the three-month chance against the declared line, and null without either", () => {
   const data = fake();
-  assert.strictEqual(logic(data).ninetyDay(["A"]), null);
-  data.HG.quarter = { chance: { A: 0.2, B: 0.4 }, test: { line: 0.25 } };
-  const n = logic(data).ninetyDay(["A", "B"]);
+  assert.strictEqual(logic(data).ninetyDay(data.HG.districts[0], NOV15), null);
+  data.HG.quarter = { chance: { A: 0.2, B: 0.4 }, test: { line: 0.25 }, issued: "2026-11-03", weeksAhead: 13 };
+  const X = data.HG.districts[0], Y = data.HG.districts[1];
+  const n = logic(data).ninetyDay(X, NOV15);                              // the fake canals carry no county: the plain mean
   close(n.p, 0.3); assert.strictEqual(n.line, 0.25); assert.strictEqual(n.seal, true);
-  assert.strictEqual(logic(data).ninetyDay(["A"]).seal, false);
-  assert.strictEqual(logic(data).ninetyDay(["C"]), null);
+  assert.strictEqual(n.window, "the 13 weeks from Nov 3, 2026 (79 days left)");
+  assert.strictEqual(n.note, "issued Nov 3, 2026, 12 days ago");
+  assert.strictEqual(logic(data).ninetyDay(Y, NOV15), null);              // county C has no three-month chance
+});
+
+/* ---------- Round 9, F1: a district's three-month chance is weighted by its canal length ---------- */
+function twoCounties(extraCanals) {
+  const data = fake();
+  data.HG.quarter = { chance: { A: 0.10, B: 0.90 }, test: { line: 0.25 }, issued: "2026-11-03", weeksAhead: 13 };
+  data.canals = [{ id: 0, km: 9, fips: "A", district: 0, rank: 1, source: "USGS" }, { id: 1, km: 1, fips: "B", district: 0, rank: 2, source: "USGS" }]
+    .concat(extraCanals || []);
+  return data;
+}
+
+test("districtQuarterChance: 9 km at 0.10 and 1 km at 0.90 give 0.18, not 0.50, and the decision at 0.25 is wait", () => {
+  const data = twoCounties(), lg = logic(data), X = data.HG.districts[0];
+  close(lg.districtQuarterChance(X), 0.18);
+  assert.deepStrictEqual(lg.districtCountyKm(X), { A: 9, B: 1 });
+  const n = lg.ninetyDay(X, NOV15);
+  assert.strictEqual(n.seal, false);
+  close(lg.quarterChance(X.fips), 0.5);                                   // the plain mean (still right for one county) would say seal again
+});
+
+test("districtQuarterChance: an OpenStreetMap-only canal is ignored, a drain or unranked canal counts, another district's canal is ignored", () => {
+  const plain = twoCounties(), base = logic(plain).districtCountyKm(plain.HG.districts[0]);
+  const osm = twoCounties([{ id: 2, km: 100, fips: "B", district: 0, rank: 3, source: "OpenStreetMap" }]);
+  assert.deepStrictEqual(logic(osm).districtCountyKm(osm.HG.districts[0]), base);              // the pipeline never sees these
+  close(logic(osm).districtQuarterChance(osm.HG.districts[0]), 0.18);
+  const drain = twoCounties([{ id: 2, km: 9, fips: "B", district: 0, rank: null, source: "USGS" }]);
+  assert.deepStrictEqual(logic(drain).districtCountyKm(drain.HG.districts[0]), { A: 9, B: 10 });  // districts.py counts every USGS canal
+  close(logic(drain).districtQuarterChance(drain.HG.districts[0]), (0.1 * 9 + 0.9 * 10) / 19);
+  const other = twoCounties([{ id: 2, km: 50, fips: "B", district: 1, rank: 1, source: "USGS" }]);
+  assert.deepStrictEqual(logic(other).districtCountyKm(other.HG.districts[0]), base);
+});
+
+test("districtQuarterChance: no canal length gives the plain mean; no three-month chance gives null; a county with none is left out", () => {
+  const none = twoCounties(); none.canals = [];
+  close(logic(none).districtQuarterChance(none.HG.districts[0]), 0.5);
+  const missing = twoCounties(); delete missing.HG.quarter;
+  assert.strictEqual(logic(missing).districtQuarterChance(missing.HG.districts[0]), null);
+  const partial = twoCounties(); delete partial.HG.quarter.chance.B;
+  close(logic(partial).districtQuarterChance(partial.HG.districts[0]), 0.10);                // only county A has a chance
+});
+
+test("real data: the canal-length weights reproduce every district's six-month chance (pSeason) to within 0.001", () => {
+  // The self-check: weighting the counties' SIX-month chances (HG.river) by districtCountyKm must give
+  // the pipeline's own district chance. If this fails the weights are wrong: fix them, never the tolerance.
+  const data = realData(), lg = L.makeLogic(data), byFips = {};
+  data.HG.river.forEach((c) => { byFips[c.fips] = c.pSeason; });
+  assert.ok(data.HG.districts.length >= 30);
+  data.HG.districts.forEach((d) => {
+    const km = lg.districtCountyKm(d), counties = Object.keys(km).filter((f) => km[f] > 0);
+    const total = counties.reduce((s, f) => s + km[f], 0);
+    assert.ok(total > 0, d.name);
+    const p = counties.reduce((s, f) => s + byFips[f] * km[f], 0) / total;
+    assert.ok(Math.abs(p - d.pSeason) <= 0.001, d.name + ": " + p + " vs " + d.pSeason);
+  });
+});
+
+test("real data: the three-month chance of every district is a chance, and the one-county districts equal their county's", () => {
+  const data = realData(), lg = L.makeLogic(data);
+  data.HG.districts.forEach((d) => {
+    const p = lg.districtQuarterChance(d);
+    assert.ok(p != null && p >= 0 && p <= 1, d.name);
+    if (d.fips.length === 1) close(p, data.HG.quarter.chance[d.fips[0]]);
+  });
+});
+
+test("the page reads a district's three-month chance through the weighted function, never the plain mean", () => {
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  for (const old of ["quarterP(d.fips)", "quarterP(x.fips)", "ninetyDay(d.fips)", "ninetyDay(x.fips)"]) assert.ok(page.indexOf(old) < 0, old);
+  assert.ok(page.indexOf("L.ninetyDay(d, now)") >= 0 && page.indexOf("quarterD(x)") >= 0 && page.indexOf("quarterD(d)") >= 0);
+});
+
+/* ---------- Round 9, F2 and F3: when the three-month forecast was issued, and when it is out of date ---------- */
+const day = (y, m, d, h) => new Date(y, m - 1, d, h == null ? 12 : h, 0);
+
+test("quarterAgeDays: whole calendar days, the same all day, and not moved by a daylight-saving change", () => {
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", day(2026, 11, 3)), 0);
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", day(2026, 11, 4)), 1);
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", day(2026, 11, 15)), 12);
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", day(2026, 11, 15, 0)), L.quarterAgeDays("2026-11-03", day(2026, 11, 15, 23)));
+  assert.strictEqual(L.quarterAgeDays("2026-10-31", day(2026, 11, 2)), 2);       // the US clocks go back on Nov 1, 2026
+  assert.strictEqual(L.quarterAgeDays("2026-03-07", day(2026, 3, 9)), 2);        // and forward on Mar 8, 2026
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", "2026-11-15T09:00:00"), 12); // a date string works too
+  for (const bad of [null, undefined, "", "hello", "2026-13-45", "2026-02-30", 20261103]) assert.strictEqual(L.quarterAgeDays(bad, NOV15), null, String(bad));
+  assert.strictEqual(L.quarterAgeDays("2026-11-03", "not a date"), null);
+});
+
+test("quarterIsStale: not out of date at 31 days, out of date at 32, and with no usable date", () => {
+  assert.strictEqual(L.QUARTER_STALE_DAYS, 31);
+  assert.strictEqual(L.quarterIsStale("2026-11-03", day(2026, 11, 3)), false);
+  assert.strictEqual(L.quarterIsStale("2026-11-03", day(2026, 12, 4)), false);   // 31 days
+  assert.strictEqual(L.quarterIsStale("2026-11-03", day(2026, 12, 5)), true);    // 32 days: Dec 5, 2026
+  assert.strictEqual(L.quarterIsStale("2026-11-03", day(2027, 3, 1)), true);
+  for (const bad of [null, undefined, "", "hello", "2026-13-45"]) assert.strictEqual(L.quarterIsStale(bad, NOV15), true, String(bad));
+});
+
+test("issuedNote: pinned wording, with and without the age, and the out-of-date ending", () => {
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 11, 15)), "issued Nov 3, 2026, 12 days ago");
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 11, 3)), "issued Nov 3, 2026, today");
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 11, 4)), "issued Nov 3, 2026, 1 day ago");
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 11, 15), true), "issued Nov 3, 2026");
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 12, 13)), "issued Nov 3, 2026, 40 days ago, out of date");
+  assert.strictEqual(L.issuedNote("2026-11-03", day(2026, 12, 13), true), "issued Nov 3, 2026, out of date");
+  assert.strictEqual(L.issuedNote(null, NOV15), "issue date not recorded, out of date");
+});
+
+test("quarterWindow: what the forecast covers and the days left, from the data and the date", () => {
+  assert.strictEqual(L.quarterWindow("2026-11-03", 13, day(2026, 11, 15)), "the 13 weeks from Nov 3, 2026 (79 days left)");
+  assert.strictEqual(L.quarterWindow("2026-11-03", 13, day(2027, 2, 1)), "the 13 weeks from Nov 3, 2026 (1 day left)");
+  assert.strictEqual(L.quarterWindow("2026-11-03", 13, day(2027, 2, 2)), "the 13 weeks from Nov 3, 2026 (ended Feb 2, 2027)");
+  assert.strictEqual(L.quarterWindow("2026-11-03", 12, day(2026, 11, 15)), "the 12 weeks from Nov 3, 2026 (72 days left)");
+  assert.strictEqual(L.quarterWindow(null, 13, NOV15), null);
+  assert.strictEqual(L.quarterWindow("2026-11-03", undefined, NOV15), null);
+});
+
+test("the update note and the out-of-date message: pinned wording, and an out-of-date forecast never says seal again or wait", () => {
+  assert.strictEqual(L.QUARTER_UPDATE_NOTE, "This three-month forecast is updated by hand, not by the daily refresh.");
+  assert.strictEqual(L.quarterStaleText("2026-11-03"),
+    "The three-month forecast is out of date. It was issued Nov 3, 2026, more than a month ago, and has not been updated, so no 90-day decision is shown. The six-month forecast above is current.");
+  assert.strictEqual(L.quarterStaleText(null),
+    "The three-month forecast is out of date. Its issue date is not recorded, so no 90-day decision is shown. The six-month forecast above is current.");
+  for (const text of [L.quarterStaleText("2026-11-03"), L.quarterStaleText(undefined)]) assert.ok(!/seal again|\bwait\b/i.test(text), text);
+});
+
+test("ninetyDay: out of date gives { stale: true } and no decision; no usable date is out of date too", () => {
+  const data = twoCounties(), lg = logic(data), X = data.HG.districts[0];
+  const fresh = lg.ninetyDay(X, day(2026, 12, 4));                                // 31 days: still a decision
+  assert.strictEqual(fresh.stale, undefined); assert.strictEqual(typeof fresh.seal, "boolean");
+  const late = lg.ninetyDay(X, day(2026, 12, 5));                                 // 32 days
+  assert.deepStrictEqual(late, { stale: true });
+  assert.ok(!("seal" in late) && !("p" in late));
+  delete data.HG.quarter.issued;
+  assert.deepStrictEqual(logic(data).ninetyDay(X, NOV15), { stale: true });
+  data.HG.quarter.issued = "tomorrow-ish";
+  assert.deepStrictEqual(logic(data).ninetyDay(X, NOV15), { stale: true });
+  data.HG.quarter = { chance: { A: 0.1, B: 0.9 }, issued: "2026-11-03" };         // no declared line: null, not stale
+  assert.strictEqual(logic(data).ninetyDay(X, NOV15), null);
+});
+
+test("the export says when the three-month forecast was issued", () => {
+  const data = twoCounties(), about = logic(data).researchExport(null, {}, {}).about;
+  assert.deepStrictEqual(about.threeMonthForecast, { issued: "2026-11-03", weeksAhead: 13, note: L.QUARTER_UPDATE_NOTE });
 });
 
 test("ninetyDaySentence: pinned wording, and every number in it is read from the data", () => {

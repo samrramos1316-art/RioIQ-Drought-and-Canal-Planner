@@ -53,6 +53,10 @@
   function scopeP0() { const keep = state.severity; state.severity = null; const p = scopeP(); state.severity = keep; return p; }
   /* The three-month chance of a drought season for a list of counties, or null if the data has none. */
   const quarterP = (fipsList) => L.quarterChance(fipsList);
+  /* The same for a DISTRICT: its counties' chances weighted by its canal length in each (as the six-month chance is). */
+  const quarterD = (d) => L.districtQuarterChance(d);
+  /* When the three-month forecast was issued, for beside a chance. short = date only. Escaped, ready for the page. */
+  const quarterIssued = (short) => (HG.quarter ? U.esc(window.HGLogic.issuedNote(HG.quarter.issued, new Date(), short)) : "");
   /* Today's reading for one reservoir system from api/live, or null if there is none or its
      figure is not a percentage (then the page keeps, and says it shows, the saved reading). */
   function liveReading(name) {
@@ -139,7 +143,7 @@
       (river ? chip(river.tier, river.tier + " · " + U.pct(river.pSeason)) : "") + "</div>" +
       '<div class="small muted" style="margin:2px 0 8px">Drought now: ' + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) +
       (c.pop ? " · Population (2020): " + U.num(c.pop) : "") +
-      (river && quarterP([fips]) != null ? " · Drought season chance: next 3 months " + U.pct(quarterP([fips])) + ", next 6 months " + U.pct(river.pSeason) : "") +
+      (river && quarterP([fips]) != null ? " · Drought season chance: next 3 months " + U.pct(quarterP([fips])) + " (" + quarterIssued(true) + "), next 6 months " + U.pct(river.pSeason) : "") +
       (river ? " · Expected drought weeks in the next year: " + U.esc(river.weeksLow) + " to " + U.esc(river.weeksHigh) : " · Not a river county, so no forecast") + "</div>" +
       (photos ? '<div class="photos">' + photos + "</div>" : "") +
       (c.about ? '<p class="small" style="margin:0 0 4px">' + U.esc(c.about) + (safeUrl(c.page) == null ? "" : " " + anchor("Wikipedia", c.page, true)) + "</p>" : "") +
@@ -220,7 +224,7 @@
       if (hit.district != null) { const d = HG.districts[hit.district]; return "<b>" + U.esc(d.name) + "</b><dl><dt>Risk</dt><dd>" + U.esc(d.risk) + ", " + U.pct(d.pSeason) + "</dd><dt>Canals</dt><dd>" + U.num(d.canalKm) + " km</dd></dl><small>Click to open this district.</small>"; }
       const c = U.countyByFips[hit.county], river = U.riverByFips[hit.county];
       return "<b>" + U.esc(c.name) + " County</b><dl><dt>Drought now</dt><dd>" + (c.dm == null ? "no data" : U.DM_TEXT[c.dm]) + "</dd>" +
-        (river && quarterP([hit.county]) != null ? "<dt>3-month chance</dt><dd>" + U.pct(quarterP([hit.county])) + "</dd>" : "") +
+        (river && quarterP([hit.county]) != null ? "<dt>3-month chance</dt><dd>" + U.pct(quarterP([hit.county])) + " <small>(" + quarterIssued(true) + ")</small></dd>" : "") +
         (river ? "<dt>6-month chance</dt><dd>" + U.pct(river.pSeason) + ", " + U.esc(river.tier) + "</dd>" : "") + "</dl><small>Click for photos and a profile.</small>";
     },
   });
@@ -294,12 +298,12 @@
       const act = U.actionFor(d.pSeason);
       const worst = Math.max.apply(null, d.fips.map((f) => U.countyByFips[f].dm || 0));
       const treatable = list.filter((c) => c.rank != null), all = U.canalNumbers(treatable, params());
-      const named = namedCanals(list), q3 = quarterP(d.fips);
+      const named = namedCanals(list), q3 = quarterD(d);
       html += '<button class="back" data-act="state">&larr; All districts</button>' +
         "<h2>" + U.esc(d.name) + "</h2><div class=\"sub\">" + U.esc(d.kind) + " · " + U.esc(d.counties.join(", ")) + " · week of " + U.niceDate(HG.week) + "</div>" +
         stats([
           ["Drought season, next 6 months", U.pct(d.pSeason), U.esc(d.risk) + "; warning line " + U.pct(HG.threshold)],
-        ].concat(q3 == null ? [] : [["Drought season, next 3 months", U.pct(q3), "about one sealant application"]]).concat([
+        ].concat(q3 == null ? [] : [["Drought season, next 3 months", U.pct(q3), "about one sealant application; " + quarterIssued(true)]]).concat([
           ["Drought now", worst ? "D" + (worst - 1) : "None", U.DM_TEXT[worst].replace(/^D\d /, "")],
           resStat,
           ["Canals", U.num(d.canalKm) + " km", U.num(list.length) + " segments, " + U.num(treatable.length) + " rankable"],
@@ -334,8 +338,8 @@
         '<div class="rowBtns"><button class="btn" data-act="go" data-step="budget">Budget plan &rarr;</button><button class="btn ghost" data-act="go" data-step="sim">Simulation &rarr;</button></div>' +
         "<h3>Districts by 6-month drought chance</h3><div class=\"scroll\" style=\"max-height:440px\"><table class=\"t\"><tr><th>District</th><th>Tier</th>" + (hasQ ? "<th class=\"r\">Next 3 months</th><th class=\"r\">Next 6 months</th>" : "<th class=\"r\">Chance</th>") + "<th class=\"r\">Canal km</th></tr>" +
         HG.districts.map((x, i) => ({ x, i })).sort((a, b) => b.x.pSeason - a.x.pSeason).map(({ x, i }) =>
-          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + "</td>" + (hasQ ? '<td class="r">' + U.pct(quarterP(x.fips)) + "</td>" : "") + '<td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
-        '</table></div><p class="fn">Select a district to open it. Select a county on the map for its profile.</p>' +
+          '<tr class="click"' + ROW_BUTTON + ' data-act="district" data-i="' + U.esc(i) + '"><td>' + U.esc(x.name) + ' <span class="muted">' + U.esc(x.counties.join(", ")) + "</span></td><td>" + chip(x.risk) + "</td>" + (hasQ ? '<td class="r">' + U.pct(quarterD(x)) + "</td>" : "") + '<td class="r">' + U.pct(x.pSeason) + '</td><td class="r">' + U.num(x.canalKm) + "</td></tr>").join("") +
+        '</table></div><p class="fn">Select a district to open it. Select a county on the map for its profile.' + (hasQ ? " Next 3 months: three-month forecast, " + quarterIssued(false) + "." : "") + "</p>" +
         more("Open issues from live data", issuesFor(null));
     }
     html += '<p class="fn">Forecast: random forest on the drought record, re-run weekly. In testing it matched, and did not clearly beat, the rule "already in moderate drought". Canals: USGS' + (HG.osm ? " plus " + U.num(HG.osm.added) + " from OpenStreetMap" : "") + ". No source records which canals are lined.</p>";
@@ -401,23 +405,35 @@
      It sits beside the March decision above and does not replace it. The sentences under it are
      built from the frozen test's numbers (js/logic.js, ninetyDaySentence). */
   function ninetyDayHtml(d) {
-    const q = HG.quarter, sentence = window.HGLogic.ninetyDaySentence(q && q.test, q && q.east);
+    const q = HG.quarter, G = window.HGLogic, now = new Date(), sentence = G.ninetyDaySentence(q && q.test, q && q.east);
     if (!sentence) return "";
+    // An out-of-date forecast gives no decision, only the reason (the rule is in js/logic.js, quarterIsStale).
+    const staleHead = () => {
+      const text = G.quarterStaleText(q.issued), cut = text.indexOf(". ") + 1;
+      return "<b>" + U.esc(text.slice(0, cut)) + "</b>" + U.esc(text.slice(cut));
+    };
     let head;
     if (d) {
-      const n = L.ninetyDay(d.fips);
+      const n = L.ninetyDay(d, now);
       if (!n) return "";
-      // A chance just under the line would round onto it ("25% ... wait"), so it gets one decimal there.
-      const shown = !n.seal && U.pct(n.p) === U.pct(n.line) ? U.num(n.p * 100, 1) + "%" : U.pct(n.p);
-      head = "<b>Next 90 days:</b> chance of a drought season " + shown + " (three-month forecast). At the " + U.pct(n.line) +
-        " warning line this says <b>" + (n.seal ? "seal again" : "wait") + "</b>.";
+      if (n.stale) head = staleHead();
+      else {
+        // A chance just under the line would round onto it ("25% ... wait"), so it gets one decimal there.
+        const shown = !n.seal && U.pct(n.p) === U.pct(n.line) ? U.num(n.p * 100, 1) + "%" : U.pct(n.p);
+        head = "Chance of a drought season in " + U.esc(n.window || "the next 13 weeks") + ": <b>" + shown + "</b> (three-month forecast, " + U.esc(n.note) + "). At the " + U.pct(n.line) +
+          " warning line this says <b>" + (n.seal ? "seal again" : "wait") + "</b>.";
+      }
     } else {
-      const all = HG.districts.map((x) => L.ninetyDay(x.fips)).filter((n) => n), seal = all.filter((n) => n.seal).length;
+      const all = HG.districts.map((x) => L.ninetyDay(x, now)).filter((n) => n);
       if (!all.length) return "";
-      head = "<b>Next 90 days:</b> " + seal + " of " + all.length + " districts are at or over the " + U.pct(all[0].line) +
-        " warning line on the three-month forecast, so it says <b>seal again</b> there and <b>wait</b> in the rest. Open a district for its chance.";
+      if (all[0].stale) head = staleHead();
+      else {
+        const seal = all.filter((n) => n.seal).length;
+        head = "<b>Next 90 days:</b> " + seal + " of " + all.length + " districts are at or over the " + U.pct(all[0].line) +
+          " warning line on the three-month forecast, so it says <b>seal again</b> there and <b>wait</b> in the rest. Open a district for its chance. Three-month forecast, " + U.esc(all[0].note) + ".";
+      }
     }
-    return "<h3>Seal again in the next 90 days?</h3><p>" + head + "</p><p class=\"fn\">" + U.esc(sentence) + "</p><p class=\"fn\">" + U.esc(window.HGLogic.NINETY_DAY_COST_NOTE) + "</p>";
+    return "<h3>Seal again in the next 90 days?</h3><p>" + head + "</p><p class=\"fn\">" + U.esc(sentence) + "</p><p class=\"fn\">" + U.esc(G.QUARTER_UPDATE_NOTE) + "</p><p class=\"fn\">" + U.esc(window.HGLogic.NINETY_DAY_COST_NOTE) + "</p>";
   }
   function downloadCsv() {
     const plan = currentPlan(), P = params();
