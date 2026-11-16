@@ -14,8 +14,14 @@
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; overflow-x: clip; }   /* clip, not hidden: a wide opening picture must not widen a phone's layout (sticky still works) */
-body { margin: 0; background: var(--ground); color: var(--ink); font: 400 17px/1.55 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+/* Sideways overflow is clipped on BOTH html and body, and it must be "clip", never "hidden", on
+   both. "hidden" on body alone is harmless while html is left alone, because the browser hands it
+   to the window. But once html has its own overflow value, "hidden" turns body into a scroll box
+   of its own, and every sticky element (the river journey's pinned picture) then sticks to that
+   box, which never scrolls: the journey went blank. "clip" cuts the overflow without making a
+   scroll box, so sticky keeps working. */
+html { scroll-behavior: smooth; overflow-x: clip; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 400 17px/1.55 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: clip; }
 a { color: inherit; }
 
 /* ---------- The fixed layers ---------- */

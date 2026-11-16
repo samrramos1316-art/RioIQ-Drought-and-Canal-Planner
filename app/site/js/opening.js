@@ -27,7 +27,7 @@
     // The name, in two parts so the second can be set differently. The map opens out of
     // the letter at `eye` (a position in the first part).
     name: ["Rio", "IQ"], eye: 2,
-    line: "A planning tool for the irrigation districts on the Texas Rio Grande. It forecasts drought six months ahead, maps every canal, and puts the canals in a modelled order for sealing.",
+    line: "A planning tool for the irrigation districts on the Texas Rio Grande. It forecasts drought three and six months ahead, maps every canal, and puts the canals in a modelled order for sealing.",
     cue: "Scroll to follow the river",
     photo: { src: "photos/opening-santa-elena.jpg", what: "Santa Elena Canyon, Big Bend, Texas. Mexico is on the left bank.",
              by: "Carol M. Highsmith, Library of Congress", url: "https://commons.wikimedia.org/wiki/File:The_sheer_faces_of_Santa_Elena_Canyon,_deep_in_Big_Bend_National_Park_in_Brewster_County,_Texas,_frame_the_Rio_Grande_River._Mexico_is_to_the_left,_the_United_States_to_the_right_LCCN2014630611.tif" },
