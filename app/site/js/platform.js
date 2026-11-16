@@ -1034,6 +1034,19 @@
       rows.map((r) => "<tr><td><b>" + U.esc(r.label) + "</b></td><td>" + U.esc(r.text) + "</td></tr>").join("") + "</table>" +
       '<p class="fn">Cost = 3 x missed drought seasons + false alarms; lower is better. A drought season is 8 straight weeks at D2 or worse.</p>';
   }
+  /* "What we found" (round 8, A5): the four blind tests in one table, then the weekly log (A6). */
+  function findingsHtml() {
+    const f = window.HGLogic.findings(HG), log = window.HGLogic.forecastLogSentence(HG.forecastLog);
+    if (!f.rows.length) return "";
+    const CHIP = { win: "Low", loss: "Warning", tie: "Watch" };          // the chip colours the risk tiers already use
+    return "<h3>What we found</h3>" +
+      '<div class="scroll"><table class="t found"><tr><th>Tested on</th><th>Result</th></tr>' +
+      f.rows.map((r) => "<tr><td><b>" + U.esc(r.where) + "</b><br><span class=\"muted\">" + U.esc(r.what) + "</span></td><td>" + chip(CHIP[r.result], r.result) +
+        "<br><span class=\"small\">" + U.esc(r.text) + "</span></td></tr>").join("") + "</table></div>" +
+      (f.difference ? '<p class="fn">' + U.esc(f.difference) + "</p>" : "") +
+      '<p class="fn">Cost = 3 x missed drought seasons + false alarms; lower is better. A win or a loss needs the whole interval on one side of zero; anything else is a tie.</p>' +
+      (log ? '<p class="fn">' + U.esc(log) + "</p>" : "");
+  }
   function renderSources() {
     // Run the simulation's sums once so its inputs can be listed (nothing is drawn by this).
     if (!district() || APPLICABLE[state.scope]) simCompute(true); else simFacts = null;
@@ -1044,6 +1057,7 @@
     $("view").innerHTML =
       "<h2>Data and sources</h2><div class=\"sub\">Every dataset, what it is used for and where it comes from. Data as of " + U.niceDate(HG.week) + ".</div>" +
       // First, how far to trust the site: the held-out test of the leak model, then the limits.
+      findingsHtml() +
       "<h3>How far to trust this</h3>" +
       scorecardHtml() +
       heldOutNote() + '<p class="fn">' + U.esc(window.HGLogic.LOSSES_1998_SENTENCE) + "</p>" +

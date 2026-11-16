@@ -386,3 +386,19 @@ def test_leak_scale_is_read_from_the_frozen_ponding_test(tmp_path):
     assert scale["factor"] == 0.425 and scale["tests"] == 15          # as frozen: not rounded
     assert scale["seepageOnlyFactor"] == 0.777 and scale["seepageOnlyTests"] == 8
     assert build_site.leak_scale(tmp_path / "missing") is None
+
+
+def test_forecast_log_is_read_from_both_log_folders(tmp_path):
+    (tmp_path / "prospective").mkdir()
+    (tmp_path / "prospective_m").mkdir()
+    six = lambda issue, after4, after26: {"issue_date": issue, "forecasts": [
+        {"horizon_weeks": 4, "answer_known_after": after4}, {"horizon_weeks": 26, "answer_known_after": after26}]}
+    (tmp_path / "prospective" / "2026-11-10.json").write_text(json.dumps(six("2026-11-10", "2026-12-08", "2027-05-11")))
+    (tmp_path / "prospective" / "2026-11-17.json").write_text(json.dumps(six("2026-11-17", "2026-12-15", "2027-05-18")))
+    (tmp_path / "prospective_m" / "2026-11-10.json").write_text(json.dumps(
+        {"issue_date": "2026-11-10", "forecast": {"horizon_weeks": 13, "answer_known_after": "2027-02-09"}}))
+    log = build_site.forecast_log(tmp_path)
+    assert log["since"] == "2026-11-10" and log["weeks"] == 2
+    assert log["firstAnswers"] == [{"horizonWeeks": 4, "after": "2026-12-08"}, {"horizonWeeks": 13, "after": "2027-02-09"},
+                                   {"horizonWeeks": 26, "after": "2027-05-11"}]
+    assert build_site.forecast_log(tmp_path / "none") is None
