@@ -111,6 +111,9 @@
         <button class="role" id="roleState" tabindex="0"><b>State of Texas</b><span>Every district, compared.</span><i aria-hidden="true">&rarr;</i></button>
         <button class="role" id="roleDistrict" tabindex="0"><b>One irrigation district</b><span>Find yours in the list.</span><i aria-hidden="true">&darr;</i></button>
       </div>
+      <!-- Three numbers from the data, filled in by js/platform.js (fillFacts). They sit under the choices
+           on a wide screen, so the left side is not empty. -->
+      <dl class="chooserFacts" id="facts"></dl>
       <div class="pick" id="pick">
         <label for="pickSearch">Irrigation districts</label>
         <input id="pickSearch" type="search" placeholder="Search district or county">
