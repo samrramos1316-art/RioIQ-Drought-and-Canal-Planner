@@ -95,27 +95,77 @@ In plain words:
 
 ## Run it
 
-```bash
-pip install -r requirements-pipeline.txt -r requirements-app.txt
+You need Python 3.13. Node 22 is optional (it runs the website's own tests). The commands are the same on Windows, macOS and Linux, apart from two lines marked below. CI runs them on all three.
 
-# tests
-python -m pytest tests/app -q
-PYTHONPATH=src python -m pytest tests/pipeline -q
-node app/site/sim/engine.test.js && node app/site/js/logic.test.js
+**1. Get the code and set up Python**
 
-# every test and hash check in one command
-bash tools/verify.sh
-
-# the site in a real browser at phone and laptop width, with axe-core (needs Node)
-cd tests/e2e && npm ci && npx playwright install chromium && npx playwright test && cd ../..
-
-# retrain version 1 and compare with the frozen numbers (a few minutes)
-PYTHONPATH=src python tools/reproduce.py
-
-# rebuild the website's data and open it
-python app/build_site.py
-cd app/site && python -m http.server 8000
 ```
+git clone https://github.com/samrramos1316-art/RioIQ-Drought-and-Canal-Planner.git
+cd RioIQ-Drought-and-Canal-Planner
+python -m venv .venv
+```
+
+Turn the environment on. This is the first line that differs:
+
+| System | Command |
+|---|---|
+| macOS, Linux | `source .venv/bin/activate` |
+| Windows (PowerShell) | `.venv\Scripts\Activate.ps1` |
+| Windows (Command Prompt) | `.venv\Scripts\activate.bat` |
+
+Then install the libraries:
+
+```
+python -m pip install -r requirements-pipeline.txt -r requirements-app.txt
+```
+
+On macOS, if `python` is not found, use `python3` for the `venv` line above. Once the environment is on, `python` works everywhere.
+
+**2. Check everything with one command**
+
+```
+python tools/verify.py
+```
+
+It runs both test folders, the five hash checks and, if Node is installed, the website's tests. It takes about a minute, scores nothing and writes nothing.
+
+**3. The same checks, one at a time**
+
+```
+python -X utf8 -m pytest tests/pipeline -q
+python -X utf8 -m pytest tests/app -q
+node app/site/sim/engine.test.js
+node app/site/js/logic.test.js
+```
+
+`-X utf8` makes Python read text files as UTF-8 on every system; Windows has a different default. No `PYTHONPATH` is needed: `pytest.ini` and the scripts in `tools/` find the pipeline code themselves.
+
+**4. Retrain version 1 and compare with the frozen numbers** (a few minutes)
+
+```
+python -X utf8 tools/reproduce.py
+```
+
+**5. Rebuild the website's data and open it**
+
+```
+python -X utf8 app/build_site.py
+python -m http.server 8000 --directory app/site
+```
+
+Then open http://localhost:8000 in a browser.
+
+**6. The site in a real browser, with an accessibility check** (needs Node)
+
+```
+cd tests/e2e
+npm ci
+npx playwright install chromium
+npx playwright test
+cd ../..
+```
+
+**Windows notes.** Use PowerShell or Command Prompt as shown; Git Bash also works. If PowerShell refuses to run `Activate.ps1`, run `Set-ExecutionPolicy -Scope Process RemoteSigned` first, which lasts only for that window. Keep the repository's line endings as they are (the `.gitattributes` file does this for you): the hash checks compare files byte for byte.
 
 **Accessibility.** CI's `browser` job fails on any "serious" or "critical" axe-core finding on either page. Three moderate findings remain and are listed here rather than hidden: the platform has no level-one heading on its main screen (the chooser's heading is the only one), and the platform's top strip and two sections of the home page (the people section and the closing section) sit outside a landmark.
 

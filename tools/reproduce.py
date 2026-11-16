@@ -10,10 +10,14 @@ Random forests are not bit-for-bit identical on different computers (see "machin
 frozen file: 2,324 on the laptop, 2,328 on GitHub's computer), so each number must be within
 TOLERANCE of the frozen one, not equal to it. It writes nothing.
 
-Run it with:  PYTHONPATH=src python tools/reproduce.py      (a few minutes)
+Run it with:  python tools/reproduce.py      (a few minutes)
 """
 import json
 import sys
+from pathlib import Path
+
+# Put the pipeline (src/) on the import path, so this script runs without setting PYTHONPATH.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from farmdrought.alert import run_alert
 from farmdrought.config import FROZEN, SCORE_THROUGH

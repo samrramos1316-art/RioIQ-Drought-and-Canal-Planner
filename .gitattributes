@@ -1,0 +1,4 @@
+# Keep every file byte-for-byte the same on every computer. The scored results and their
+# inputs are checked by hash, and Windows would otherwise rewrite line endings on checkout,
+# which changes the bytes and fails the checks.
+* -text
