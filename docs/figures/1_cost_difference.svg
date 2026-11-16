@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 486" width="900" height="486" role="img" aria-label="Cost difference between the model and the baseline in every test">
+<title>Cost difference between the model and the baseline in every test</title>
+<rect width="900" height="486" fill="#ffffff"/>
+<text x="24.0" y="32.0" font-family="Helvetica, Arial, sans-serif" font-size="18" text-anchor="start" font-weight="bold" fill="#14202b">The model against the baseline: cost difference in every test</text>
+<text x="24.0" y="54.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" fill="#4a5a66">Difference as a share of the baseline's cost, with its 95% interval. Left of zero: the model costs less.</text>
+<text x="24.0" y="72.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="start" font-weight="normal" fill="#4a5a66">Green: the whole interval is below zero (ahead). Red: above zero (behind). Amber: it includes zero (a tie).</text>
+<line x1="391.7" y1="82" x2="391.7" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="391.7" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">-20%</text>
+<line x1="455.1" y1="82" x2="455.1" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="455.1" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">-15%</text>
+<line x1="518.5" y1="82" x2="518.5" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="518.5" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">-10%</text>
+<line x1="581.9" y1="82" x2="581.9" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="581.9" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">-5%</text>
+<line x1="645.3" y1="82" x2="645.3" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="645.3" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">0</text>
+<line x1="708.7" y1="82" x2="708.7" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="708.7" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">+5%</text>
+<line x1="772.1" y1="82" x2="772.1" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="772.1" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">+10%</text>
+<line x1="835.5" y1="82" x2="835.5" y2="416" stroke="#e6eaec" stroke-width="1"/>
+<text x="835.5" y="434.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle" font-weight="normal" fill="#4a5a66">+15%</text>
+<line x1="645.3" y1="82" x2="645.3" y2="416" stroke="#14202b" stroke-width="1.6"/>
+<text x="331.0" y="123.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">3 months: 693 western counties</text>
+<line x1="524.1" y1="119.0" x2="624.0" y2="119.0" stroke="#1f7a3d" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="575.6" cy="119.0" r="6.5" fill="#1f7a3d"/>
+<text x="575.6" y="107.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#1f7a3d">-5.5%</text>
+<text x="331.0" y="177.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">3 months: Rio Grande (not blind)</text>
+<line x1="383.0" y1="173.0" x2="571.1" y2="173.0" stroke="#1f7a3d" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="479.8" cy="173.0" r="6.5" fill="#1f7a3d"/>
+<text x="479.8" y="161.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#1f7a3d">-13.1%</text>
+<text x="331.0" y="231.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">3 months: 1,666 eastern counties (map-only)</text>
+<line x1="695.0" y1="227.0" x2="822.0" y2="227.0" stroke="#b3372f" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="754.4" cy="227.0" r="6.5" fill="#b3372f"/>
+<text x="754.4" y="215.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#b3372f">+8.6%</text>
+<text x="331.0" y="285.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">3 months: 136 counties, eight other rivers</text>
+<line x1="591.5" y1="281.0" x2="662.5" y2="281.0" stroke="#b07d00" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="631.3" cy="281.0" r="6.5" fill="#b07d00"/>
+<text x="631.3" y="269.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#b07d00">-1.1%</text>
+<text x="331.0" y="339.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">6 months: Rio Grande</text>
+<line x1="498.4" y1="335.0" x2="736.3" y2="335.0" stroke="#b07d00" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="614.4" cy="335.0" r="6.5" fill="#b07d00"/>
+<text x="614.4" y="323.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#b07d00">-2.4%</text>
+<text x="331.0" y="393.0" font-family="Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end" font-weight="normal" fill="#14202b">6 months: 166 counties, six other rivers</text>
+<line x1="571.3" y1="389.0" x2="784.1" y2="389.0" stroke="#b07d00" stroke-width="3.5" stroke-linecap="round"/>
+<circle cx="671.8" cy="389.0" r="6.5" fill="#b07d00"/>
+<text x="671.8" y="377.0" font-family="Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle" font-weight="bold" fill="#b07d00">+2.1%</text>
+<text x="24.0" y="472.0" font-family="Helvetica, Arial, sans-serif" font-size="11" text-anchor="start" font-weight="normal" fill="#4a5a66">Cost = 3 x missed drought seasons + false alarms. Each test was declared before it was run (reports/decision.md); results are in reports/frozen/.</text>
+</svg>

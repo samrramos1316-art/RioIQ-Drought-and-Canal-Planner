@@ -19,6 +19,71 @@ In the week of November 10, 2026, 197 of Texas's 254 counties were in drought, a
 3. **A simulation.** One district, several, or all of them, replayed through the real years 2008 to 2025 and through 300 possible futures, comparing doing nothing with sealing early. Every dollar and gallon figure is a range and is labelled "modelled, not measured".
 4. **A website** in plain HTML and JavaScript, with no build step: an intro page, and a platform with four steps (risk, budget plan, simulation and sources).
 
+## How it fits together
+
+Public data goes in at the top. The forecast and the canal ranking are built separately and meet on the website. Every forecast test is declared first, scored once, and frozen.
+
+```mermaid
+flowchart TB
+  subgraph DATA["1 - Public data"]
+    D1["U.S. Drought Monitor<br/>weekly class and area shares"]
+    D2["NOAA county rain,<br/>temperature, Palmer index"]
+    D3["El Nino index"]
+    D4["USGS canals + OpenStreetMap"]
+    D5["USDA soil survey"]
+    D6["Reservoir levels<br/>(Texas Water Development Board)"]
+  end
+
+  subgraph FORECAST["2 - Forecast"]
+    F1["Inputs per county per month<br/>looking only backwards"]
+    F2["Random forest<br/>6 months: 80 trees, 34 inputs<br/>3 months: 300 trees, 66 inputs"]
+    F3["Chance of a drought season<br/>8+ weeks in a row at D2 or worse"]
+  end
+
+  subgraph TEST["3 - Honest testing"]
+    T0["Test declared first<br/>reports/decision.md"]
+    T1["Forward chaining:<br/>each year predicted by a model<br/>trained on earlier answers only"]
+    T2["Compare with simple rules<br/>such as severe drought now"]
+    T3["Year-block bootstrap interval<br/>win / tie / loss"]
+    T4["Frozen results + hashes<br/>reports/frozen, checked in CI"]
+  end
+
+  subgraph CANALS["4 - Canals"]
+    C1["Soil under each canal segment"]
+    C2["Seepage rate per segment<br/>Texas A&M table"]
+    C3["Rank: leak rate x drought chance"]
+    C4["Sealant plan for a budget:<br/>cost, crew time, water kept"]
+  end
+
+  subgraph SITE["5 - Website"]
+    S1["app/build_site.py<br/>checks the data contract"]
+    S2["Platform: risk, budget plan,<br/>simulation, sources"]
+    S3["Simulation engine<br/>sim/engine.js: 300 draws,<br/>modelled ranges"]
+  end
+
+  D1 --> F1
+  D2 --> F1
+  D3 --> F1
+  F1 --> F2 --> F3
+  T0 --> T1
+  F3 --> T1 --> T2 --> T3 --> T4
+  D4 --> C1
+  D5 --> C1
+  C1 --> C2 --> C3 --> C4
+  F3 --> C3
+  F3 --> S1
+  C4 --> S1
+  D6 --> S3
+  T4 --> S1
+  S1 --> S2
+  S2 --> S3
+  DAILY["Daily refresh<br/>GitHub Action"] -.-> S1
+  CI["CI on Windows, macOS and Linux:<br/>tests, hash gates, browser tests"] -.-> T4
+  CI -.-> S2
+```
+
+Dotted lines are checks and automation: the daily job rebuilds the site's data, and CI runs the tests and the hash gates on every push.
+
 ## How the forecast works
 
 - **Inputs, six-month outlook (34):** each county's weekly U.S. Drought Monitor class and its history, its neighbours within 150 km, how drought-prone it has been over one to three years, the time of year, and the Pacific El Nino index.
@@ -56,6 +121,22 @@ In plain words:
 - **Things we tried that did not help:** rain, temperature and soil-moisture inputs at six months; gradient boosting; recalibrating the probability; a warning line picked from past years. All are reported in `reports/decision.md`.
 - **The start of a severe drought six months ahead** in a county that is not yet dry is close to unforecastable from these inputs (AUC about 0.6).
 
+### The model against the baseline, in pictures
+
+Each graph is drawn by `python tools/make_figures.py` straight from the scored result files, so none of its numbers is typed in.
+
+![The cost difference between the model and the baseline in every test, with its 95% interval](docs/figures/1_cost_difference.svg)
+
+*In the 693 unseen western counties the model costs 5.5% less than the best simple rule, and the whole interval is below zero. In the eastern counties a simpler version costs 8.6% more. The other tests are ties.*
+
+![The model's cost minus the baseline's cost in each of the 18 years, 693 western counties](docs/figures/2_years_ahead.svg)
+
+*The model is ahead in 13 of 18 years, not all of them. The gain is real and it is small, and one year or two does not carry it.*
+
+![Drought seasons missed and false alarms, model against baseline](docs/figures/3_misses_and_false_alarms.svg)
+
+*The model misses a quarter fewer drought seasons and raises more false alarms. A miss counts as three false alarms, so the cost is lower. The rule is right slightly more often (90.3% against 89.5%): the model wins on cost, not on share right.*
+
 ## The leak model, and how far to trust it
 
 - Seepage rates come from a published table by soil texture (Texas A&M, 1998, quoting 1946 measurements).
@@ -88,7 +169,8 @@ In plain words:
 | `reports/prospective/`, `reports/prospective_m/` | Each week's forecasts, logged before the answer is known (six-month model; three-month map-only model) |
 | `reports/live/` | What the daily job writes: this week's forecasts and sealant plan |
 | `tests/` | `tests/app`, `tests/pipeline`, `tests/e2e` (the site in a real browser, with an accessibility check); the site's own unit tests sit beside the code (`*.test.js`) |
-| `tools/` | Helper scripts: `verify.sh` (every test and hash check in one command), `reproduce.py`, `site_size.py`, `hash_list_gate.py` (used by CI), `costratio.py` (what a missed drought might cost against a false alarm) |
+| `docs/figures/` | The graphs in this README, drawn from the result files by `tools/make_figures.py` |
+| `tools/` | Helper scripts: `verify.sh` (every test and hash check in one command), `reproduce.py`, `site_size.py`, `hash_list_gate.py` (used by CI), `costratio.py` (what a missed drought might cost against a false alarm), `make_figures.py` (redraws the graphs) |
 | `ARCHITECTURE.md` | The build plan for the last stretch, with its corrections |
 | `api/`, `vercel.json` | The live reservoir reading for a deployment from the repo root |
 | `notebooks/` | The first exploratory scripts and the El Nino index file |
