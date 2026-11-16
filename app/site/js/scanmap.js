@@ -140,7 +140,16 @@
     readTheme();
 
     /* ---------- Camera ---------- */
-    function fit(box, pad) { pad = pad || 0.9; return { x: (box[0] + box[2]) / 2, y: (box[1] + box[3]) / 2, k: Math.min(W / (box[2] - box[0]), H / (box[3] - box[1])) * pad }; }
+    /* A fitted view is centred on the stage, except that while the legend is shown (bottom left,
+       wide screens) the picture moves right by up to 48 px, and only by the width it has to spare,
+       so the legend does not cover the Amistad marker and nothing is cut off on the right. */
+    const legendShown = () => { const l = stage.querySelector("#legend"); return !!(l && l.getClientRects().length); };
+    function fit(box, pad) {
+      pad = pad || 0.9;
+      const k = Math.min(W / (box[2] - box[0]), H / (box[3] - box[1])) * pad;
+      const bias = legendShown() ? Math.min(48, Math.max(0, (W - (box[2] - box[0]) * k) / 2)) : 0;
+      return { x: (box[0] + box[2]) / 2 - bias / k, y: (box[1] + box[3]) / 2, k };
+    }
     function resize() {
       const r = stage.getBoundingClientRect(), first = W === 0, old = kTexas;
       if (!r.width || !r.height) return;
