@@ -7,3 +7,12 @@
 /src
 /notebooks
 /tools
+# Also not part of the website (all of it is public in the repository; it just should not be served).
+# Nothing under /app is listed: the site and the live function are read from there.
+/AGENTS.md
+/ARCHITECTURE.md
+/README.md
+/LICENSE
+/.github
+/requirements-app.txt
+/requirements-pipeline.txt

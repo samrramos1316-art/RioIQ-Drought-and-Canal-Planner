@@ -402,3 +402,25 @@ def test_forecast_log_is_read_from_both_log_folders(tmp_path):
     assert log["firstAnswers"] == [{"horizonWeeks": 4, "after": "2026-12-08"}, {"horizonWeeks": 13, "after": "2027-02-09"},
                                    {"horizonWeeks": 26, "after": "2027-05-11"}]
     assert build_site.forecast_log(tmp_path / "none") is None
+
+
+def test_front_page_never_hides_sideways_overflow_on_the_body():
+    # "overflow-x: hidden" on body, with any overflow value on html, turns body into a scroll box
+    # and the river journey's pinned picture (position: sticky) stops showing: about five blank
+    # screens. It happened once. "clip" cuts the overflow without that side effect.
+    site = REPO_ROOT / "app" / "site" / "css"
+    for name in ("landing.css", "opening.css"):
+        rules = [line for line in (site / name).read_text().splitlines() if line.lstrip().startswith(("body", "html"))]
+        assert not any("overflow-x: hidden" in line or "overflow: hidden" in line for line in rules), name
+
+
+def test_security_headers_are_sent_by_both_deployments():
+    # The repo root is one deployment and app/site is another; both must send the same headers.
+    root = json.loads((REPO_ROOT / "vercel.json").read_text())["headers"]
+    site = json.loads((REPO_ROOT / "app" / "site" / "vercel.json").read_text())["headers"]
+    assert root == site
+    sent = {h["key"]: h["value"] for h in root[0]["headers"]}
+    assert sent["X-Content-Type-Options"] == "nosniff" and sent["X-Frame-Options"] == "DENY"
+    policy = sent["Content-Security-Policy"]
+    assert "script-src 'self'" in policy and "frame-ancestors 'none'" in policy
+    assert "'unsafe-inline'" not in policy.split("script-src")[1].split(";")[0]      # no inline scripts allowed

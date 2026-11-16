@@ -36,7 +36,23 @@ async function latest(name) {
   throw new Error(name + " has no complete row");
 }
 
+// A good answer is remembered here for ten minutes. Without it, a caller could add a different
+// "?x=..." to every request, skip the host's cache each time, and make this function download
+// the three source files again and again.
+const REMEMBER_MS = 10 * 60 * 1000;
+let remembered = null;   // { at: time in milliseconds, body: the answer }
+
 module.exports = async (request, response) => {
+  if (request.method && request.method !== "GET" && request.method !== "HEAD") {
+    response.setHeader("Allow", "GET, HEAD");
+    response.status(405).json({ error: "Only GET is supported." });
+    return;
+  }
+  if (remembered && Date.now() - remembered.at < REMEMBER_MS) {
+    response.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
+    response.status(200).json(remembered.body);
+    return;
+  }
   const systems = {};
   for (const system in SYSTEMS) {
     try {
@@ -52,5 +68,7 @@ module.exports = async (request, response) => {
   // system missing is kept for only a minute, so one failed read does not last an hour.
   const complete = Object.keys(systems).length === Object.keys(SYSTEMS).length;
   response.setHeader("Cache-Control", complete ? "s-maxage=3600, stale-while-revalidate=86400" : "s-maxage=60");
-  response.status(200).json({ systems, source: "Water Data for Texas (Texas Water Development Board)" });
+  const body = { systems, source: "Water Data for Texas (Texas Water Development Board)" };
+  if (complete) remembered = { at: Date.now(), body };     // only a complete answer is worth remembering
+  response.status(200).json(body);
 };
