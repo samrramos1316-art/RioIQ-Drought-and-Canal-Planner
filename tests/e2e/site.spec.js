@@ -2,8 +2,19 @@
 // open the platform, run the simulation and export the data. Fails on a page error, on sideways
 // scroll of the page, and on any "serious" or "critical" accessibility finding (axe-core). Other
 // findings are printed and listed in README.md.
+const fs = require("node:fs");
+const path = require("node:path");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
+
+// The three-month forecast has an issue date (HG.quarter.issued) and the page calls it out of date
+// after 31 days. So that these tests keep passing after that day, every test runs on a fixed day:
+// the issue date plus 12 days, set BEFORE the page loads. The date is read from the site's own data.
+const siteData = {};
+new Function("window", fs.readFileSync(path.join(__dirname, "..", "..", "app", "site", "data", "core.js"), "utf8"))(siteData);
+const ISSUED = siteData.HG.quarter.issued;                                   // "2026-11-03"
+const daysAfterIssue = (n) => new Date(new Date(ISSUED + "T12:00:00").getTime() + n * 86400000);
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(daysAfterIssue(12)); });
 
 function watchErrors(page) {
   const errors = [];
@@ -52,7 +63,8 @@ test("the platform loads, every step draws, and it passes axe", async ({ page })
   await page.locator('#view [data-act="district"]').first().click();
   await expect(page.locator("#scopeBtn")).toContainText("District");
   await step(page, "budget");
-  await expect(page.locator("#view")).toContainText("Next 90 days: chance of a drought season");
+  await expect(page.locator("#view")).toContainText("Chance of a drought season in the 13 weeks from");
+  await expect(page.locator("#view")).toContainText("issued");
   await axe(page, "app.html, one district");
   expect(errors).toEqual([]);
 });
@@ -81,4 +93,44 @@ test("the researcher export downloads every file", async ({ page }) => {
     const [download] = await Promise.all([page.waitForEvent("download"), page.locator(`[data-export="${kind}"]`).click()]);
     expect(download.suggestedFilename()).toMatch(name);
   }
+});
+
+// The paragraph straight under the "Seal again in the next 90 days?" heading: the decision, or the reason there is none.
+const ninetyDayHead = (page) => page.locator("#view h3", { hasText: "Seal again in the next 90 days?" }).locator("xpath=following-sibling::p[1]");
+async function openDistrict(page, name) {
+  await page.goto("/app.html?noscan#d=" + encodeURIComponent(name));
+  await expect(page.locator("#scopeBtn")).toContainText("District");
+  await step(page, "budget");
+}
+
+test("a district's 90-day block says when the three-month forecast was issued, and that it is updated by hand", async ({ page }) => {
+  const errors = watchErrors(page);
+  await openDistrict(page, "Delta Lake Irrigation District");
+  await expect(ninetyDayHead(page)).toContainText("issued Nov 3, 2026, 12 days ago");
+  await expect(ninetyDayHead(page)).toContainText("79 days left");
+  await expect(page.locator("#view")).toContainText("updated by hand, not by the daily refresh");
+  expect(errors).toEqual([]);
+});
+
+test("a district's 90-day chance is weighted by canal length: Cameron County 2 is 24% and wait, not 38% and seal again", async ({ page }) => {
+  await openDistrict(page, "Cameron County Irrigation District 2");
+  const head = ninetyDayHead(page);
+  await expect(head).toContainText("24%");
+  await expect(head).toContainText("this says wait");
+  await expect(head).not.toContainText("38%");
+  await expect(head).not.toContainText("this says seal again");
+});
+
+test("forty days after it was issued the three-month forecast is out of date: a district and the state view give no decision", async ({ page }) => {
+  await page.clock.setFixedTime(daysAfterIssue(40));                         // before the page loads
+  await openDistrict(page, "Cameron County Irrigation District 2");
+  let head = ninetyDayHead(page);
+  await expect(head).toContainText("out of date");
+  await expect(head).toContainText("no 90-day decision is shown");
+  await expect(head).not.toContainText(/seal again|wait/i);
+  await openPlatform(page);                                                  // the state view
+  await step(page, "budget");
+  head = ninetyDayHead(page);
+  await expect(head).toContainText("out of date");
+  await expect(head).not.toContainText(/seal again|wait/i);
 });
