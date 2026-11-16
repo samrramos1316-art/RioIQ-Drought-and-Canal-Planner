@@ -169,7 +169,9 @@ cd ../..
 
 **Accessibility.** CI's `browser` job fails on any "serious" or "critical" axe-core finding on either page. Three moderate findings remain and are listed here rather than hidden: the platform has no level-one heading on its main screen (the chooser's heading is the only one), and the platform's top strip and two sections of the home page (the people section and the closing section) sit outside a landmark.
 
-A daily job (`.github/workflows/refresh.yml`) downloads the newest drought map and reservoir readings and rebuilds this week's forecast. It never re-scores a model.
+A daily job (`.github/workflows/refresh.yml`) downloads the newest drought map and reservoir readings and rebuilds this week's six-month forecast. It never re-scores a model.
+
+**The three-month forecast is not part of that job.** Its chances (`reports/live/edge.json`) are cut by hand from NOAA's monthly county files, which are locked by `data/round4.sha256`. So the site shows the date it was issued (2026-11-03) wherever the three-month chance appears, and after 31 days (from 2026-12-05) it stops giving the "seal again in the next 90 days?" decision and says the forecast is out of date. The six-month forecast and the reservoir readings stay current. A district's three-month chance is weighted by its canal length in each county, the same way its six-month chance is.
 
 ## Sources
 
