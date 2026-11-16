@@ -1592,3 +1592,36 @@ test("no leak volume without its measured-scale partner on the platform", () => 
   ]);
   for (const typed of ["0.425", "0.43"]) assert.ok(page.indexOf(typed) < 0, typed);
 });
+
+/* ---------- What we found, and the forecast log (round 8, A5 and A6) ---------- */
+test("findings: win, loss and tie by the interval alone, every number from the data", () => {
+  const HG = {
+    quarter: { test: { counties: 10, costChange: -0.1, costGap: -5, costGapLow: -9, costGapHigh: -1 },
+               east: { counties: 20, costChange: 0.2, costGap: 7, costGapLow: 2, costGapHigh: 12 } },
+    frozen: { extra: [{ file: "holdout", rows: [{ diff: 3, lo: -4, hi: 8 }] }, { file: "quarter", rows: [{ diff: -2, lo: -6, hi: 1 }] },
+                      { file: "edge", rows: [{}, {}, { diff: -30, lo: -50, hi: -1 }] }] },
+  };
+  const f = L.findings(HG);
+  assert.deepStrictEqual(f.rows.map((r) => r.result), ["win", "loss", "tie", "tie"]);
+  assert.strictEqual(f.rows[0].where, "10 western counties, never used");
+  assert.strictEqual(f.rows[0].text, "cost 10.0% less (-5, interval -9 to -1)");
+  assert.strictEqual(f.rows[1].text, "cost 20.0% more (+7, interval +2 to +12)");
+  assert.strictEqual(f.rows[2].text, "cost +3, interval -4 to +8");
+  assert.ok(f.difference.indexOf("(cost -30, interval -50 to -1) is not the area inputs' alone.") > 0);
+  assert.deepStrictEqual(L.findings({}), { rows: [], difference: null });
+  // The real results: the order and the verdicts the frozen files give, and no typed figure on the page.
+  const real = L.findings(realData().HG);
+  assert.deepStrictEqual(real.rows.map((r) => r.result), ["win", "loss", "tie", "tie"]);
+  const page = fs.readFileSync(path.join(__dirname, "platform.js"), "utf8");
+  assert.ok(page.indexOf("findingsHtml() +\n      \"<h3>How far to trust this</h3>\"") >= 0, "the findings open the Sources step");
+  for (const typed of ["1,372", "2,646", "-744"]) assert.ok(page.indexOf(typed) < 0, typed);
+});
+
+test("forecastLogSentence: dates and counts from the log, in order of forecast length", () => {
+  const log = { since: "2026-11-10", weeks: 2, firstAnswers: [{ horizonWeeks: 4, after: "2026-12-08" }, { horizonWeeks: 26, after: "2027-05-11" }] };
+  assert.strictEqual(L.forecastLogSentence(log), "Forecasts are written down every week before the answer is known: 2 weeks logged since Nov 10, 2026. " +
+    "The first answers can be scored after Dec 8, 2026 (four-week alert) and May 11, 2027 (six-month). None is scored yet.");
+  assert.strictEqual(L.forecastLogSentence(null), null);
+  const real = realData().HG.forecastLog;
+  assert.ok(real.weeks >= 1 && real.firstAnswers.some((a) => a.horizonWeeks === 26));
+});

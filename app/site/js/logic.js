@@ -442,6 +442,46 @@
   const BENCHMARK_SOURCE = "https://smartwatermagazine.com/news/smart-water-magazine/nadbank-backs-164-million-water-conservation-push-in-texas-and-mexico";
 
   /*
+    "What we found" (round 8, A5): the four blind tests of the forecast in one table, numbers
+    first. Every figure is read from the frozen results the build packs (HG.frozen.extra and
+    HG.quarter); none is typed here. result is "win", "loss" or "tie", by the declared rule: lower
+    cost is better, and a win or a loss needs the whole interval on one side of zero.
+      HGdata  window.HG (or a test's made-up copy)
+    Returns { rows: [...], difference: sentence or null }. A test whose file is missing is left out.
+  */
+  function findings(HGdata) {
+    const extra = ((HGdata.frozen && HGdata.frozen.extra) || []), file = (name) => extra.find((e) => e.file === name);
+    const result = (lo, hi) => (hi < 0 ? "win" : lo > 0 ? "loss" : "tie");
+    const signedNum = (v) => (v > 0 ? "+" : v < 0 ? "-" : "") + num(Math.abs(v));
+    const interval = (lo, hi) => "interval " + signedNum(lo) + " to " + signedNum(hi);
+    const rows = [], q = HGdata.quarter || {}, west = q.test, east = q.east;
+    if (west) rows.push({ where: num(west.counties) + " western counties, never used", what: "Three-month forecast with area inputs, against \"severe drought now\"",
+      text: "cost " + num(Math.abs(west.costChange) * 100, 1) + "% " + (west.costChange < 0 ? "less" : "more") + " (" + signedNum(west.costGap) + ", " + interval(west.costGapLow, west.costGapHigh) + ")",
+      result: result(west.costGapLow, west.costGapHigh) });
+    if (east) rows.push({ where: num(east.counties) + " eastern counties, never used", what: "Map-only three-month forecast, against \"severe drought now\"",
+      text: "cost " + num(Math.abs(east.costChange) * 100, 1) + "% " + (east.costChange < 0 ? "less" : "more") + " (" + signedNum(east.costGap) + ", " + interval(east.costGapLow, east.costGapHigh) + ")",
+      result: result(east.costGapLow, east.costGapHigh) });
+    const six = file("holdout"), eight = file("quarter");
+    if (six && six.rows[0]) { const r = six.rows[0]; rows.push({ where: "Six unseen rivers", what: "Six-month forecast, against \"moderate drought now\"",
+      text: "cost " + signedNum(r.diff) + ", " + interval(r.lo, r.hi), result: result(r.lo, r.hi) }); }
+    if (eight && eight.rows[0]) { const r = eight.rows[0]; rows.push({ where: "Eight unseen rivers", what: "Three-month forecast without area inputs, against \"severe drought now\"",
+      text: "cost " + signedNum(r.diff) + ", " + interval(r.lo, r.hi), result: result(r.lo, r.hi) }); }
+    const edge = file("edge"), gain = edge && edge.rows[2];
+    const difference = gain ? "What changed between the tie on eight rivers and the win in the West: the forecast gained inputs for the share of each county's area in drought, " +
+      "which the usual rule (the worst drought class in the county) ignores. It also gained a larger forest and more training counties, so the gain over the earlier model on the same western counties (cost " +
+      signedNum(gain.diff) + ", " + interval(gain.lo, gain.hi) + ") is not the area inputs' alone." : null;
+    return { rows, difference };
+  }
+  /* The weekly forecast log in one sentence (round 8, A6). log = HG.forecastLog from the build. */
+  function forecastLogSentence(log) {
+    if (!log || !log.firstAnswers || !log.firstAnswers.length) return null;
+    const names = { 4: "four-week alert", 13: "three-month", 26: "six-month", 52: "one-year" };
+    const parts = log.firstAnswers.map((a) => niceDate(a.after) + " (" + (names[a.horizonWeeks] || a.horizonWeeks + "-week") + ")");
+    return "Forecasts are written down every week before the answer is known: " + num(log.weeks) + (log.weeks === 1 ? " week" : " weeks") + " logged since " + niceDate(log.since) +
+      ". The first answers can be scored after " + (parts.length > 1 ? parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1] : parts[0]) + ". None is scored yet.";
+  }
+
+  /*
     Leak volumes at measured scale (round 8, A3). scale = HG.leakScale from the build: factor is the
     median of measured / model rate over the unlined ponding tests with a texture rate (round 4,
     reports/frozen/round3/ponding.json), tests is how many. Every volume is shown beside the
@@ -792,5 +832,5 @@
            band, rangeText, rangeCell, rangeHeadline, thousandAf, billionGal, replayBands, replayBandsSentence, replayBandsLines, replayBandsTable,
            sharedForecastSentence, SCORED_TEST_SENTENCE, HELD_OUT_SENTENCE, TRUST_LINE, LOSSES_1998_SENTENCE, TWIN_CAPTION,
            sig, signed, verdictFor, forecastEffectSentence, LEVEL_LABELS, levelLabel, LEVEL_NOTE, STRESS_TEST_SENTENCE,
-           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, scaledAf, measuredScaleLabel, measuredScaleSentence, makeLogic };
+           perMillionGal, BENCHMARK_CAVEAT, BENCHMARK_SOURCE, ninetyDaySentence, NINETY_DAY_COST_NOTE, scaledAf, measuredScaleLabel, measuredScaleSentence, findings, forecastLogSentence, makeLogic };
 });

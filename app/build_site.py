@@ -709,6 +709,27 @@ def quarter_outlook(reports=ROOT / "reports"):
     }
 
 
+def forecast_log(reports=ROOT / "reports"):
+    """The weekly forecast logs (reports/prospective/ and reports/prospective_m/), in short.
+
+    Reads every logged week and changes nothing. Returns when logging began, how many weeks are
+    logged, and for each forecast length the first date its answer can be scored. None when no
+    log exists yet.
+    """
+    weeks, first_answer = set(), {}
+    for folder in ("prospective", "prospective_m"):
+        for path in sorted((reports / folder).glob("*.json")):
+            log = load_json(path)
+            weeks.add(log["issue_date"])
+            for f in log.get("forecasts") or [log["forecast"]]:
+                h, after = int(f["horizon_weeks"]), f["answer_known_after"]
+                first_answer[h] = min(first_answer.get(h, after), after)
+    if not weeks:
+        return None
+    return {"since": min(weeks), "weeks": len(weeks),
+            "firstAnswers": [{"horizonWeeks": h, "after": first_answer[h]} for h in sorted(first_answer)]}
+
+
 def leak_scale(reports=ROOT / "reports"):
     """How the leak model's rates compare with measured canals (round 4), for the website.
 
@@ -814,7 +835,8 @@ def build(out_dir=None):
         "forecastEffect": forecast_effect(plan, district_names),      # the plan with and without the forecast
         "frozen": frozen_summary(),                                    # the frozen round-3 results, in short
         "reconcile": reconciliation(canals, district_names, plan),     # modelled seepage against published figures
-        "leakScale": leak_scale(),                                     # measured canals against the leak model (round 4)
+        "leakScale": leak_scale(),
+        "forecastLog": forecast_log(),                                 # weeks logged before their answers are known                                     # measured canals against the leak model (round 4)
         "quarter": quarter_outlook(),                                  # the three-month chance per county and its test
         "threshold": metrics["trigger"]["threshold"],
         "trigger": metrics["trigger"],
