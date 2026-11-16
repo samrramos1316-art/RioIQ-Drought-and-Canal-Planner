@@ -6,14 +6,18 @@
 
 ## The problem
 
-Farms and towns on the Texas Rio Grande get their water through earth canals, and part of it soaks into the ground on the way. In a drought year that lost water is the difference between a crop and a ploughed-under field. An irrigation district can seal its leakiest canals before the season, but it has to decide months ahead, with a small budget, which canals and whether this is the year.
+Farms and towns along the Texas Rio Grande get their water through about 4,800 km of earth canals, and some of that water soaks into the ground before it arrives. By our upper estimate, as much as 810 million gallons a day can leak out. In a dry year, that lost water can be the difference between a harvest and a field that is ploughed under: Texas A&M puts the crop loss from a year without irrigation water at $495.8 million in the Lower Valley alone.
+
+An irrigation district can seal its leakiest canals before the season starts. Sealant for every rankable canal costs about $1.3 million per application. But the district has to decide months ahead, on a small budget, which canals to seal and whether this is the year to do it.
+
+In the week of November 10, 2026, 197 of Texas's 254 counties were in drought, and the two reservoirs that supply the Valley were 37.5% full.
 
 ## What we built
 
-1. **A drought forecast.** For each of the 31 Rio Grande counties: the chance of a severe-drought season (8 or more weeks in a row at D2 or worse) in the next three months and in the next six, a 4-week alert and a 12-month outlook.
-2. **A canal ranking.** Every mapped canal segment in the Texas districts, with the soil under it and a modelled seepage rate, ranked so a budget goes to the leakiest canals first.
-3. **A simulation.** One district, several, or all of them, replayed through the real years 2008 to 2025 and through 300 possible futures: doing nothing beside sealing early. Every dollar and gallon figure is a range and is labelled "modelled, not measured".
-4. **A website** (plain HTML and JavaScript, no build step): an intro page and a platform with four steps (risk, budget plan, simulation, sources).
+1. **A drought forecast.** For each of the 31 Rio Grande counties, the chance of a severe-drought season (8 or more weeks in a row at D2 or worse) in the next three months and in the next six, plus a 4-week alert and a 12-month outlook. Three months ahead, it cost 5.5% less than the best simple rule on 693 counties it had never seen.
+2. **A canal ranking.** All 9,724 mapped canal segments in the 30 Texas districts, each with the soil under it and a modelled seepage rate, ranked so that a budget goes to the leakiest canals first.
+3. **A simulation.** One district, several, or all of them, replayed through the real years 2008 to 2025 and through 300 possible futures, comparing doing nothing with sealing early. Every dollar and gallon figure is a range and is labelled "modelled, not measured".
+4. **A website** in plain HTML and JavaScript, with no build step: an intro page, and a platform with four steps (risk, budget plan, simulation and sources).
 
 ## How the forecast works
 
