@@ -20,7 +20,7 @@
 #     for more detailed explanations see http://waterdatafortexas.org/reservoirs/glossary
 # 
 # Estimated daily average data for Amistad Reservoir
-#     generated: 2026-11-17T22:34:47.822940 UTC
+#     generated: 2026-11-18T22:25:21.042284 UTC
 #     url: http://www.waterdatafortexas.org/reservoirs/individual/amistad.csv
 # 
 # Footnote:
@@ -21393,4 +21393,5 @@ date,water_level,surface_area,reservoir_storage,conservation_storage,percent_ful
 2026-11-14,1069.73,28222.04,1096538,956925,52.8,1813408,0
 2026-11-15,1069.83,28290.02,1099575,959575,52.9,1813408,0
 2026-11-16,1069.91,28345.57,1102062,961745,53.0,1813408,0
-2026-11-17,1069.96,28376.17,1103425,962935,53.1,1813408,0
+2026-11-17,1069.98,28389.88,1104033,963465,53.1,1813408,0
+2026-11-18,1070.03,28420.98,1105433,964687,53.2,1813408,0
