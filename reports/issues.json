@@ -1,18 +1,34 @@
 {
-  "generated_at": "2026-11-18T22:28:51+00:00",
-  "drought_week": "2026-11-10",
+  "generated_at": "2026-11-19T22:36:41+00:00",
+  "drought_week": "2026-11-17",
   "counts": {
-    "Critical": 0,
-    "Important": 13,
+    "Critical": 1,
+    "Important": 10,
     "Context": 2
   },
   "not_reached": [],
   "note": "Each issue comes from a fixed rule over public data (the rules are listed at the top of src/farmdrought/issues.py). Cut-offs for reservoirs and rain are our own choices. Sealing issues assume unlined canals. An issue is a prompt to check, not a finding.",
   "issues": [
     {
+      "severity": "Critical",
+      "title": "High Wind Warning: Costilla, Colorado",
+      "detail": "High Wind Warning issued November 19 at 8:25AM MST until November 20 at 4:00PM MST by NWS Pueblo CO Weather service severity: Severe.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "08023"
+      ],
+      "states": [
+        "Colorado"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-19T08:25",
+      "rule": 3
+    },
+    {
       "severity": "Important",
-      "title": "Delta Lake Irrigation District: decide on sealing 10.9 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.32, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $2,868 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "title": "Delta Lake Irrigation District: decide on sealing 62.6 km of canal",
+      "detail": "The 6-month outlook for its counties is 0.32, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $16,433 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215",
@@ -23,13 +39,13 @@
       ],
       "district": "Delta Lake Irrigation District",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Donna Irrigation District Hidalgo County 1: decide on sealing 0.8 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.31, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $202 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $202 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215"
@@ -39,23 +55,7 @@
       ],
       "district": "Donna Irrigation District Hidalgo County 1",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
-      "rule": 6
-    },
-    {
-      "severity": "Important",
-      "title": "Fort Hancock WCID: decide on sealing 4.4 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.27, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $1,156 here. Start with: Davis Lateral. The plan assumes unlined canals, so check lining on the ground first.",
-      "who": "The district's board and manager",
-      "where": [
-        "48229"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "Fort Hancock WCID",
-      "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
@@ -72,13 +72,13 @@
       ],
       "district": "Hidalgo & Cameron Counties Irrigation District 9",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Hidalgo County Irrigation District 16: decide on sealing 3.3 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.31, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $870 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $870 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215"
@@ -88,13 +88,13 @@
       ],
       "district": "Hidalgo County Irrigation District 16",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Hidalgo County Irrigation District 5: decide on sealing 7.4 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.31, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $1,946 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $1,946 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215"
@@ -104,13 +104,13 @@
       ],
       "district": "Hidalgo County Irrigation District 5",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Hidalgo County WCID 18: decide on sealing 1.4 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.31, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $367 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $367 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215"
@@ -120,45 +120,13 @@
       ],
       "district": "Hidalgo County WCID 18",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
-      "rule": 6
-    },
-    {
-      "severity": "Important",
-      "title": "Hudspeth County Conservation & Reclamation District 1: decide on sealing 0.9 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.27, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $226 here. The plan assumes unlined canals, so check lining on the ground first.",
-      "who": "The district's board and manager",
-      "where": [
-        "48229"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "Hudspeth County Conservation & Reclamation District 1",
-      "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
-      "rule": 6
-    },
-    {
-      "severity": "Important",
-      "title": "Maverick County WCID 1: decide on sealing 27.4 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $7,188 here. Start with: Lateral Twentytwo, Ditch Number Fifteen. The plan assumes unlined canals, so check lining on the ground first.",
-      "who": "The district's board and manager",
-      "where": [
-        "48323"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "Maverick County WCID 1",
-      "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Santa Cruz Irrigation District 15: decide on sealing 1.1 km of canal",
-      "detail": "The 6-month outlook for its counties is 0.31, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $289 here. The plan assumes unlined canals, so check lining on the ground first.",
+      "detail": "The 6-month outlook for its counties is 0.30, over the 0.25 warning line. At a $100,000 budget for all districts, the plan puts $289 here. The plan assumes unlined canals, so check lining on the ground first.",
       "who": "The district's board and manager",
       "where": [
         "48215"
@@ -168,13 +136,13 @@
       ],
       "district": "Santa Cruz Irrigation District 15",
       "source": "Our 6-month outlook, the USGS canal map, the USDA soil survey",
-      "as_of": "2026-11-10",
+      "as_of": "2026-11-17",
       "rule": 6
     },
     {
       "severity": "Important",
       "title": "Coastal Flood Advisory: Willacy, Texas, Cameron, Texas",
-      "detail": "Coastal Flood Advisory issued November 18 at 1:16PM CST until November 20 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
+      "detail": "Coastal Flood Advisory issued November 19 at 1:21PM CST until November 20 at 6:00PM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48489",
@@ -185,13 +153,13 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-18T13:16",
+      "as_of": "2026-11-19T13:21",
       "rule": 8
     },
     {
       "severity": "Important",
       "title": "High Surf Advisory: Willacy, Texas, Cameron, Texas",
-      "detail": "High Surf Advisory issued November 18 at 1:16PM CST until November 19 at 6:00PM CST by NWS Brownsville TX Weather service severity: Minor.",
+      "detail": "High Surf Advisory issued November 19 at 1:21PM CST until November 19 at 6:00PM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48489",
@@ -202,13 +170,13 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-18T13:16",
+      "as_of": "2026-11-19T13:21",
       "rule": 8
     },
     {
       "severity": "Important",
       "title": "Rip Current Statement: Willacy, Texas, Cameron, Texas",
-      "detail": "Rip Current Statement issued November 18 at 1:16PM CST until November 19 at 6:00PM CST by NWS Brownsville TX Weather service severity: Moderate.",
+      "detail": "Rip Current Statement issued November 19 at 1:21PM CST until November 20 at 6:00PM CST by NWS Brownsville TX Weather service severity: Moderate.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48489",
@@ -219,37 +187,32 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-18T13:16",
+      "as_of": "2026-11-19T13:21",
       "rule": 8
     },
     {
       "severity": "Context",
-      "title": "No real rain forecast this week for 7 of 12 Warning counties",
-      "detail": "Under 0.1 inch in the next 7 days at the county center: Costilla, Colorado, Saguache, Colorado, Santa Fe, New Mexico, Hudspeth, Texas, Kinney, Texas, Maverick, Texas, Webb, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
+      "title": "No real rain forecast this week for 3 of 7 Warning counties",
+      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Webb, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
       "who": "Everyone planning water for the next week",
       "where": [
-        "08023",
         "08109",
-        "35049",
-        "48229",
-        "48271",
-        "48323",
+        "48127",
         "48479"
       ],
       "states": [
         "Colorado",
-        "New Mexico",
         "Texas"
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-18T22:18",
+      "as_of": "2026-11-19T22:30",
       "rule": 9
     },
     {
       "severity": "Context",
       "title": "Live river flow in Big Bend",
-      "detail": "Rio Grande near Castolon: 60 cubic feet per second; Rio Grande at Rio Grande Village: 199 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
+      "detail": "Rio Grande near Castolon: 55 cubic feet per second; Rio Grande at Rio Grande Village: 195 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
       "who": "Water allocators",
       "where": [
         "48043"
@@ -259,7 +222,7 @@
       ],
       "district": "",
       "source": "USGS Water Data, provisional readings",
-      "as_of": "2026-11-18T22:00",
+      "as_of": "2026-11-19T22:15",
       "rule": 10
     }
   ]

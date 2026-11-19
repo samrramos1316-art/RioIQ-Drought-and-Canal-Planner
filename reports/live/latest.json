@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-11-18T22:28:43+00:00",
-  "latest_week": "2026-11-10",
+  "generated_at": "2026-11-19T22:34:14+00:00",
+  "latest_week": "2026-11-17",
   "reservoir_systems": [
     {
       "name": "Amistad-Falcon",
       "counties": 10,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-18"
+      "last_date": "2026-11-19"
     },
     {
       "name": "Elephant Butte",
       "counties": 4,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-18"
+      "last_date": "2026-11-19"
     }
   ],
   "canals": {
@@ -338,18 +338,18 @@
     "by_level": [
       {
         "level": "Inspect first",
-        "km": 1420.7,
-        "segments": 941
+        "km": 883.5,
+        "segments": 542
       },
       {
         "level": "Watch",
-        "km": 7670.5,
-        "segments": 6160
+        "km": 7648.0,
+        "segments": 6162
       },
       {
         "level": "Low",
-        "km": 4038.4,
-        "segments": 3561
+        "km": 4598.1,
+        "segments": 3958
       },
       {
         "level": "Unknown soil",
@@ -479,43 +479,16 @@
         "fips": "08109",
         "county": "Saguache",
         "state": "Colorado",
-        "p_season": 0.513,
+        "p_season": 0.493,
         "inspect_first_km": 843.3,
         "leaky_soil_km": 852.2,
         "canal_km": 1011.4
       },
       {
-        "fips": "08023",
-        "county": "Costilla",
-        "state": "Colorado",
-        "p_season": 0.262,
-        "inspect_first_km": 421.0,
-        "leaky_soil_km": 421.0,
-        "canal_km": 517.9
-      },
-      {
-        "fips": "35049",
-        "county": "Santa Fe",
-        "state": "New Mexico",
-        "p_season": 0.277,
-        "inspect_first_km": 74.9,
-        "leaky_soil_km": 74.9,
-        "canal_km": 85.7
-      },
-      {
-        "fips": "48229",
-        "county": "Hudspeth",
-        "state": "Texas",
-        "p_season": 0.274,
-        "inspect_first_km": 27.4,
-        "leaky_soil_km": 27.4,
-        "canal_km": 301.4
-      },
-      {
         "fips": "48215",
         "county": "Hidalgo",
         "state": "Texas",
-        "p_season": 0.307,
+        "p_season": 0.305,
         "inspect_first_km": 21.2,
         "leaky_soil_km": 21.2,
         "canal_km": 2382.9
@@ -524,25 +497,16 @@
         "fips": "48489",
         "county": "Willacy",
         "state": "Texas",
-        "p_season": 0.336,
+        "p_season": 0.343,
         "inspect_first_km": 17.4,
         "leaky_soil_km": 17.4,
         "canal_km": 904.2
       },
       {
-        "fips": "48323",
-        "county": "Maverick",
-        "state": "Texas",
-        "p_season": 0.304,
-        "inspect_first_km": 13.9,
-        "leaky_soil_km": 13.9,
-        "canal_km": 339.7
-      },
-      {
         "fips": "48479",
         "county": "Webb",
         "state": "Texas",
-        "p_season": 0.599,
+        "p_season": 0.475,
         "inspect_first_km": 1.6,
         "leaky_soil_km": 1.6,
         "canal_km": 41.1
@@ -551,7 +515,7 @@
         "fips": "08003",
         "county": "Alamosa",
         "state": "Colorado",
-        "p_season": 0.228,
+        "p_season": 0.21,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 603.0,
         "canal_km": 723.7
@@ -560,16 +524,25 @@
         "fips": "08021",
         "county": "Conejos",
         "state": "Colorado",
-        "p_season": 0.158,
+        "p_season": 0.15,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 774.4,
         "canal_km": 919.7
       },
       {
+        "fips": "08023",
+        "county": "Costilla",
+        "state": "Colorado",
+        "p_season": 0.19,
+        "inspect_first_km": 0.0,
+        "leaky_soil_km": 421.0,
+        "canal_km": 517.9
+      },
+      {
         "fips": "08053",
         "county": "Hinsdale",
         "state": "Colorado",
-        "p_season": 0.193,
+        "p_season": 0.197,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 18.6,
         "canal_km": 45.0
@@ -578,7 +551,7 @@
         "fips": "08079",
         "county": "Mineral",
         "state": "Colorado",
-        "p_season": 0.191,
+        "p_season": 0.19,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 22.0,
         "canal_km": 26.3
@@ -587,7 +560,7 @@
         "fips": "08105",
         "county": "Rio Grande",
         "state": "Colorado",
-        "p_season": 0.209,
+        "p_season": 0.192,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 709.0,
         "canal_km": 791.3
@@ -596,7 +569,7 @@
         "fips": "08111",
         "county": "San Juan",
         "state": "Colorado",
-        "p_season": 0.143,
+        "p_season": 0.153,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 2.5
@@ -605,7 +578,7 @@
         "fips": "35001",
         "county": "Bernalillo",
         "state": "New Mexico",
-        "p_season": 0.189,
+        "p_season": 0.193,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 372.4,
         "canal_km": 463.6
@@ -614,7 +587,7 @@
         "fips": "35013",
         "county": "Do\u00f1a Ana",
         "state": "New Mexico",
-        "p_season": 0.082,
+        "p_season": 0.058,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 402.2,
         "canal_km": 924.0
@@ -623,7 +596,7 @@
         "fips": "35028",
         "county": "Los Alamos",
         "state": "New Mexico",
-        "p_season": 0.162,
+        "p_season": 0.111,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 0.0
@@ -632,16 +605,25 @@
         "fips": "35043",
         "county": "Sandoval",
         "state": "New Mexico",
-        "p_season": 0.202,
+        "p_season": 0.194,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 318.1,
         "canal_km": 450.7
       },
       {
+        "fips": "35049",
+        "county": "Santa Fe",
+        "state": "New Mexico",
+        "p_season": 0.203,
+        "inspect_first_km": 0.0,
+        "leaky_soil_km": 74.9,
+        "canal_km": 85.7
+      },
+      {
         "fips": "35051",
         "county": "Sierra",
         "state": "New Mexico",
-        "p_season": 0.102,
+        "p_season": 0.082,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 34.1,
         "canal_km": 67.6
@@ -650,7 +632,7 @@
         "fips": "35053",
         "county": "Socorro",
         "state": "New Mexico",
-        "p_season": 0.217,
+        "p_season": 0.152,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 247.1,
         "canal_km": 516.1
@@ -659,7 +641,7 @@
         "fips": "35055",
         "county": "Taos",
         "state": "New Mexico",
-        "p_season": 0.248,
+        "p_season": 0.211,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 138.3,
         "canal_km": 398.9
@@ -668,7 +650,7 @@
         "fips": "35061",
         "county": "Valencia",
         "state": "New Mexico",
-        "p_season": 0.197,
+        "p_season": 0.191,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 536.3,
         "canal_km": 597.6
@@ -677,7 +659,7 @@
         "fips": "48043",
         "county": "Brewster",
         "state": "Texas",
-        "p_season": 0.18,
+        "p_season": 0.151,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 0.0
@@ -686,7 +668,7 @@
         "fips": "48061",
         "county": "Cameron",
         "state": "Texas",
-        "p_season": 0.243,
+        "p_season": 0.217,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 5.3,
         "canal_km": 2749.6
@@ -695,7 +677,7 @@
         "fips": "48127",
         "county": "Dimmit",
         "state": "Texas",
-        "p_season": 0.51,
+        "p_season": 0.331,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 1.0
@@ -710,19 +692,37 @@
         "canal_km": 621.2
       },
       {
+        "fips": "48229",
+        "county": "Hudspeth",
+        "state": "Texas",
+        "p_season": 0.24,
+        "inspect_first_km": 0.0,
+        "leaky_soil_km": 27.4,
+        "canal_km": 301.4
+      },
+      {
         "fips": "48271",
         "county": "Kinney",
         "state": "Texas",
-        "p_season": 0.265,
+        "p_season": 0.144,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 7.0
       },
       {
+        "fips": "48323",
+        "county": "Maverick",
+        "state": "Texas",
+        "p_season": 0.236,
+        "inspect_first_km": 0.0,
+        "leaky_soil_km": 13.9,
+        "canal_km": 339.7
+      },
+      {
         "fips": "48377",
         "county": "Presidio",
         "state": "Texas",
-        "p_season": 0.181,
+        "p_season": 0.152,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 14.6,
         "canal_km": 46.7
@@ -731,7 +731,7 @@
         "fips": "48427",
         "county": "Starr",
         "state": "Texas",
-        "p_season": 0.333,
+        "p_season": 0.346,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 10.3
@@ -740,7 +740,7 @@
         "fips": "48465",
         "county": "Val Verde",
         "state": "Texas",
-        "p_season": 0.25,
+        "p_season": 0.146,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 5.1,
         "canal_km": 32.8
@@ -749,7 +749,7 @@
         "fips": "48505",
         "county": "Zapata",
         "state": "Texas",
-        "p_season": 0.399,
+        "p_season": 0.351,
         "inspect_first_km": 0.0,
         "leaky_soil_km": 0.0,
         "canal_km": 11.5
@@ -762,7 +762,7 @@
         "state": "Colorado",
         "inspect_first_km": 28.6,
         "seepage_rate": 9.34,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
         "name": "Farmers Union Canal",
@@ -770,7 +770,7 @@
         "state": "Colorado",
         "inspect_first_km": 28.0,
         "seepage_rate": 9.34,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
         "name": "Gibson Ditch",
@@ -778,7 +778,7 @@
         "state": "Colorado",
         "inspect_first_km": 27.4,
         "seepage_rate": 9.34,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
         "name": "Lateral Fortyseven",
@@ -786,7 +786,7 @@
         "state": "Colorado",
         "inspect_first_km": 24.3,
         "seepage_rate": 9.34,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
         "name": "Rio Grande Canal",
@@ -794,7 +794,7 @@
         "state": "Colorado",
         "inspect_first_km": 23.5,
         "seepage_rate": 9.65,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
         "name": "North Lateral",
@@ -802,47 +802,7 @@
         "state": "Colorado",
         "inspect_first_km": 20.7,
         "seepage_rate": 9.34,
-        "p_season": 0.513
-      },
-      {
-        "name": "Mesa Ditch",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 20.3,
-        "seepage_rate": 8.46,
-        "p_season": 0.262
-      },
-      {
-        "name": "Trinchera Canal",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 18.1,
-        "seepage_rate": 9.04,
-        "p_season": 0.262
-      },
-      {
-        "name": "Indian Creek Ditch",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 17.0,
-        "seepage_rate": 8.98,
-        "p_season": 0.262
-      },
-      {
-        "name": "Highline Canal",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 16.9,
-        "seepage_rate": 8.88,
-        "p_season": 0.262
-      },
-      {
-        "name": "Sanchez Canal",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 11.8,
-        "seepage_rate": 9.16,
-        "p_season": 0.262
+        "p_season": 0.493
       },
       {
         "name": "North Main Canal",
@@ -850,15 +810,7 @@
         "state": "Colorado",
         "inspect_first_km": 11.3,
         "seepage_rate": 9.34,
-        "p_season": 0.513
-      },
-      {
-        "name": "Eastdale Culebra Canal",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 10.8,
-        "seepage_rate": 9.34,
-        "p_season": 0.262
+        "p_season": 0.493
       },
       {
         "name": "Arch Irrigation Ditch",
@@ -866,23 +818,7 @@
         "state": "Colorado",
         "inspect_first_km": 10.2,
         "seepage_rate": 8.42,
-        "p_season": 0.513
-      },
-      {
-        "name": "Cerritos Canal",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 9.3,
-        "seepage_rate": 10.68,
-        "p_season": 0.262
-      },
-      {
-        "name": "Reservoir Ditch",
-        "county": "Costilla",
-        "state": "Colorado",
-        "inspect_first_km": 9.0,
-        "seepage_rate": 9.34,
-        "p_season": 0.262
+        "p_season": 0.493
       },
       {
         "name": "South Crestone Ditch",
@@ -890,31 +826,95 @@
         "state": "Colorado",
         "inspect_first_km": 8.4,
         "seepage_rate": 9.34,
-        "p_season": 0.513
+        "p_season": 0.493
       },
       {
-        "name": "Eastdale Branch Cerro Canal",
-        "county": "Costilla",
+        "name": "Cotton Creek Ditch",
+        "county": "Saguache",
         "state": "Colorado",
-        "inspect_first_km": 8.3,
-        "seepage_rate": 8.41,
-        "p_season": 0.262
+        "inspect_first_km": 7.6,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
       },
       {
-        "name": "Sangre De Cristo-Trinchera Diversion Canal",
-        "county": "Costilla",
+        "name": "Crestone Ditch",
+        "county": "Saguache",
         "state": "Colorado",
-        "inspect_first_km": 8.2,
-        "seepage_rate": 11.22,
-        "p_season": 0.262
+        "inspect_first_km": 6.8,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
       },
       {
-        "name": "Sangre de Cristo Ditch Number 3",
-        "county": "Costilla",
+        "name": "Reservoir Enlargement Ditch",
+        "county": "Saguache",
         "state": "Colorado",
-        "inspect_first_km": 8.2,
-        "seepage_rate": 8.41,
-        "p_season": 0.262
+        "inspect_first_km": 6.0,
+        "seepage_rate": 7.9,
+        "p_season": 0.493
+      },
+      {
+        "name": "Werner Arroyo",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 5.7,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
+      },
+      {
+        "name": "Mesa Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 5.5,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
+      },
+      {
+        "name": "Turnbull Lunguen Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 5.3,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
+      },
+      {
+        "name": "Saguache Creek",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 4.9,
+        "seepage_rate": 10.28,
+        "p_season": 0.493
+      },
+      {
+        "name": "Larkspur Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 4.7,
+        "seepage_rate": 9.97,
+        "p_season": 0.493
+      },
+      {
+        "name": "Perry Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 4.6,
+        "seepage_rate": 7.48,
+        "p_season": 0.493
+      },
+      {
+        "name": "North Crestone Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 4.6,
+        "seepage_rate": 9.34,
+        "p_season": 0.493
+      },
+      {
+        "name": "San Luis Company Ditch",
+        "county": "Saguache",
+        "state": "Colorado",
+        "inspect_first_km": 4.4,
+        "seepage_rate": 10.37,
+        "p_season": 0.493
       }
     ],
     "note": "An estimate of where leaks are LIKELY, not measured leaks. It assumes bare-earth canals: we do not know which canals are lined. Real seepage also depends on construction, silt and the water table. The levels change every week with the forecast. Use it to choose canals to inspect, not to claim water savings."
@@ -935,10 +935,10 @@
     "canal_km_in_districts": 5549.9,
     "treatable_km": 4808.0,
     "cost_to_treat_everything_usd": 1261947,
-    "sealed_km": 380.8,
-    "spent_usd": 99935,
-    "saved_af_low": 9128,
-    "saved_af_high": 28363,
+    "sealed_km": 380.4,
+    "spent_usd": 99831,
+    "saved_af_low": 8726,
+    "saved_af_high": 27113,
     "districts": [
       {
         "district": "Cameron County Irrigation District 2",
@@ -947,7 +947,7 @@
           "Cameron",
           "Willacy"
         ],
-        "p_season": 0.244,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 760.1,
         "treatable_km": 672.5,
@@ -968,38 +968,37 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 303.2,
         "treatable_km": 228.1,
         "leaky_soil_km": 0.0,
-        "sealed_km": 106.5,
-        "sealant_sqft": 6990453,
-        "sealant_usd": 27962,
-        "budget_share": 0.28,
-        "saved_af_low": 2427,
-        "saved_af_high": 7542,
-        "first_canals": [
-          "Los Fresnos Canal"
-        ]
+        "sealed_km": 84.4,
+        "sealant_sqft": 5539140,
+        "sealant_usd": 22157,
+        "budget_share": 0.222,
+        "saved_af_low": 1923,
+        "saved_af_high": 5976,
+        "first_canals": []
       },
       {
-        "district": "Brownsville Irrigation District",
-        "kind": "Water Control & Improvement District",
+        "district": "Delta Lake Irrigation District",
+        "kind": "Irrigation District",
         "counties": [
-          "Cameron"
+          "Hidalgo",
+          "Willacy"
         ],
-        "p_season": 0.243,
-        "risk": "Watch",
-        "canal_km": 155.6,
-        "treatable_km": 111.2,
-        "leaky_soil_km": 0.1,
-        "sealed_km": 29.4,
-        "sealant_sqft": 1929678,
-        "sealant_usd": 7719,
-        "budget_share": 0.077,
-        "saved_af_low": 671,
-        "saved_af_high": 2086,
+        "p_season": 0.323,
+        "risk": "Warning",
+        "canal_km": 628.2,
+        "treatable_km": 616.1,
+        "leaky_soil_km": 0.0,
+        "sealed_km": 62.6,
+        "sealant_sqft": 4108268,
+        "sealant_usd": 16433,
+        "budget_share": 0.164,
+        "saved_af_low": 950,
+        "saved_af_high": 2952,
         "first_canals": []
       },
       {
@@ -1008,8 +1007,8 @@
         "counties": [
           "Maverick"
         ],
-        "p_season": 0.304,
-        "risk": "Warning",
+        "p_season": 0.236,
+        "risk": "Watch",
         "canal_km": 321.5,
         "treatable_km": 257.0,
         "leaky_soil_km": 13.9,
@@ -1030,17 +1029,17 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 50.5,
         "treatable_km": 43.4,
         "leaky_soil_km": 0.0,
-        "sealed_km": 18.5,
-        "sealant_sqft": 1210827,
-        "sealant_usd": 4843,
-        "budget_share": 0.048,
-        "saved_af_low": 420,
-        "saved_af_high": 1306,
+        "sealed_km": 16.9,
+        "sealant_sqft": 1110761,
+        "sealant_usd": 4443,
+        "budget_share": 0.044,
+        "saved_af_low": 386,
+        "saved_af_high": 1198,
         "first_canals": []
       },
       {
@@ -1049,7 +1048,7 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 84.0,
         "treatable_km": 55.2,
@@ -1063,32 +1062,12 @@
         "first_canals": []
       },
       {
-        "district": "Delta Lake Irrigation District",
-        "kind": "Irrigation District",
-        "counties": [
-          "Hidalgo",
-          "Willacy"
-        ],
-        "p_season": 0.32,
-        "risk": "Warning",
-        "canal_km": 628.2,
-        "treatable_km": 616.1,
-        "leaky_soil_km": 0.0,
-        "sealed_km": 10.9,
-        "sealant_sqft": 716929,
-        "sealant_usd": 2868,
-        "budget_share": 0.029,
-        "saved_af_low": 166,
-        "saved_af_high": 515,
-        "first_canals": []
-      },
-      {
         "district": "Cameron County Water Improvement District 10",
         "kind": "Water Improvement District",
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 47.4,
         "treatable_km": 39.7,
@@ -1107,7 +1086,7 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 211.2,
         "treatable_km": 201.9,
@@ -1126,7 +1105,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 43.4,
         "treatable_km": 32.8,
@@ -1145,7 +1124,7 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 228.6,
         "treatable_km": 215.8,
@@ -1164,8 +1143,8 @@
         "counties": [
           "Hudspeth"
         ],
-        "p_season": 0.274,
-        "risk": "Warning",
+        "p_season": 0.24,
+        "risk": "Watch",
         "canal_km": 15.2,
         "treatable_km": 11.9,
         "leaky_soil_km": 4.4,
@@ -1185,7 +1164,7 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 81.2,
         "treatable_km": 81.0,
@@ -1205,7 +1184,7 @@
           "Cameron",
           "Hidalgo"
         ],
-        "p_season": 0.303,
+        "p_season": 0.3,
         "risk": "Warning",
         "canal_km": 594.5,
         "treatable_km": 554.2,
@@ -1224,7 +1203,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 33.1,
         "treatable_km": 33.1,
@@ -1243,7 +1222,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 5.8,
         "treatable_km": 5.0,
@@ -1262,7 +1241,7 @@
         "counties": [
           "Cameron"
         ],
-        "p_season": 0.243,
+        "p_season": 0.217,
         "risk": "Watch",
         "canal_km": 10.9,
         "treatable_km": 7.3,
@@ -1281,7 +1260,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 105.8,
         "treatable_km": 102.5,
@@ -1295,13 +1274,32 @@
         "first_canals": []
       },
       {
+        "district": "Brownsville Irrigation District",
+        "kind": "Water Control & Improvement District",
+        "counties": [
+          "Cameron"
+        ],
+        "p_season": 0.217,
+        "risk": "Watch",
+        "canal_km": 155.6,
+        "treatable_km": 111.2,
+        "leaky_soil_km": 0.1,
+        "sealed_km": 1.0,
+        "sealant_sqft": 63584,
+        "sealant_usd": 254,
+        "budget_share": 0.003,
+        "saved_af_low": 23,
+        "saved_af_high": 73,
+        "first_canals": []
+      },
+      {
         "district": "Hudspeth County Conservation & Reclamation District 1",
         "kind": "Water Improvement District",
         "counties": [
           "Hudspeth"
         ],
-        "p_season": 0.274,
-        "risk": "Warning",
+        "p_season": 0.24,
+        "risk": "Watch",
         "canal_km": 192.3,
         "treatable_km": 148.4,
         "leaky_soil_km": 0.9,
@@ -1319,7 +1317,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 286.2,
         "treatable_km": 259.7,
@@ -1338,7 +1336,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 44.2,
         "treatable_km": 44.1,
@@ -1357,7 +1355,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 157.7,
         "treatable_km": 152.3,
@@ -1376,7 +1374,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 333.0,
         "treatable_km": 270.0,
@@ -1395,7 +1393,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 73.2,
         "treatable_km": 69.6,
@@ -1414,7 +1412,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 113.7,
         "treatable_km": 110.6,
@@ -1433,7 +1431,7 @@
         "counties": [
           "Hidalgo"
         ],
-        "p_season": 0.307,
+        "p_season": 0.305,
         "risk": "Warning",
         "canal_km": 14.2,
         "treatable_km": 7.1,
@@ -1453,7 +1451,7 @@
           "Cameron",
           "Hidalgo"
         ],
-        "p_season": 0.296,
+        "p_season": 0.29,
         "risk": "Warning",
         "canal_km": 62.7,
         "treatable_km": 62.7,
@@ -1530,9 +1528,9 @@
       "overall": {
         "ranked_km": 4808.0,
         "both_km": 279.7,
-        "only_forecast_km": 101.0,
+        "only_forecast_km": 100.6,
         "only_no_forecast_km": 101.0,
-        "rank_correlation": 0.775
+        "rank_correlation": 0.772
       },
       "districts": [
         {
@@ -1555,7 +1553,7 @@
           "district": "Brownsville Irrigation District",
           "ranked_km": 111.2,
           "both_km": 0.1,
-          "only_forecast_km": 29.4,
+          "only_forecast_km": 0.9,
           "only_no_forecast_km": 0.0,
           "rank_correlation": 1.0
         },
@@ -1579,7 +1577,7 @@
           "district": "Cameron County Irrigation District 6",
           "ranked_km": 228.1,
           "both_km": 71.3,
-          "only_forecast_km": 35.3,
+          "only_forecast_km": 13.2,
           "only_no_forecast_km": 0.0,
           "rank_correlation": 1.0
         },
@@ -1595,7 +1593,7 @@
           "district": "Delta Lake Irrigation District",
           "ranked_km": 616.1,
           "both_km": 0.0,
-          "only_forecast_km": 10.9,
+          "only_forecast_km": 62.6,
           "only_no_forecast_km": 0.0,
           "rank_correlation": 0.982
         },
@@ -1747,7 +1745,7 @@
           "district": "Rio Grande Palms Water District",
           "ranked_km": 43.4,
           "both_km": 15.3,
-          "only_forecast_km": 3.2,
+          "only_forecast_km": 1.6,
           "only_no_forecast_km": 0.0,
           "rank_correlation": 1.0
         },

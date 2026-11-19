@@ -1,0 +1,4400 @@
+{
+ "header": "A forecast log, written before the truth was known. NOTHING HERE IS SCORED YET: each forecast can be scored only after the date in its 'answer_known_after' field. This file is never rewritten.",
+ "issue_date": "2026-11-17",
+ "logged_at": "2026-11-19T22:34:18+00:00",
+ "model_version": {
+  "name": "version 1 (random forests; settings, inputs and thresholds as frozen)",
+  "note": "The live forests are retrained each week on every Rio Grande row whose answer is known; the settings, inputs and alarm thresholds do not change.",
+  "frozen_results_code_commit": "35396bd52359c461be9a770acb02dc19b8b1547e",
+  "frozen_score_through": "2026-11-10"
+ },
+ "manifest_sha256": "f353768186ac5af41c19a0be285fa209498745e3ae8369e8f434e90042689221",
+ "drought_file_sha256": "b67ad48327d5b050dd17375b43f7f7da79b06b84caa9c89cf59da180251ba362",
+ "forecasts": [
+  {
+   "horizon_weeks": 4,
+   "column": "p_model",
+   "kind": "probability",
+   "question": "Will the county reach D2 or worse in any of the next 4 weeks?",
+   "alarm_threshold": 0.36,
+   "answer_known_after": "2026-12-15"
+  },
+  {
+   "horizon_weeks": 26,
+   "column": "p_season",
+   "kind": "probability",
+   "question": "Will the next 26 weeks hold 8 or more weeks in a row at D2 or worse?",
+   "alarm_threshold": 0.25,
+   "answer_known_after": "2027-05-18"
+  },
+  {
+   "horizon_weeks": 52,
+   "column": "weeks_model",
+   "kind": "number of weeks",
+   "question": "How many of the next 52 weeks will be at D2 or worse?",
+   "answer_known_after": "2027-11-16"
+  }
+ ],
+ "counties": [
+  {
+   "fips": "04012",
+   "county": "La Paz",
+   "state": "Arizona",
+   "river": "Colorado",
+   "cls": 1,
+   "p_model": 0.0169,
+   "p_season": 0.1268,
+   "weeks_model": 9.65
+  },
+  {
+   "fips": "04015",
+   "county": "Mohave",
+   "state": "Arizona",
+   "river": "Colorado",
+   "cls": 1,
+   "p_model": 0.0582,
+   "p_season": 0.2149,
+   "weeks_model": 11.96
+  },
+  {
+   "fips": "04027",
+   "county": "Yuma",
+   "state": "Arizona",
+   "river": "Colorado",
+   "cls": 2,
+   "p_model": 0.06,
+   "p_season": 0.2573,
+   "weeks_model": 14.88
+  },
+  {
+   "fips": "05001",
+   "county": "Arkansas",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9997,
+   "p_season": 0.8726,
+   "weeks_model": 32.63
+  },
+  {
+   "fips": "05017",
+   "county": "Chicot",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 1.0,
+   "p_season": 0.8861,
+   "weeks_model": 33.4
+  },
+  {
+   "fips": "05035",
+   "county": "Crittenden",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9992,
+   "p_season": 0.8384,
+   "weeks_model": 37.21
+  },
+  {
+   "fips": "05041",
+   "county": "Desha",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 1.0,
+   "p_season": 0.8962,
+   "weeks_model": 33.41
+  },
+  {
+   "fips": "05077",
+   "county": "Lee",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9994,
+   "p_season": 0.8322,
+   "weeks_model": 35.65
+  },
+  {
+   "fips": "05079",
+   "county": "Lincoln",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9997,
+   "p_season": 0.8726,
+   "weeks_model": 32.63
+  },
+  {
+   "fips": "05093",
+   "county": "Mississippi",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9931,
+   "p_season": 0.7878,
+   "weeks_model": 32.68
+  },
+  {
+   "fips": "05095",
+   "county": "Monroe",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9996,
+   "p_season": 0.8746,
+   "weeks_model": 32.97
+  },
+  {
+   "fips": "05107",
+   "county": "Phillips",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9997,
+   "p_season": 0.8664,
+   "weeks_model": 34.45
+  },
+  {
+   "fips": "05111",
+   "county": "Poinsett",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.999,
+   "p_season": 0.8457,
+   "weeks_model": 35.73
+  },
+  {
+   "fips": "05123",
+   "county": "St. Francis",
+   "state": "Arkansas",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9999,
+   "p_season": 0.8262,
+   "weeks_model": 33.99
+  },
+  {
+   "fips": "06025",
+   "county": "Imperial",
+   "state": "California",
+   "river": "Colorado",
+   "cls": 0,
+   "p_model": 0.0203,
+   "p_season": 0.0972,
+   "weeks_model": 8.12
+  },
+  {
+   "fips": "08003",
+   "county": "Alamosa",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0636,
+   "p_season": 0.21,
+   "weeks_model": 13.28
+  },
+  {
+   "fips": "08021",
+   "county": "Conejos",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0279,
+   "p_season": 0.1501,
+   "weeks_model": 11.7
+  },
+  {
+   "fips": "08023",
+   "county": "Costilla",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0745,
+   "p_season": 0.1899,
+   "weeks_model": 13.01
+  },
+  {
+   "fips": "08037",
+   "county": "Eagle",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 5,
+   "p_model": 0.9999,
+   "p_season": 0.8224,
+   "weeks_model": 33.42
+  },
+  {
+   "fips": "08045",
+   "county": "Garfield",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 4,
+   "p_model": 0.9805,
+   "p_season": 0.6775,
+   "weeks_model": 31.48
+  },
+  {
+   "fips": "08047",
+   "county": "Gilpin",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 5,
+   "p_model": 0.9995,
+   "p_season": 0.8509,
+   "weeks_model": 34.75
+  },
+  {
+   "fips": "08049",
+   "county": "Grand",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 5,
+   "p_model": 1.0,
+   "p_season": 0.8986,
+   "weeks_model": 34.64
+  },
+  {
+   "fips": "08053",
+   "county": "Hinsdale",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0348,
+   "p_season": 0.1969,
+   "weeks_model": 11.46
+  },
+  {
+   "fips": "08069",
+   "county": "Larimer",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 4,
+   "p_model": 0.9989,
+   "p_season": 0.8649,
+   "weeks_model": 35.18
+  },
+  {
+   "fips": "08077",
+   "county": "Mesa",
+   "state": "Colorado",
+   "river": "Colorado",
+   "cls": 1,
+   "p_model": 0.0752,
+   "p_season": 0.2654,
+   "weeks_model": 14.82
+  },
+  {
+   "fips": "08079",
+   "county": "Mineral",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0475,
+   "p_season": 0.1901,
+   "weeks_model": 11.48
+  },
+  {
+   "fips": "08105",
+   "county": "Rio Grande",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0321,
+   "p_season": 0.1919,
+   "weeks_model": 11.96
+  },
+  {
+   "fips": "08109",
+   "county": "Saguache",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 3,
+   "p_model": 0.8533,
+   "p_season": 0.4929,
+   "weeks_model": 25.13
+  },
+  {
+   "fips": "08111",
+   "county": "San Juan",
+   "state": "Colorado",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0068,
+   "p_season": 0.1526,
+   "weeks_model": 11.72
+  },
+  {
+   "fips": "17001",
+   "county": "Adams",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.3396,
+   "p_season": 0.3942,
+   "weeks_model": 21.99
+  },
+  {
+   "fips": "17003",
+   "county": "Alexander",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9539,
+   "p_season": 0.7251,
+   "weeks_model": 35.69
+  },
+  {
+   "fips": "17013",
+   "county": "Calhoun",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9429,
+   "p_season": 0.7282,
+   "weeks_model": 36.11
+  },
+  {
+   "fips": "17015",
+   "county": "Carroll",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0032,
+   "p_season": 0.0504,
+   "weeks_model": 9.72
+  },
+  {
+   "fips": "17047",
+   "county": "Edwards",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 3,
+   "p_model": 0.8993,
+   "p_season": 0.6236,
+   "weeks_model": 32.73
+  },
+  {
+   "fips": "17059",
+   "county": "Gallatin",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4866,
+   "p_season": 0.5048,
+   "weeks_model": 26.27
+  },
+  {
+   "fips": "17061",
+   "county": "Greene",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9422,
+   "p_season": 0.7164,
+   "weeks_model": 34.52
+  },
+  {
+   "fips": "17065",
+   "county": "Hamilton",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 3,
+   "p_model": 0.9135,
+   "p_season": 0.6433,
+   "weeks_model": 31.3
+  },
+  {
+   "fips": "17067",
+   "county": "Hancock",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0629,
+   "p_season": 0.2293,
+   "weeks_model": 14.98
+  },
+  {
+   "fips": "17069",
+   "county": "Hardin",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1432,
+   "p_season": 0.3211,
+   "weeks_model": 17.13
+  },
+  {
+   "fips": "17071",
+   "county": "Henderson",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.05,
+   "p_season": 0.1499,
+   "weeks_model": 12.71
+  },
+  {
+   "fips": "17073",
+   "county": "Henry",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0111,
+   "p_season": 0.0721,
+   "weeks_model": 11.23
+  },
+  {
+   "fips": "17077",
+   "county": "Jackson",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9608,
+   "p_season": 0.7091,
+   "weeks_model": 33.9
+  },
+  {
+   "fips": "17083",
+   "county": "Jersey",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9453,
+   "p_season": 0.7209,
+   "weeks_model": 36.13
+  },
+  {
+   "fips": "17085",
+   "county": "Jo Daviess",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0034,
+   "p_season": 0.045,
+   "weeks_model": 9.3
+  },
+  {
+   "fips": "17087",
+   "county": "Johnson",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4511,
+   "p_season": 0.5112,
+   "weeks_model": 25.08
+  },
+  {
+   "fips": "17109",
+   "county": "McDonough",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0686,
+   "p_season": 0.2372,
+   "weeks_model": 15.19
+  },
+  {
+   "fips": "17117",
+   "county": "Macoupin",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9531,
+   "p_season": 0.7326,
+   "weeks_model": 38.54
+  },
+  {
+   "fips": "17119",
+   "county": "Madison",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9586,
+   "p_season": 0.7081,
+   "weeks_model": 39.69
+  },
+  {
+   "fips": "17127",
+   "county": "Massac",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.2105,
+   "p_season": 0.3826,
+   "weeks_model": 18.33
+  },
+  {
+   "fips": "17131",
+   "county": "Mercer",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0067,
+   "p_season": 0.1007,
+   "weeks_model": 13.95
+  },
+  {
+   "fips": "17133",
+   "county": "Monroe",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9447,
+   "p_season": 0.7118,
+   "weeks_model": 36.68
+  },
+  {
+   "fips": "17145",
+   "county": "Perry",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9685,
+   "p_season": 0.7243,
+   "weeks_model": 36.14
+  },
+  {
+   "fips": "17149",
+   "county": "Pike",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8922,
+   "p_season": 0.6861,
+   "weeks_model": 35.38
+  },
+  {
+   "fips": "17151",
+   "county": "Pope",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4654,
+   "p_season": 0.5224,
+   "weeks_model": 25.31
+  },
+  {
+   "fips": "17153",
+   "county": "Pulaski",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4817,
+   "p_season": 0.5158,
+   "weeks_model": 25.53
+  },
+  {
+   "fips": "17157",
+   "county": "Randolph",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9715,
+   "p_season": 0.7339,
+   "weeks_model": 34.98
+  },
+  {
+   "fips": "17161",
+   "county": "Rock Island",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0038,
+   "p_season": 0.0909,
+   "weeks_model": 13.75
+  },
+  {
+   "fips": "17163",
+   "county": "St. Clair",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9473,
+   "p_season": 0.7139,
+   "weeks_model": 37.18
+  },
+  {
+   "fips": "17165",
+   "county": "Saline",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 3,
+   "p_model": 0.9013,
+   "p_season": 0.6202,
+   "weeks_model": 32.9
+  },
+  {
+   "fips": "17171",
+   "county": "Scott",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9014,
+   "p_season": 0.6958,
+   "weeks_model": 34.85
+  },
+  {
+   "fips": "17181",
+   "county": "Union",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9593,
+   "p_season": 0.7113,
+   "weeks_model": 37.04
+  },
+  {
+   "fips": "17187",
+   "county": "Warren",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0674,
+   "p_season": 0.1628,
+   "weeks_model": 14.32
+  },
+  {
+   "fips": "17193",
+   "county": "White",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 3,
+   "p_model": 0.8964,
+   "p_season": 0.6246,
+   "weeks_model": 32.78
+  },
+  {
+   "fips": "17195",
+   "county": "Whiteside",
+   "state": "Illinois",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0087,
+   "p_season": 0.0686,
+   "weeks_model": 11.01
+  },
+  {
+   "fips": "17199",
+   "county": "Williamson",
+   "state": "Illinois",
+   "river": "Ohio",
+   "cls": 3,
+   "p_model": 0.9174,
+   "p_season": 0.6578,
+   "weeks_model": 33.03
+  },
+  {
+   "fips": "18019",
+   "county": "Clark",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0395,
+   "p_season": 0.1128,
+   "weeks_model": 17.08
+  },
+  {
+   "fips": "18025",
+   "county": "Crawford",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1046,
+   "p_season": 0.2629,
+   "weeks_model": 20.14
+  },
+  {
+   "fips": "18029",
+   "county": "Dearborn",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0608,
+   "p_season": 0.1186,
+   "weeks_model": 17.35
+  },
+  {
+   "fips": "18037",
+   "county": "Dubois",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2863,
+   "p_season": 0.3999,
+   "weeks_model": 21.82
+  },
+  {
+   "fips": "18043",
+   "county": "Floyd",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0151,
+   "p_season": 0.1188,
+   "weeks_model": 17.94
+  },
+  {
+   "fips": "18047",
+   "county": "Franklin",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0511,
+   "p_season": 0.1129,
+   "weeks_model": 19.73
+  },
+  {
+   "fips": "18051",
+   "county": "Gibson",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4856,
+   "p_season": 0.5065,
+   "weeks_model": 28.26
+  },
+  {
+   "fips": "18061",
+   "county": "Harrison",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0805,
+   "p_season": 0.1405,
+   "weeks_model": 19.18
+  },
+  {
+   "fips": "18077",
+   "county": "Jefferson",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0764,
+   "p_season": 0.1159,
+   "weeks_model": 17.49
+  },
+  {
+   "fips": "18079",
+   "county": "Jennings",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0756,
+   "p_season": 0.1331,
+   "weeks_model": 18.05
+  },
+  {
+   "fips": "18115",
+   "county": "Ohio",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2192,
+   "p_season": 0.2259,
+   "weeks_model": 17.84
+  },
+  {
+   "fips": "18117",
+   "county": "Orange",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0895,
+   "p_season": 0.2596,
+   "weeks_model": 18.08
+  },
+  {
+   "fips": "18123",
+   "county": "Perry",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.12,
+   "p_season": 0.2901,
+   "weeks_model": 20.52
+  },
+  {
+   "fips": "18129",
+   "county": "Posey",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4753,
+   "p_season": 0.5099,
+   "weeks_model": 28.12
+  },
+  {
+   "fips": "18137",
+   "county": "Ripley",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0724,
+   "p_season": 0.1245,
+   "weeks_model": 17.81
+  },
+  {
+   "fips": "18143",
+   "county": "Scott",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0772,
+   "p_season": 0.1313,
+   "weeks_model": 17.95
+  },
+  {
+   "fips": "18147",
+   "county": "Spencer",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1361,
+   "p_season": 0.3279,
+   "weeks_model": 21.08
+  },
+  {
+   "fips": "18155",
+   "county": "Switzerland",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2201,
+   "p_season": 0.2244,
+   "weeks_model": 17.07
+  },
+  {
+   "fips": "18163",
+   "county": "Vanderburgh",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4664,
+   "p_season": 0.5033,
+   "weeks_model": 26.29
+  },
+  {
+   "fips": "18173",
+   "county": "Warrick",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.2105,
+   "p_season": 0.3457,
+   "weeks_model": 21.73
+  },
+  {
+   "fips": "18175",
+   "county": "Washington",
+   "state": "Indiana",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0509,
+   "p_season": 0.1947,
+   "weeks_model": 18.85
+  },
+  {
+   "fips": "19005",
+   "county": "Allamakee",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0021,
+   "p_season": 0.1228,
+   "weeks_model": 10.67
+  },
+  {
+   "fips": "19031",
+   "county": "Cedar",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0667,
+   "weeks_model": 10.95
+  },
+  {
+   "fips": "19043",
+   "county": "Clayton",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0006,
+   "p_season": 0.0552,
+   "weeks_model": 9.57
+  },
+  {
+   "fips": "19045",
+   "county": "Clinton",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0022,
+   "p_season": 0.0703,
+   "weeks_model": 13.53
+  },
+  {
+   "fips": "19055",
+   "county": "Delaware",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.055,
+   "weeks_model": 8.95
+  },
+  {
+   "fips": "19057",
+   "county": "Des Moines",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0282,
+   "p_season": 0.1665,
+   "weeks_model": 16.31
+  },
+  {
+   "fips": "19061",
+   "county": "Dubuque",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0505,
+   "weeks_model": 9.82
+  },
+  {
+   "fips": "19071",
+   "county": "Fremont",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0459,
+   "weeks_model": 10.75
+  },
+  {
+   "fips": "19085",
+   "county": "Harrison",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.001,
+   "p_season": 0.0444,
+   "weeks_model": 5.36
+  },
+  {
+   "fips": "19087",
+   "county": "Henry",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0053,
+   "p_season": 0.0639,
+   "weeks_model": 10.22
+  },
+  {
+   "fips": "19097",
+   "county": "Jackson",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0414,
+   "weeks_model": 9.27
+  },
+  {
+   "fips": "19103",
+   "county": "Johnson",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0667,
+   "weeks_model": 10.93
+  },
+  {
+   "fips": "19111",
+   "county": "Lee",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0501,
+   "p_season": 0.1771,
+   "weeks_model": 14.25
+  },
+  {
+   "fips": "19115",
+   "county": "Louisa",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.006,
+   "p_season": 0.0939,
+   "weeks_model": 13.64
+  },
+  {
+   "fips": "19129",
+   "county": "Mills",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0452,
+   "weeks_model": 9.7
+  },
+  {
+   "fips": "19133",
+   "county": "Monona",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0005,
+   "p_season": 0.0384,
+   "weeks_model": 6.1
+  },
+  {
+   "fips": "19139",
+   "county": "Muscatine",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0017,
+   "p_season": 0.0938,
+   "weeks_model": 13.56
+  },
+  {
+   "fips": "19145",
+   "county": "Page",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0437,
+   "weeks_model": 10.66
+  },
+  {
+   "fips": "19149",
+   "county": "Plymouth",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0401,
+   "weeks_model": 5.67
+  },
+  {
+   "fips": "19155",
+   "county": "Pottawattamie",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0332,
+   "weeks_model": 5.1
+  },
+  {
+   "fips": "19163",
+   "county": "Scott",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0022,
+   "p_season": 0.0945,
+   "weeks_model": 14.9
+  },
+  {
+   "fips": "19177",
+   "county": "Van Buren",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0082,
+   "p_season": 0.0925,
+   "weeks_model": 10.32
+  },
+  {
+   "fips": "19191",
+   "county": "Winneshiek",
+   "state": "Iowa",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0027,
+   "p_season": 0.1476,
+   "weeks_model": 10.41
+  },
+  {
+   "fips": "19193",
+   "county": "Woodbury",
+   "state": "Iowa",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0049,
+   "p_season": 0.0509,
+   "weeks_model": 5.04
+  },
+  {
+   "fips": "20005",
+   "county": "Atchison",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0012,
+   "p_season": 0.04,
+   "weeks_model": 10.96
+  },
+  {
+   "fips": "20013",
+   "county": "Brown",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0392,
+   "weeks_model": 10.85
+  },
+  {
+   "fips": "20043",
+   "county": "Doniphan",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0012,
+   "p_season": 0.0379,
+   "weeks_model": 10.56
+  },
+  {
+   "fips": "20087",
+   "county": "Jefferson",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.002,
+   "p_season": 0.0384,
+   "weeks_model": 10.09
+  },
+  {
+   "fips": "20091",
+   "county": "Johnson",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0038,
+   "p_season": 0.1387,
+   "weeks_model": 10.4
+  },
+  {
+   "fips": "20103",
+   "county": "Leavenworth",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0034,
+   "p_season": 0.0384,
+   "weeks_model": 10.09
+  },
+  {
+   "fips": "20209",
+   "county": "Wyandotte",
+   "state": "Kansas",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0037,
+   "p_season": 0.0575,
+   "weeks_model": 10.18
+  },
+  {
+   "fips": "21007",
+   "county": "Ballard",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.2548,
+   "p_season": 0.3592,
+   "weeks_model": 18.58
+  },
+  {
+   "fips": "21015",
+   "county": "Boone",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2201,
+   "p_season": 0.2285,
+   "weeks_model": 16.78
+  },
+  {
+   "fips": "21019",
+   "county": "Boyd",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.001,
+   "p_season": 0.055,
+   "weeks_model": 10.01
+  },
+  {
+   "fips": "21023",
+   "county": "Bracken",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0245,
+   "p_season": 0.0762,
+   "weeks_model": 12.14
+  },
+  {
+   "fips": "21027",
+   "county": "Breckinridge",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2952,
+   "p_season": 0.4676,
+   "weeks_model": 22.98
+  },
+  {
+   "fips": "21029",
+   "county": "Bullitt",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0758,
+   "p_season": 0.1127,
+   "weeks_model": 13.47
+  },
+  {
+   "fips": "21033",
+   "county": "Caldwell",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4686,
+   "p_season": 0.5281,
+   "weeks_model": 26.63
+  },
+  {
+   "fips": "21037",
+   "county": "Campbell",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2235,
+   "p_season": 0.2179,
+   "weeks_model": 16.14
+  },
+  {
+   "fips": "21039",
+   "county": "Carlisle",
+   "state": "Kentucky",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.1571,
+   "p_season": 0.3229,
+   "weeks_model": 15.17
+  },
+  {
+   "fips": "21041",
+   "county": "Carroll",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2201,
+   "p_season": 0.2274,
+   "weeks_model": 17.39
+  },
+  {
+   "fips": "21043",
+   "county": "Carter",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0042,
+   "p_season": 0.0449,
+   "weeks_model": 9.87
+  },
+  {
+   "fips": "21055",
+   "county": "Crittenden",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1876,
+   "p_season": 0.3152,
+   "weeks_model": 17.84
+  },
+  {
+   "fips": "21059",
+   "county": "Daviess",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4096,
+   "p_season": 0.4882,
+   "weeks_model": 24.33
+  },
+  {
+   "fips": "21069",
+   "county": "Fleming",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0055,
+   "p_season": 0.0413,
+   "weeks_model": 9.52
+  },
+  {
+   "fips": "21075",
+   "county": "Fulton",
+   "state": "Kentucky",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.2372,
+   "p_season": 0.3794,
+   "weeks_model": 19.45
+  },
+  {
+   "fips": "21077",
+   "county": "Gallatin",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2248,
+   "p_season": 0.2179,
+   "weeks_model": 16.14
+  },
+  {
+   "fips": "21081",
+   "county": "Grant",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2368,
+   "p_season": 0.2125,
+   "weeks_model": 16.13
+  },
+  {
+   "fips": "21089",
+   "county": "Greenup",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0038,
+   "p_season": 0.0449,
+   "weeks_model": 10.21
+  },
+  {
+   "fips": "21091",
+   "county": "Hancock",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.3383,
+   "p_season": 0.45,
+   "weeks_model": 22.0
+  },
+  {
+   "fips": "21093",
+   "county": "Hardin",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1128,
+   "p_season": 0.2228,
+   "weeks_model": 15.91
+  },
+  {
+   "fips": "21097",
+   "county": "Harrison",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.007,
+   "p_season": 0.0483,
+   "weeks_model": 10.21
+  },
+  {
+   "fips": "21101",
+   "county": "Henderson",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4693,
+   "p_season": 0.5091,
+   "weeks_model": 25.07
+  },
+  {
+   "fips": "21103",
+   "county": "Henry",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0555,
+   "p_season": 0.1046,
+   "weeks_model": 14.21
+  },
+  {
+   "fips": "21105",
+   "county": "Hickman",
+   "state": "Kentucky",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.1585,
+   "p_season": 0.3068,
+   "weeks_model": 15.03
+  },
+  {
+   "fips": "21111",
+   "county": "Jefferson",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0723,
+   "p_season": 0.116,
+   "weeks_model": 15.73
+  },
+  {
+   "fips": "21117",
+   "county": "Kenton",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2247,
+   "p_season": 0.2148,
+   "weeks_model": 16.14
+  },
+  {
+   "fips": "21127",
+   "county": "Lawrence",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0007,
+   "p_season": 0.0431,
+   "weeks_model": 8.89
+  },
+  {
+   "fips": "21135",
+   "county": "Lewis",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0056,
+   "p_season": 0.0435,
+   "weeks_model": 10.04
+  },
+  {
+   "fips": "21139",
+   "county": "Livingston",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1802,
+   "p_season": 0.3208,
+   "weeks_model": 17.67
+  },
+  {
+   "fips": "21143",
+   "county": "Lyon",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.1768,
+   "p_season": 0.3145,
+   "weeks_model": 17.27
+  },
+  {
+   "fips": "21145",
+   "county": "McCracken",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.2355,
+   "p_season": 0.3533,
+   "weeks_model": 19.6
+  },
+  {
+   "fips": "21149",
+   "county": "McLean",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4423,
+   "p_season": 0.5237,
+   "weeks_model": 26.99
+  },
+  {
+   "fips": "21157",
+   "county": "Marshall",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.2601,
+   "p_season": 0.3143,
+   "weeks_model": 16.62
+  },
+  {
+   "fips": "21161",
+   "county": "Mason",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0075,
+   "p_season": 0.0468,
+   "weeks_model": 10.62
+  },
+  {
+   "fips": "21163",
+   "county": "Meade",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0956,
+   "p_season": 0.1683,
+   "weeks_model": 15.89
+  },
+  {
+   "fips": "21179",
+   "county": "Nelson",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.319,
+   "p_season": 0.3071,
+   "weeks_model": 19.67
+  },
+  {
+   "fips": "21181",
+   "county": "Nicholas",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0069,
+   "p_season": 0.0465,
+   "weeks_model": 9.96
+  },
+  {
+   "fips": "21183",
+   "county": "Ohio",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.3811,
+   "p_season": 0.4959,
+   "weeks_model": 25.71
+  },
+  {
+   "fips": "21185",
+   "county": "Oldham",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0475,
+   "p_season": 0.0885,
+   "weeks_model": 16.56
+  },
+  {
+   "fips": "21187",
+   "county": "Owen",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2403,
+   "p_season": 0.2204,
+   "weeks_model": 16.26
+  },
+  {
+   "fips": "21191",
+   "county": "Pendleton",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.2414,
+   "p_season": 0.2068,
+   "weeks_model": 15.58
+  },
+  {
+   "fips": "21201",
+   "county": "Robertson",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0085,
+   "p_season": 0.0465,
+   "weeks_model": 10.74
+  },
+  {
+   "fips": "21205",
+   "county": "Rowan",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0036,
+   "p_season": 0.0379,
+   "weeks_model": 9.47
+  },
+  {
+   "fips": "21211",
+   "county": "Shelby",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0385,
+   "p_season": 0.0891,
+   "weeks_model": 14.07
+  },
+  {
+   "fips": "21215",
+   "county": "Spencer",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0081,
+   "p_season": 0.07,
+   "weeks_model": 11.45
+  },
+  {
+   "fips": "21223",
+   "county": "Trimble",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0732,
+   "p_season": 0.1175,
+   "weeks_model": 18.17
+  },
+  {
+   "fips": "21225",
+   "county": "Union",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4923,
+   "p_season": 0.5189,
+   "weeks_model": 25.02
+  },
+  {
+   "fips": "21233",
+   "county": "Webster",
+   "state": "Kentucky",
+   "river": "Ohio",
+   "cls": 2,
+   "p_model": 0.4724,
+   "p_season": 0.5214,
+   "weeks_model": 24.61
+  },
+  {
+   "fips": "22005",
+   "county": "Ascension",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9552,
+   "p_season": 0.7012,
+   "weeks_model": 38.22
+  },
+  {
+   "fips": "22007",
+   "county": "Assumption",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9758,
+   "p_season": 0.7203,
+   "weeks_model": 36.97
+  },
+  {
+   "fips": "22009",
+   "county": "Avoyelles",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9988,
+   "p_season": 0.8089,
+   "weeks_model": 37.97
+  },
+  {
+   "fips": "22025",
+   "county": "Catahoula",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9977,
+   "p_season": 0.8052,
+   "weeks_model": 36.44
+  },
+  {
+   "fips": "22029",
+   "county": "Concordia",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9985,
+   "p_season": 0.8177,
+   "weeks_model": 37.58
+  },
+  {
+   "fips": "22033",
+   "county": "East Baton Rouge",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9897,
+   "p_season": 0.7604,
+   "weeks_model": 39.57
+  },
+  {
+   "fips": "22035",
+   "county": "East Carroll",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9976,
+   "p_season": 0.8172,
+   "weeks_model": 34.98
+  },
+  {
+   "fips": "22037",
+   "county": "East Feliciana",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9971,
+   "p_season": 0.7816,
+   "weeks_model": 39.36
+  },
+  {
+   "fips": "22041",
+   "county": "Franklin",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9976,
+   "p_season": 0.7996,
+   "weeks_model": 35.65
+  },
+  {
+   "fips": "22047",
+   "county": "Iberville",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9953,
+   "p_season": 0.7345,
+   "weeks_model": 40.83
+  },
+  {
+   "fips": "22051",
+   "county": "Jefferson",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.5006,
+   "p_season": 0.5851,
+   "weeks_model": 26.56
+  },
+  {
+   "fips": "22057",
+   "county": "Lafourche",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9603,
+   "p_season": 0.7301,
+   "weeks_model": 35.6
+  },
+  {
+   "fips": "22063",
+   "county": "Livingston",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9898,
+   "p_season": 0.7717,
+   "weeks_model": 36.9
+  },
+  {
+   "fips": "22065",
+   "county": "Madison",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9965,
+   "p_season": 0.8226,
+   "weeks_model": 34.26
+  },
+  {
+   "fips": "22071",
+   "county": "Orleans",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.5111,
+   "p_season": 0.6197,
+   "weeks_model": 29.77
+  },
+  {
+   "fips": "22075",
+   "county": "Plaquemines",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.4723,
+   "p_season": 0.5932,
+   "weeks_model": 27.45
+  },
+  {
+   "fips": "22077",
+   "county": "Pointe Coupee",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9987,
+   "p_season": 0.807,
+   "weeks_model": 36.82
+  },
+  {
+   "fips": "22089",
+   "county": "St. Charles",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.5102,
+   "p_season": 0.6323,
+   "weeks_model": 28.43
+  },
+  {
+   "fips": "22093",
+   "county": "St. James",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9505,
+   "p_season": 0.7159,
+   "weeks_model": 36.92
+  },
+  {
+   "fips": "22095",
+   "county": "St. John the Baptist",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9586,
+   "p_season": 0.7243,
+   "weeks_model": 37.1
+  },
+  {
+   "fips": "22099",
+   "county": "St. Martin",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9968,
+   "p_season": 0.783,
+   "weeks_model": 38.0
+  },
+  {
+   "fips": "22103",
+   "county": "St. Tammany",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.5038,
+   "p_season": 0.6347,
+   "weeks_model": 30.0
+  },
+  {
+   "fips": "22107",
+   "county": "Tensas",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9969,
+   "p_season": 0.8112,
+   "weeks_model": 36.65
+  },
+  {
+   "fips": "22121",
+   "county": "West Baton Rouge",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9803,
+   "p_season": 0.6982,
+   "weeks_model": 35.79
+  },
+  {
+   "fips": "22123",
+   "county": "West Carroll",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9962,
+   "p_season": 0.8246,
+   "weeks_model": 33.5
+  },
+  {
+   "fips": "22125",
+   "county": "West Feliciana",
+   "state": "Louisiana",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9985,
+   "p_season": 0.8418,
+   "weeks_model": 37.61
+  },
+  {
+   "fips": "27001",
+   "county": "Aitkin",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0834,
+   "p_season": 0.3023,
+   "weeks_model": 20.72
+  },
+  {
+   "fips": "27003",
+   "county": "Anoka",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0984,
+   "p_season": 0.3663,
+   "weeks_model": 17.98
+  },
+  {
+   "fips": "27005",
+   "county": "Becker",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0809,
+   "p_season": 0.3438,
+   "weeks_model": 19.41
+  },
+  {
+   "fips": "27007",
+   "county": "Beltrami",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.02,
+   "p_season": 0.1192,
+   "weeks_model": 9.27
+  },
+  {
+   "fips": "27009",
+   "county": "Benton",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0326,
+   "p_season": 0.1358,
+   "weeks_model": 14.2
+  },
+  {
+   "fips": "27019",
+   "county": "Carver",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0328,
+   "p_season": 0.1771,
+   "weeks_model": 14.42
+  },
+  {
+   "fips": "27021",
+   "county": "Cass",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0161,
+   "p_season": 0.1427,
+   "weeks_model": 13.54
+  },
+  {
+   "fips": "27029",
+   "county": "Clearwater",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0102,
+   "p_season": 0.1851,
+   "weeks_model": 11.01
+  },
+  {
+   "fips": "27035",
+   "county": "Crow Wing",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0208,
+   "p_season": 0.1469,
+   "weeks_model": 14.17
+  },
+  {
+   "fips": "27037",
+   "county": "Dakota",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0683,
+   "p_season": 0.4,
+   "weeks_model": 19.88
+  },
+  {
+   "fips": "27049",
+   "county": "Goodhue",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8342,
+   "p_season": 0.5823,
+   "weeks_model": 30.14
+  },
+  {
+   "fips": "27053",
+   "county": "Hennepin",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0745,
+   "p_season": 0.3815,
+   "weeks_model": 19.38
+  },
+  {
+   "fips": "27055",
+   "county": "Houston",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0021,
+   "p_season": 0.1699,
+   "weeks_model": 11.94
+  },
+  {
+   "fips": "27057",
+   "county": "Hubbard",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0248,
+   "p_season": 0.1807,
+   "weeks_model": 13.94
+  },
+  {
+   "fips": "27059",
+   "county": "Isanti",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.1044,
+   "p_season": 0.3541,
+   "weeks_model": 18.98
+  },
+  {
+   "fips": "27061",
+   "county": "Itasca",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0214,
+   "p_season": 0.1481,
+   "weeks_model": 13.26
+  },
+  {
+   "fips": "27087",
+   "county": "Mahnomen",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0237,
+   "p_season": 0.2203,
+   "weeks_model": 12.62
+  },
+  {
+   "fips": "27093",
+   "county": "Meeker",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0089,
+   "p_season": 0.089,
+   "weeks_model": 11.38
+  },
+  {
+   "fips": "27097",
+   "county": "Morrison",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0267,
+   "p_season": 0.1438,
+   "weeks_model": 14.53
+  },
+  {
+   "fips": "27123",
+   "county": "Ramsey",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0756,
+   "p_season": 0.3895,
+   "weeks_model": 21.61
+  },
+  {
+   "fips": "27139",
+   "county": "Scott",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0328,
+   "p_season": 0.2035,
+   "weeks_model": 14.53
+  },
+  {
+   "fips": "27141",
+   "county": "Sherburne",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0935,
+   "p_season": 0.3338,
+   "weeks_model": 16.65
+  },
+  {
+   "fips": "27145",
+   "county": "Stearns",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0235,
+   "p_season": 0.1259,
+   "weeks_model": 13.73
+  },
+  {
+   "fips": "27153",
+   "county": "Todd",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0247,
+   "p_season": 0.1588,
+   "weeks_model": 14.22
+  },
+  {
+   "fips": "27157",
+   "county": "Wabasha",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8344,
+   "p_season": 0.5953,
+   "weeks_model": 30.02
+  },
+  {
+   "fips": "27163",
+   "county": "Washington",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0668,
+   "p_season": 0.3819,
+   "weeks_model": 21.25
+  },
+  {
+   "fips": "27169",
+   "county": "Winona",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0086,
+   "p_season": 0.1671,
+   "weeks_model": 13.04
+  },
+  {
+   "fips": "27171",
+   "county": "Wright",
+   "state": "Minnesota",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0894,
+   "p_season": 0.322,
+   "weeks_model": 16.93
+  },
+  {
+   "fips": "28001",
+   "county": "Adams",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.998,
+   "p_season": 0.8154,
+   "weeks_model": 37.4
+  },
+  {
+   "fips": "28011",
+   "county": "Bolivar",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 1.0,
+   "p_season": 0.8995,
+   "weeks_model": 33.99
+  },
+  {
+   "fips": "28021",
+   "county": "Claiborne",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9967,
+   "p_season": 0.8172,
+   "weeks_model": 36.3
+  },
+  {
+   "fips": "28027",
+   "county": "Coahoma",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.997,
+   "p_season": 0.8815,
+   "weeks_model": 37.3
+  },
+  {
+   "fips": "28033",
+   "county": "DeSoto",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9978,
+   "p_season": 0.8153,
+   "weeks_model": 37.01
+  },
+  {
+   "fips": "28049",
+   "county": "Hinds",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9973,
+   "p_season": 0.8073,
+   "weeks_model": 36.44
+  },
+  {
+   "fips": "28055",
+   "county": "Issaquena",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9963,
+   "p_season": 0.8334,
+   "weeks_model": 35.5
+  },
+  {
+   "fips": "28063",
+   "county": "Jefferson",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9982,
+   "p_season": 0.811,
+   "weeks_model": 37.27
+  },
+  {
+   "fips": "28119",
+   "county": "Quitman",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9968,
+   "p_season": 0.8749,
+   "weeks_model": 36.86
+  },
+  {
+   "fips": "28125",
+   "county": "Sharkey",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9961,
+   "p_season": 0.8339,
+   "weeks_model": 34.87
+  },
+  {
+   "fips": "28133",
+   "county": "Sunflower",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9993,
+   "p_season": 0.8612,
+   "weeks_model": 33.67
+  },
+  {
+   "fips": "28137",
+   "county": "Tate",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.989,
+   "p_season": 0.8101,
+   "weeks_model": 35.9
+  },
+  {
+   "fips": "28143",
+   "county": "Tunica",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9992,
+   "p_season": 0.8285,
+   "weeks_model": 38.0
+  },
+  {
+   "fips": "28149",
+   "county": "Warren",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9977,
+   "p_season": 0.7985,
+   "weeks_model": 35.96
+  },
+  {
+   "fips": "28151",
+   "county": "Washington",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9997,
+   "p_season": 0.879,
+   "weeks_model": 32.6
+  },
+  {
+   "fips": "28157",
+   "county": "Wilkinson",
+   "state": "Mississippi",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9984,
+   "p_season": 0.8349,
+   "weeks_model": 38.26
+  },
+  {
+   "fips": "29003",
+   "county": "Andrew",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0006,
+   "p_season": 0.0379,
+   "weeks_model": 10.7
+  },
+  {
+   "fips": "29005",
+   "county": "Atchison",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0459,
+   "weeks_model": 10.89
+  },
+  {
+   "fips": "29017",
+   "county": "Bollinger",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9839,
+   "p_season": 0.7384,
+   "weeks_model": 33.66
+  },
+  {
+   "fips": "29019",
+   "county": "Boone",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.4252,
+   "p_season": 0.4831,
+   "weeks_model": 23.77
+  },
+  {
+   "fips": "29021",
+   "county": "Buchanan",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0016,
+   "p_season": 0.0399,
+   "weeks_model": 10.21
+  },
+  {
+   "fips": "29027",
+   "county": "Callaway",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.935,
+   "p_season": 0.648,
+   "weeks_model": 34.08
+  },
+  {
+   "fips": "29031",
+   "county": "Cape Girardeau",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9848,
+   "p_season": 0.7499,
+   "weeks_model": 32.49
+  },
+  {
+   "fips": "29033",
+   "county": "Carroll",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0304,
+   "p_season": 0.1584,
+   "weeks_model": 15.87
+  },
+  {
+   "fips": "29041",
+   "county": "Chariton",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0466,
+   "p_season": 0.2364,
+   "weeks_model": 17.36
+  },
+  {
+   "fips": "29045",
+   "county": "Clark",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0164,
+   "p_season": 0.1492,
+   "weeks_model": 11.71
+  },
+  {
+   "fips": "29047",
+   "county": "Clay",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.003,
+   "p_season": 0.0735,
+   "weeks_model": 10.23
+  },
+  {
+   "fips": "29049",
+   "county": "Clinton",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0037,
+   "p_season": 0.0607,
+   "weeks_model": 9.77
+  },
+  {
+   "fips": "29051",
+   "county": "Cole",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.5463,
+   "p_season": 0.5064,
+   "weeks_model": 25.29
+  },
+  {
+   "fips": "29053",
+   "county": "Cooper",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.2165,
+   "p_season": 0.3389,
+   "weeks_model": 19.75
+  },
+  {
+   "fips": "29063",
+   "county": "DeKalb",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0389,
+   "weeks_model": 10.18
+  },
+  {
+   "fips": "29069",
+   "county": "Dunklin",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9951,
+   "p_season": 0.785,
+   "weeks_model": 33.01
+  },
+  {
+   "fips": "29071",
+   "county": "Franklin",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9428,
+   "p_season": 0.6571,
+   "weeks_model": 32.84
+  },
+  {
+   "fips": "29073",
+   "county": "Gasconade",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9659,
+   "p_season": 0.688,
+   "weeks_model": 33.77
+  },
+  {
+   "fips": "29087",
+   "county": "Holt",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0379,
+   "weeks_model": 10.41
+  },
+  {
+   "fips": "29089",
+   "county": "Howard",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0876,
+   "p_season": 0.3247,
+   "weeks_model": 18.92
+  },
+  {
+   "fips": "29095",
+   "county": "Jackson",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0227,
+   "p_season": 0.1664,
+   "weeks_model": 10.96
+  },
+  {
+   "fips": "29099",
+   "county": "Jefferson",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9775,
+   "p_season": 0.7164,
+   "weeks_model": 38.29
+  },
+  {
+   "fips": "29101",
+   "county": "Johnson",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.2226,
+   "p_season": 0.3189,
+   "weeks_model": 16.33
+  },
+  {
+   "fips": "29107",
+   "county": "Lafayette",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0379,
+   "p_season": 0.1893,
+   "weeks_model": 12.19
+  },
+  {
+   "fips": "29111",
+   "county": "Lewis",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0238,
+   "p_season": 0.1968,
+   "weeks_model": 13.33
+  },
+  {
+   "fips": "29113",
+   "county": "Lincoln",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9374,
+   "p_season": 0.7187,
+   "weeks_model": 35.41
+  },
+  {
+   "fips": "29115",
+   "county": "Linn",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0037,
+   "p_season": 0.1148,
+   "weeks_model": 14.41
+  },
+  {
+   "fips": "29127",
+   "county": "Marion",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.2748,
+   "p_season": 0.4205,
+   "weeks_model": 22.57
+  },
+  {
+   "fips": "29131",
+   "county": "Miller",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 4,
+   "p_model": 0.9863,
+   "p_season": 0.73,
+   "weeks_model": 33.04
+  },
+  {
+   "fips": "29133",
+   "county": "Mississippi",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.1637,
+   "p_season": 0.3141,
+   "weeks_model": 14.67
+  },
+  {
+   "fips": "29135",
+   "county": "Moniteau",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.4959,
+   "p_season": 0.44,
+   "weeks_model": 21.94
+  },
+  {
+   "fips": "29139",
+   "county": "Montgomery",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9271,
+   "p_season": 0.6529,
+   "weeks_model": 33.09
+  },
+  {
+   "fips": "29143",
+   "county": "New Madrid",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.4596,
+   "p_season": 0.6215,
+   "weeks_model": 28.91
+  },
+  {
+   "fips": "29151",
+   "county": "Osage",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9403,
+   "p_season": 0.6567,
+   "weeks_model": 32.51
+  },
+  {
+   "fips": "29155",
+   "county": "Pemiscot",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9916,
+   "p_season": 0.7686,
+   "weeks_model": 33.06
+  },
+  {
+   "fips": "29157",
+   "county": "Perry",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9875,
+   "p_season": 0.7422,
+   "weeks_model": 33.13
+  },
+  {
+   "fips": "29163",
+   "county": "Pike",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8958,
+   "p_season": 0.7185,
+   "weeks_model": 34.7
+  },
+  {
+   "fips": "29165",
+   "county": "Platte",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0034,
+   "p_season": 0.0384,
+   "weeks_model": 10.09
+  },
+  {
+   "fips": "29173",
+   "county": "Ralls",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8291,
+   "p_season": 0.6466,
+   "weeks_model": 33.57
+  },
+  {
+   "fips": "29175",
+   "county": "Randolph",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0973,
+   "p_season": 0.2742,
+   "weeks_model": 17.28
+  },
+  {
+   "fips": "29177",
+   "county": "Ray",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0071,
+   "p_season": 0.1249,
+   "weeks_model": 11.14
+  },
+  {
+   "fips": "29183",
+   "county": "St. Charles",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.5197,
+   "p_season": 0.4771,
+   "weeks_model": 24.85
+  },
+  {
+   "fips": "29186",
+   "county": "Ste. Genevieve",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.991,
+   "p_season": 0.7727,
+   "weeks_model": 34.18
+  },
+  {
+   "fips": "29187",
+   "county": "St. Francois",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9918,
+   "p_season": 0.7564,
+   "weeks_model": 33.56
+  },
+  {
+   "fips": "29189",
+   "county": "St. Louis",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.5417,
+   "p_season": 0.5072,
+   "weeks_model": 25.63
+  },
+  {
+   "fips": "29195",
+   "county": "Saline",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0807,
+   "p_season": 0.3015,
+   "weeks_model": 18.93
+  },
+  {
+   "fips": "29201",
+   "county": "Scott",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.5139,
+   "p_season": 0.6314,
+   "weeks_model": 28.17
+  },
+  {
+   "fips": "29207",
+   "county": "Stoddard",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9663,
+   "p_season": 0.7218,
+   "weeks_model": 35.83
+  },
+  {
+   "fips": "29219",
+   "county": "Warren",
+   "state": "Missouri",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9274,
+   "p_season": 0.6549,
+   "weeks_model": 33.5
+  },
+  {
+   "fips": "29221",
+   "county": "Washington",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9917,
+   "p_season": 0.7653,
+   "weeks_model": 35.58
+  },
+  {
+   "fips": "29510",
+   "county": "St. Louis",
+   "state": "Missouri",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.54,
+   "p_season": 0.5542,
+   "weeks_model": 27.05
+  },
+  {
+   "fips": "30007",
+   "county": "Broadwater",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0027,
+   "p_season": 0.0355,
+   "weeks_model": 6.46
+  },
+  {
+   "fips": "30013",
+   "county": "Cascade",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0111,
+   "p_season": 0.0933,
+   "weeks_model": 10.16
+  },
+  {
+   "fips": "30015",
+   "county": "Chouteau",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0018,
+   "p_season": 0.0373,
+   "weeks_model": 7.09
+  },
+  {
+   "fips": "30033",
+   "county": "Garfield",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0027,
+   "p_season": 0.1121,
+   "weeks_model": 7.14
+  },
+  {
+   "fips": "30049",
+   "county": "Lewis and Clark",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.2504,
+   "p_season": 0.2687,
+   "weeks_model": 19.04
+  },
+  {
+   "fips": "30055",
+   "county": "McCone",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0276,
+   "p_season": 0.2497,
+   "weeks_model": 11.11
+  },
+  {
+   "fips": "30059",
+   "county": "Meagher",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0266,
+   "p_season": 0.0856,
+   "weeks_model": 6.57
+  },
+  {
+   "fips": "30069",
+   "county": "Petroleum",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0067,
+   "p_season": 0.1099,
+   "weeks_model": 7.05
+  },
+  {
+   "fips": "30083",
+   "county": "Richland",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.1171,
+   "p_season": 0.3341,
+   "weeks_model": 18.39
+  },
+  {
+   "fips": "30085",
+   "county": "Roosevelt",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0547,
+   "p_season": 0.3732,
+   "weeks_model": 12.22
+  },
+  {
+   "fips": "30105",
+   "county": "Valley",
+   "state": "Montana",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0009,
+   "p_season": 0.0391,
+   "weeks_model": 5.85
+  },
+  {
+   "fips": "31015",
+   "county": "Boyd",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0103,
+   "p_season": 0.099,
+   "weeks_model": 12.24
+  },
+  {
+   "fips": "31021",
+   "county": "Burt",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0018,
+   "p_season": 0.0499,
+   "weeks_model": 9.71
+  },
+  {
+   "fips": "31025",
+   "county": "Cass",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.049,
+   "weeks_model": 10.01
+  },
+  {
+   "fips": "31027",
+   "county": "Cedar",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0091,
+   "p_season": 0.1067,
+   "weeks_model": 9.03
+  },
+  {
+   "fips": "31039",
+   "county": "Cuming",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0365,
+   "weeks_model": 8.17
+  },
+  {
+   "fips": "31043",
+   "county": "Dakota",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0085,
+   "p_season": 0.0992,
+   "weeks_model": 7.11
+  },
+  {
+   "fips": "31051",
+   "county": "Dixon",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0088,
+   "p_season": 0.1134,
+   "weeks_model": 8.8
+  },
+  {
+   "fips": "31053",
+   "county": "Dodge",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0422,
+   "weeks_model": 9.06
+  },
+  {
+   "fips": "31055",
+   "county": "Douglas",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0365,
+   "weeks_model": 8.14
+  },
+  {
+   "fips": "31097",
+   "county": "Johnson",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0406,
+   "weeks_model": 10.57
+  },
+  {
+   "fips": "31107",
+   "county": "Knox",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0242,
+   "p_season": 0.1128,
+   "weeks_model": 13.26
+  },
+  {
+   "fips": "31127",
+   "county": "Nemaha",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0459,
+   "weeks_model": 10.72
+  },
+  {
+   "fips": "31131",
+   "county": "Otoe",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0462,
+   "weeks_model": 10.34
+  },
+  {
+   "fips": "31147",
+   "county": "Richardson",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0419,
+   "weeks_model": 10.66
+  },
+  {
+   "fips": "31153",
+   "county": "Sarpy",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0001,
+   "p_season": 0.0513,
+   "weeks_model": 10.18
+  },
+  {
+   "fips": "31173",
+   "county": "Thurston",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0016,
+   "p_season": 0.0721,
+   "weeks_model": 6.97
+  },
+  {
+   "fips": "31177",
+   "county": "Washington",
+   "state": "Nebraska",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0002,
+   "p_season": 0.0517,
+   "weeks_model": 8.87
+  },
+  {
+   "fips": "32003",
+   "county": "Clark",
+   "state": "Nevada",
+   "river": "Colorado",
+   "cls": 2,
+   "p_model": 0.0606,
+   "p_season": 0.232,
+   "weeks_model": 12.53
+  },
+  {
+   "fips": "35001",
+   "county": "Bernalillo",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0439,
+   "p_season": 0.1934,
+   "weeks_model": 12.56
+  },
+  {
+   "fips": "35013",
+   "county": "Do\u00f1a Ana",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0102,
+   "p_season": 0.0577,
+   "weeks_model": 6.14
+  },
+  {
+   "fips": "35028",
+   "county": "Los Alamos",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0252,
+   "p_season": 0.1106,
+   "weeks_model": 11.08
+  },
+  {
+   "fips": "35043",
+   "county": "Sandoval",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0437,
+   "p_season": 0.194,
+   "weeks_model": 13.65
+  },
+  {
+   "fips": "35049",
+   "county": "Santa Fe",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0586,
+   "p_season": 0.2034,
+   "weeks_model": 14.08
+  },
+  {
+   "fips": "35051",
+   "county": "Sierra",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0102,
+   "p_season": 0.0822,
+   "weeks_model": 7.63
+  },
+  {
+   "fips": "35053",
+   "county": "Socorro",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0267,
+   "p_season": 0.1525,
+   "weeks_model": 11.25
+  },
+  {
+   "fips": "35055",
+   "county": "Taos",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0541,
+   "p_season": 0.2108,
+   "weeks_model": 12.45
+  },
+  {
+   "fips": "35061",
+   "county": "Valencia",
+   "state": "New Mexico",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.049,
+   "p_season": 0.1906,
+   "weeks_model": 13.66
+  },
+  {
+   "fips": "38015",
+   "county": "Burleigh",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9007,
+   "p_season": 0.6164,
+   "weeks_model": 32.63
+  },
+  {
+   "fips": "38025",
+   "county": "Dunn",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9343,
+   "p_season": 0.6306,
+   "weeks_model": 31.13
+  },
+  {
+   "fips": "38029",
+   "county": "Emmons",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.1535,
+   "p_season": 0.427,
+   "weeks_model": 20.04
+  },
+  {
+   "fips": "38053",
+   "county": "McKenzie",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.1483,
+   "p_season": 0.3874,
+   "weeks_model": 20.56
+  },
+  {
+   "fips": "38055",
+   "county": "McLean",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9147,
+   "p_season": 0.6968,
+   "weeks_model": 31.91
+  },
+  {
+   "fips": "38057",
+   "county": "Mercer",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9217,
+   "p_season": 0.6631,
+   "weeks_model": 31.54
+  },
+  {
+   "fips": "38059",
+   "county": "Morton",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9211,
+   "p_season": 0.6854,
+   "weeks_model": 32.05
+  },
+  {
+   "fips": "38061",
+   "county": "Mountrail",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.1653,
+   "p_season": 0.4371,
+   "weeks_model": 18.62
+  },
+  {
+   "fips": "38065",
+   "county": "Oliver",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 3,
+   "p_model": 0.9182,
+   "p_season": 0.6844,
+   "weeks_model": 32.52
+  },
+  {
+   "fips": "38105",
+   "county": "Williams",
+   "state": "North Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.093,
+   "p_season": 0.4353,
+   "weeks_model": 16.19
+  },
+  {
+   "fips": "39001",
+   "county": "Adams",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0054,
+   "p_season": 0.0432,
+   "weeks_model": 10.09
+  },
+  {
+   "fips": "39009",
+   "county": "Athens",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0419,
+   "weeks_model": 10.79
+  },
+  {
+   "fips": "39013",
+   "county": "Belmont",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0082,
+   "p_season": 0.0844,
+   "weeks_model": 12.55
+  },
+  {
+   "fips": "39015",
+   "county": "Brown",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0082,
+   "p_season": 0.048,
+   "weeks_model": 10.49
+  },
+  {
+   "fips": "39017",
+   "county": "Butler",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0237,
+   "p_season": 0.1258,
+   "weeks_model": 19.88
+  },
+  {
+   "fips": "39019",
+   "county": "Carroll",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.025,
+   "p_season": 0.1187,
+   "weeks_model": 13.28
+  },
+  {
+   "fips": "39025",
+   "county": "Clermont",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0261,
+   "p_season": 0.0691,
+   "weeks_model": 13.38
+  },
+  {
+   "fips": "39029",
+   "county": "Columbiana",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0273,
+   "p_season": 0.1225,
+   "weeks_model": 15.39
+  },
+  {
+   "fips": "39053",
+   "county": "Gallia",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0468,
+   "weeks_model": 10.73
+  },
+  {
+   "fips": "39061",
+   "county": "Hamilton",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0357,
+   "p_season": 0.1047,
+   "weeks_model": 17.91
+  },
+  {
+   "fips": "39067",
+   "county": "Harrison",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0295,
+   "p_season": 0.1191,
+   "weeks_model": 13.12
+  },
+  {
+   "fips": "39079",
+   "county": "Jackson",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0009,
+   "p_season": 0.0415,
+   "weeks_model": 10.55
+  },
+  {
+   "fips": "39081",
+   "county": "Jefferson",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0285,
+   "p_season": 0.1224,
+   "weeks_model": 15.15
+  },
+  {
+   "fips": "39087",
+   "county": "Lawrence",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0541,
+   "weeks_model": 10.78
+  },
+  {
+   "fips": "39099",
+   "county": "Mahoning",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0216,
+   "p_season": 0.1358,
+   "weeks_model": 20.64
+  },
+  {
+   "fips": "39105",
+   "county": "Meigs",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0515,
+   "weeks_model": 10.73
+  },
+  {
+   "fips": "39111",
+   "county": "Monroe",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0027,
+   "p_season": 0.0737,
+   "weeks_model": 10.99
+  },
+  {
+   "fips": "39115",
+   "county": "Morgan",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0587,
+   "weeks_model": 11.04
+  },
+  {
+   "fips": "39121",
+   "county": "Noble",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0037,
+   "p_season": 0.0737,
+   "weeks_model": 11.32
+  },
+  {
+   "fips": "39131",
+   "county": "Pike",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.001,
+   "p_season": 0.0414,
+   "weeks_model": 10.35
+  },
+  {
+   "fips": "39145",
+   "county": "Scioto",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0038,
+   "p_season": 0.0447,
+   "weeks_model": 10.25
+  },
+  {
+   "fips": "39163",
+   "county": "Vinton",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0462,
+   "weeks_model": 10.58
+  },
+  {
+   "fips": "39165",
+   "county": "Warren",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0059,
+   "p_season": 0.1105,
+   "weeks_model": 14.73
+  },
+  {
+   "fips": "39167",
+   "county": "Washington",
+   "state": "Ohio",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0016,
+   "p_season": 0.0602,
+   "weeks_model": 10.24
+  },
+  {
+   "fips": "42003",
+   "county": "Allegheny",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0108,
+   "p_season": 0.0835,
+   "weeks_model": 11.58
+  },
+  {
+   "fips": "42007",
+   "county": "Beaver",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0273,
+   "p_season": 0.1225,
+   "weeks_model": 15.39
+  },
+  {
+   "fips": "42019",
+   "county": "Butler",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0188,
+   "p_season": 0.1291,
+   "weeks_model": 19.64
+  },
+  {
+   "fips": "42059",
+   "county": "Greene",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0033,
+   "p_season": 0.0788,
+   "weeks_model": 11.28
+  },
+  {
+   "fips": "42073",
+   "county": "Lawrence",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0315,
+   "p_season": 0.1315,
+   "weeks_model": 17.28
+  },
+  {
+   "fips": "42125",
+   "county": "Washington",
+   "state": "Pennsylvania",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0076,
+   "p_season": 0.0808,
+   "weeks_model": 12.05
+  },
+  {
+   "fips": "46009",
+   "county": "Bon Homme",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0204,
+   "p_season": 0.1314,
+   "weeks_model": 9.98
+  },
+  {
+   "fips": "46015",
+   "county": "Brule",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.005,
+   "p_season": 0.1206,
+   "weeks_model": 7.05
+  },
+  {
+   "fips": "46017",
+   "county": "Buffalo",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0003,
+   "p_season": 0.0512,
+   "weeks_model": 9.61
+  },
+  {
+   "fips": "46021",
+   "county": "Campbell",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0621,
+   "p_season": 0.2694,
+   "weeks_model": 14.53
+  },
+  {
+   "fips": "46023",
+   "county": "Charles Mix",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0266,
+   "p_season": 0.1306,
+   "weeks_model": 8.66
+  },
+  {
+   "fips": "46027",
+   "county": "Clay",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0076,
+   "p_season": 0.1192,
+   "weeks_model": 8.99
+  },
+  {
+   "fips": "46041",
+   "county": "Dewey",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0777,
+   "p_season": 0.2475,
+   "weeks_model": 14.7
+  },
+  {
+   "fips": "46043",
+   "county": "Douglas",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0038,
+   "p_season": 0.1265,
+   "weeks_model": 10.8
+  },
+  {
+   "fips": "46053",
+   "county": "Gregory",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0042,
+   "p_season": 0.0811,
+   "weeks_model": 7.63
+  },
+  {
+   "fips": "46065",
+   "county": "Hughes",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0013,
+   "p_season": 0.0233,
+   "weeks_model": 4.94
+  },
+  {
+   "fips": "46069",
+   "county": "Hyde",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0992,
+   "p_season": 0.292,
+   "weeks_model": 15.85
+  },
+  {
+   "fips": "46085",
+   "county": "Lyman",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0023,
+   "p_season": 0.1034,
+   "weeks_model": 7.65
+  },
+  {
+   "fips": "46107",
+   "county": "Potter",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0762,
+   "p_season": 0.331,
+   "weeks_model": 19.8
+  },
+  {
+   "fips": "46117",
+   "county": "Stanley",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0998,
+   "p_season": 0.2685,
+   "weeks_model": 14.53
+  },
+  {
+   "fips": "46119",
+   "county": "Sully",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.0619,
+   "p_season": 0.3133,
+   "weeks_model": 17.0
+  },
+  {
+   "fips": "46125",
+   "county": "Turner",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0039,
+   "p_season": 0.1225,
+   "weeks_model": 8.96
+  },
+  {
+   "fips": "46127",
+   "county": "Union",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 0,
+   "p_model": 0.0074,
+   "p_season": 0.1165,
+   "weeks_model": 8.68
+  },
+  {
+   "fips": "46129",
+   "county": "Walworth",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 2,
+   "p_model": 0.1268,
+   "p_season": 0.3498,
+   "weeks_model": 19.21
+  },
+  {
+   "fips": "46135",
+   "county": "Yankton",
+   "state": "South Dakota",
+   "river": "Missouri",
+   "cls": 1,
+   "p_model": 0.0204,
+   "p_season": 0.1375,
+   "weeks_model": 9.76
+  },
+  {
+   "fips": "47033",
+   "county": "Crockett",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9288,
+   "p_season": 0.678,
+   "weeks_model": 31.74
+  },
+  {
+   "fips": "47045",
+   "county": "Dyer",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9304,
+   "p_season": 0.6601,
+   "weeks_model": 33.48
+  },
+  {
+   "fips": "47075",
+   "county": "Haywood",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.9227,
+   "p_season": 0.6354,
+   "weeks_model": 31.93
+  },
+  {
+   "fips": "47095",
+   "county": "Lake",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.4041,
+   "p_season": 0.5823,
+   "weeks_model": 27.56
+  },
+  {
+   "fips": "47097",
+   "county": "Lauderdale",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.9932,
+   "p_season": 0.7775,
+   "weeks_model": 32.23
+  },
+  {
+   "fips": "47131",
+   "county": "Obion",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.3051,
+   "p_season": 0.5426,
+   "weeks_model": 27.82
+  },
+  {
+   "fips": "47157",
+   "county": "Shelby",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 4,
+   "p_model": 0.9989,
+   "p_season": 0.8408,
+   "weeks_model": 37.96
+  },
+  {
+   "fips": "47167",
+   "county": "Tipton",
+   "state": "Tennessee",
+   "river": "Mississippi",
+   "cls": 5,
+   "p_model": 0.999,
+   "p_season": 0.7713,
+   "weeks_model": 34.52
+  },
+  {
+   "fips": "48043",
+   "county": "Brewster",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0088,
+   "p_season": 0.1508,
+   "weeks_model": 13.63
+  },
+  {
+   "fips": "48061",
+   "county": "Cameron",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0486,
+   "p_season": 0.2166,
+   "weeks_model": 13.08
+  },
+  {
+   "fips": "48127",
+   "county": "Dimmit",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.1541,
+   "p_season": 0.3309,
+   "weeks_model": 16.91
+  },
+  {
+   "fips": "48141",
+   "county": "El Paso",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0012,
+   "p_season": 0.031,
+   "weeks_model": 5.39
+  },
+  {
+   "fips": "48215",
+   "county": "Hidalgo",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.1132,
+   "p_season": 0.305,
+   "weeks_model": 16.66
+  },
+  {
+   "fips": "48229",
+   "county": "Hudspeth",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0415,
+   "p_season": 0.2397,
+   "weeks_model": 12.39
+  },
+  {
+   "fips": "48271",
+   "county": "Kinney",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0308,
+   "p_season": 0.1444,
+   "weeks_model": 8.76
+  },
+  {
+   "fips": "48323",
+   "county": "Maverick",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 1,
+   "p_model": 0.0773,
+   "p_season": 0.2361,
+   "weeks_model": 12.72
+  },
+  {
+   "fips": "48377",
+   "county": "Presidio",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0088,
+   "p_season": 0.1523,
+   "weeks_model": 13.52
+  },
+  {
+   "fips": "48427",
+   "county": "Starr",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.1622,
+   "p_season": 0.3463,
+   "weeks_model": 17.18
+  },
+  {
+   "fips": "48465",
+   "county": "Val Verde",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 0,
+   "p_model": 0.0176,
+   "p_season": 0.1456,
+   "weeks_model": 9.87
+  },
+  {
+   "fips": "48479",
+   "county": "Webb",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 3,
+   "p_model": 0.8635,
+   "p_season": 0.4753,
+   "weeks_model": 26.2
+  },
+  {
+   "fips": "48489",
+   "county": "Willacy",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.0985,
+   "p_season": 0.3429,
+   "weeks_model": 16.76
+  },
+  {
+   "fips": "48505",
+   "county": "Zapata",
+   "state": "Texas",
+   "river": "Rio Grande",
+   "cls": 2,
+   "p_model": 0.1944,
+   "p_season": 0.3506,
+   "weeks_model": 17.56
+  },
+  {
+   "fips": "49019",
+   "county": "Grand",
+   "state": "Utah",
+   "river": "Colorado",
+   "cls": 2,
+   "p_model": 0.1742,
+   "p_season": 0.345,
+   "weeks_model": 15.21
+  },
+  {
+   "fips": "49025",
+   "county": "Kane",
+   "state": "Utah",
+   "river": "Colorado",
+   "cls": 0,
+   "p_model": 0.0762,
+   "p_season": 0.2056,
+   "weeks_model": 11.87
+  },
+  {
+   "fips": "54009",
+   "county": "Brooke",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0282,
+   "p_season": 0.1224,
+   "weeks_model": 15.07
+  },
+  {
+   "fips": "54011",
+   "county": "Cabell",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0001,
+   "p_season": 0.0477,
+   "weeks_model": 8.94
+  },
+  {
+   "fips": "54017",
+   "county": "Doddridge",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0401,
+   "weeks_model": 9.78
+  },
+  {
+   "fips": "54029",
+   "county": "Hancock",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 1,
+   "p_model": 0.0296,
+   "p_season": 0.1174,
+   "weeks_model": 15.07
+  },
+  {
+   "fips": "54035",
+   "county": "Jackson",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0458,
+   "weeks_model": 8.35
+  },
+  {
+   "fips": "54043",
+   "county": "Lincoln",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0426,
+   "weeks_model": 8.47
+  },
+  {
+   "fips": "54051",
+   "county": "Marshall",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0033,
+   "p_season": 0.0788,
+   "weeks_model": 11.48
+  },
+  {
+   "fips": "54053",
+   "county": "Mason",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0001,
+   "p_season": 0.0473,
+   "weeks_model": 8.94
+  },
+  {
+   "fips": "54069",
+   "county": "Ohio",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0088,
+   "p_season": 0.0844,
+   "weeks_model": 12.4
+  },
+  {
+   "fips": "54073",
+   "county": "Pleasants",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0016,
+   "p_season": 0.0602,
+   "weeks_model": 10.24
+  },
+  {
+   "fips": "54079",
+   "county": "Putnam",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0466,
+   "weeks_model": 8.37
+  },
+  {
+   "fips": "54085",
+   "county": "Ritchie",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0011,
+   "p_season": 0.0426,
+   "weeks_model": 9.52
+  },
+  {
+   "fips": "54087",
+   "county": "Roane",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0413,
+   "weeks_model": 8.45
+  },
+  {
+   "fips": "54095",
+   "county": "Tyler",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0014,
+   "p_season": 0.0575,
+   "weeks_model": 10.15
+  },
+  {
+   "fips": "54099",
+   "county": "Wayne",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0002,
+   "p_season": 0.0458,
+   "weeks_model": 8.39
+  },
+  {
+   "fips": "54103",
+   "county": "Wetzel",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0019,
+   "p_season": 0.0578,
+   "weeks_model": 10.43
+  },
+  {
+   "fips": "54105",
+   "county": "Wirt",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0418,
+   "weeks_model": 10.21
+  },
+  {
+   "fips": "54107",
+   "county": "Wood",
+   "state": "West Virginia",
+   "river": "Ohio",
+   "cls": 0,
+   "p_model": 0.0,
+   "p_season": 0.0469,
+   "weeks_model": 10.88
+  },
+  {
+   "fips": "55011",
+   "county": "Buffalo",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8824,
+   "p_season": 0.6509,
+   "weeks_model": 31.27
+  },
+  {
+   "fips": "55023",
+   "county": "Crawford",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0013,
+   "p_season": 0.0708,
+   "weeks_model": 10.0
+  },
+  {
+   "fips": "55043",
+   "county": "Grant",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0001,
+   "p_season": 0.0473,
+   "weeks_model": 9.35
+  },
+  {
+   "fips": "55063",
+   "county": "La Crosse",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.008,
+   "p_season": 0.1681,
+   "weeks_model": 11.81
+  },
+  {
+   "fips": "55065",
+   "county": "Lafayette",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0108,
+   "p_season": 0.0459,
+   "weeks_model": 10.09
+  },
+  {
+   "fips": "55081",
+   "county": "Monroe",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 1,
+   "p_model": 0.0396,
+   "p_season": 0.1968,
+   "weeks_model": 13.46
+  },
+  {
+   "fips": "55091",
+   "county": "Pepin",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8652,
+   "p_season": 0.5938,
+   "weeks_model": 30.14
+  },
+  {
+   "fips": "55093",
+   "county": "Pierce",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 3,
+   "p_model": 0.8342,
+   "p_season": 0.5794,
+   "weeks_model": 30.1
+  },
+  {
+   "fips": "55109",
+   "county": "St. Croix",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.0907,
+   "p_season": 0.4505,
+   "weeks_model": 20.89
+  },
+  {
+   "fips": "55121",
+   "county": "Trempealeau",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 2,
+   "p_model": 0.1677,
+   "p_season": 0.436,
+   "weeks_model": 19.77
+  },
+  {
+   "fips": "55123",
+   "county": "Vernon",
+   "state": "Wisconsin",
+   "river": "Mississippi",
+   "cls": 0,
+   "p_model": 0.0031,
+   "p_season": 0.179,
+   "weeks_model": 12.16
+  }
+ ]
+}
