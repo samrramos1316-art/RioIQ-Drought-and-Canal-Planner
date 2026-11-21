@@ -1,14 +1,31 @@
 {
-  "generated_at": "2026-11-20T22:07:22+00:00",
+  "generated_at": "2026-11-21T20:46:45+00:00",
   "drought_week": "2026-11-17",
   "counts": {
-    "Critical": 0,
-    "Important": 9,
+    "Critical": 1,
+    "Important": 7,
     "Context": 2
   },
   "not_reached": [],
   "note": "Each issue comes from a fixed rule over public data (the rules are listed at the top of src/farmdrought/issues.py). Cut-offs for reservoirs and rain are our own choices. Sealing issues assume unlined canals. An issue is a prompt to check, not a finding.",
   "issues": [
+    {
+      "severity": "Critical",
+      "title": "Freeze Warning: Sierra, New Mexico, Do\u00f1a Ana, New Mexico",
+      "detail": "Freeze Warning issued November 21 at 10:17AM MST until November 22 at 9:00AM MST by NWS El Paso Tx/Santa Teresa NM Weather service severity: Severe.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "35051",
+        "35013"
+      ],
+      "states": [
+        "New Mexico"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-21T10:17",
+      "rule": 3
+    },
     {
       "severity": "Important",
       "title": "Delta Lake Irrigation District: decide on sealing 62.6 km of canal",
@@ -124,47 +141,14 @@
       "rule": 6
     },
     {
-      "severity": "Important",
-      "title": "Coastal Flood Advisory: Willacy, Texas, Cameron, Texas",
-      "detail": "Coastal Flood Advisory issued November 20 at 1:46AM CST until November 20 at 6:00PM CST by NWS Brownsville TX Weather service severity: Minor.",
-      "who": "County officials and anyone working outdoors",
-      "where": [
-        "48489",
-        "48061"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "",
-      "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-20T01:46",
-      "rule": 8
-    },
-    {
-      "severity": "Important",
-      "title": "Rip Current Statement: Willacy, Texas, Cameron, Texas",
-      "detail": "Rip Current Statement issued November 20 at 1:46AM CST until November 20 at 6:00PM CST by NWS Brownsville TX Weather service severity: Moderate.",
-      "who": "County officials and anyone working outdoors",
-      "where": [
-        "48489",
-        "48061"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "",
-      "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-20T01:46",
-      "rule": 8
-    },
-    {
       "severity": "Context",
-      "title": "No real rain forecast this week for 2 of 7 Warning counties",
-      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
+      "title": "No real rain forecast this week for 3 of 7 Warning counties",
+      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Webb, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
       "who": "Everyone planning water for the next week",
       "where": [
         "08109",
-        "48127"
+        "48127",
+        "48479"
       ],
       "states": [
         "Colorado",
@@ -172,13 +156,13 @@
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-20T22:00",
+      "as_of": "2026-11-21T20:38",
       "rule": 9
     },
     {
       "severity": "Context",
       "title": "Live river flow in Big Bend",
-      "detail": "Rio Grande near Castolon: 47 cubic feet per second; Rio Grande at Rio Grande Village: 192 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
+      "detail": "Rio Grande near Castolon: 45 cubic feet per second; Rio Grande at Rio Grande Village: 185 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
       "who": "Water allocators",
       "where": [
         "48043"
@@ -188,7 +172,7 @@
       ],
       "district": "",
       "source": "USGS Water Data, provisional readings",
-      "as_of": "2026-11-20T21:15",
+      "as_of": "2026-11-21T20:15",
       "rule": 10
     }
   ]
