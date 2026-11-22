@@ -20,7 +20,7 @@
 #     for more detailed explanations see http://waterdatafortexas.org/reservoirs/glossary
 # 
 # Estimated daily average data for Falcon Reservoir
-#     generated: 2026-11-21T20:46:14.842281 UTC
+#     generated: 2026-11-22T20:53:08.652603 UTC
 #     url: http://www.waterdatafortexas.org/reservoirs/individual/falcon.csv
 # 
 # Footnote:
@@ -26791,4 +26791,5 @@ date,water_level,surface_area,reservoir_storage,conservation_storage,percent_ful
 2026-11-18,262.28,29396.25,489803,352979,22.6,1562367,47
 2026-11-19,262.33,29451.21,491171,353965,22.7,1562367,47
 2026-11-20,262.38,29509.55,492654,355034,22.7,1562367,47
-2026-11-21,262.41,29549.66,493675,355769,22.8,1562367,47
+2026-11-21,262.43,29565.42,494072,356056,22.8,1562367,47
+2026-11-22,262.47,29612.61,495295,356937,22.8,1562367,47
