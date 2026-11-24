@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-24T01:59:57+00:00",
+  "generated_at": "2026-11-24T23:44:44+00:00",
   "drought_week": "2026-11-17",
   "counts": {
-    "Critical": 1,
+    "Critical": 3,
     "Important": 11,
     "Context": 2
   },
@@ -11,8 +11,27 @@
   "issues": [
     {
       "severity": "Critical",
-      "title": "Freeze Watch: Presidio, Texas, Brewster, Texas",
-      "detail": "Freeze Watch issued November 23 at 9:55AM MST until November 25 at 8:00AM MST by NWS Midland/Odessa TX Weather service severity: Severe.",
+      "title": "Freeze Warning: Do\u00f1a Ana, New Mexico, El Paso, Texas, Hudspeth, Texas",
+      "detail": "Freeze Warning issued November 24 at 4:37PM MST until November 25 at 8:00AM MST by NWS El Paso Tx/Santa Teresa NM Weather service severity: Severe.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "35013",
+        "48141",
+        "48229"
+      ],
+      "states": [
+        "New Mexico",
+        "Texas"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-24T16:37",
+      "rule": 3
+    },
+    {
+      "severity": "Critical",
+      "title": "Freeze Warning: Presidio, Texas, Brewster, Texas",
+      "detail": "Freeze Warning issued November 24 at 1:44PM MST until November 25 at 8:00AM MST by NWS Midland/Odessa TX Weather service severity: Severe.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48377",
@@ -23,7 +42,23 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-23T09:55",
+      "as_of": "2026-11-24T13:44",
+      "rule": 3
+    },
+    {
+      "severity": "Critical",
+      "title": "Freeze Warning: Val Verde, Texas",
+      "detail": "Freeze Warning issued November 24 at 11:19AM CST until November 25 at 9:00AM CST by NWS Austin/San Antonio TX Weather service severity: Severe.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "48465"
+      ],
+      "states": [
+        "Texas"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-24T11:19",
       "rule": 3
     },
     {
@@ -142,8 +177,8 @@
     },
     {
       "severity": "Important",
-      "title": "Coastal Flood Statement: Willacy, Texas, Cameron, Texas",
-      "detail": "Coastal Flood Statement issued November 23 at 12:15PM CST until November 24 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
+      "title": "Coastal Flood Advisory: Willacy, Texas, Cameron, Texas",
+      "detail": "Coastal Flood Advisory issued November 24 at 6:01AM CST until November 25 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48489",
@@ -154,70 +189,69 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-23T12:15",
+      "as_of": "2026-11-24T06:01",
       "rule": 8
     },
     {
       "severity": "Important",
-      "title": "Winter Weather Advisory: Alamosa, Colorado, Costilla, Colorado, Saguache, Colorado",
-      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 11:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "title": "Coastal Flood Advisory: Willacy, Texas, Cameron, Texas",
+      "detail": "Coastal Flood Advisory issued November 24 at 6:01AM CST until November 25 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "08003",
-        "08023",
-        "08109"
+        "48489",
+        "48061"
       ],
       "states": [
-        "Colorado"
+        "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-23T12:05",
+      "as_of": "2026-11-24T06:01",
       "rule": 8
     },
     {
       "severity": "Important",
-      "title": "Winter Weather Advisory: Mineral, Colorado, Rio Grande, Colorado, Saguache, Colorado, Conejos, Colorado",
-      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 8:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "title": "High Surf Advisory: Willacy, Texas, Cameron, Texas",
+      "detail": "High Surf Advisory issued November 24 at 6:01AM CST until November 25 at 6:00PM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "08079",
-        "08105",
-        "08109",
-        "08021"
+        "48489",
+        "48061"
       ],
       "states": [
-        "Colorado"
+        "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-23T12:05",
+      "as_of": "2026-11-24T06:01",
       "rule": 8
     },
     {
       "severity": "Important",
-      "title": "Winter Weather Advisory: Saguache, Colorado",
-      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 11:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "title": "Rip Current Statement: Willacy, Texas, Cameron, Texas",
+      "detail": "Rip Current Statement issued November 24 at 6:01AM CST until November 25 at 6:00PM CST by NWS Brownsville TX Weather service severity: Moderate.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "08109"
+        "48489",
+        "48061"
       ],
       "states": [
-        "Colorado"
+        "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-23T12:05",
+      "as_of": "2026-11-24T06:01",
       "rule": 8
     },
     {
       "severity": "Context",
-      "title": "No real rain forecast this week for 6 of 7 Warning counties",
-      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Starr, Texas, Webb, Texas, Willacy, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
+      "title": "No real rain forecast this week for 7 of 7 Warning counties",
+      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Hidalgo, Texas, Starr, Texas, Webb, Texas, Willacy, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
       "who": "Everyone planning water for the next week",
       "where": [
         "08109",
         "48127",
+        "48215",
         "48427",
         "48479",
         "48489",
@@ -229,13 +263,13 @@
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-24T01:45",
+      "as_of": "2026-11-24T23:30",
       "rule": 9
     },
     {
       "severity": "Context",
       "title": "Live river flow in Big Bend",
-      "detail": "Rio Grande near Castolon: 41 cubic feet per second; Rio Grande at Rio Grande Village: 170 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
+      "detail": "Rio Grande near Castolon: 41 cubic feet per second; Rio Grande at Rio Grande Village: 167 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
       "who": "Water allocators",
       "where": [
         "48043"
@@ -245,7 +279,7 @@
       ],
       "district": "",
       "source": "USGS Water Data, provisional readings",
-      "as_of": "2026-11-24T01:15",
+      "as_of": "2026-11-24T23:15",
       "rule": 10
     }
   ]
