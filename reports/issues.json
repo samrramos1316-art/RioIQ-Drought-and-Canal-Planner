@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-22T20:55:54+00:00",
+  "generated_at": "2026-11-24T01:59:57+00:00",
   "drought_week": "2026-11-17",
   "counts": {
-    "Critical": 2,
-    "Important": 8,
+    "Critical": 1,
+    "Important": 11,
     "Context": 2
   },
   "not_reached": [],
@@ -11,36 +11,19 @@
   "issues": [
     {
       "severity": "Critical",
-      "title": "Freeze Warning: Brewster, Texas, Presidio, Texas",
-      "detail": "Freeze Warning issued November 22 at 12:44PM MST until November 23 at 9:00AM MST by NWS Midland/Odessa TX Weather service severity: Severe.",
+      "title": "Freeze Watch: Presidio, Texas, Brewster, Texas",
+      "detail": "Freeze Watch issued November 23 at 9:55AM MST until November 25 at 8:00AM MST by NWS Midland/Odessa TX Weather service severity: Severe.",
       "who": "County officials and anyone working outdoors",
       "where": [
-        "48043",
-        "48377"
+        "48377",
+        "48043"
       ],
       "states": [
         "Texas"
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-22T12:44",
-      "rule": 3
-    },
-    {
-      "severity": "Critical",
-      "title": "Freeze Watch: Brewster, Texas, Presidio, Texas",
-      "detail": "The Freeze Watch has been replaced. Please see the latest information from NWS Midland/Odessa TX on this developing situation. Weather service severity: Severe.",
-      "who": "County officials and anyone working outdoors",
-      "where": [
-        "48043",
-        "48377"
-      ],
-      "states": [
-        "Texas"
-      ],
-      "district": "",
-      "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-22T12:44",
+      "as_of": "2026-11-23T09:55",
       "rule": 3
     },
     {
@@ -160,7 +143,7 @@
     {
       "severity": "Important",
       "title": "Coastal Flood Statement: Willacy, Texas, Cameron, Texas",
-      "detail": "Coastal Flood Statement issued November 22 at 1:19PM CST until November 24 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
+      "detail": "Coastal Flood Statement issued November 23 at 12:15PM CST until November 24 at 6:00AM CST by NWS Brownsville TX Weather service severity: Minor.",
       "who": "County officials and anyone working outdoors",
       "where": [
         "48489",
@@ -171,18 +154,73 @@
       ],
       "district": "",
       "source": "National Weather Service, active alerts",
-      "as_of": "2026-11-22T13:19",
+      "as_of": "2026-11-23T12:15",
+      "rule": 8
+    },
+    {
+      "severity": "Important",
+      "title": "Winter Weather Advisory: Alamosa, Colorado, Costilla, Colorado, Saguache, Colorado",
+      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 11:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "08003",
+        "08023",
+        "08109"
+      ],
+      "states": [
+        "Colorado"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-23T12:05",
+      "rule": 8
+    },
+    {
+      "severity": "Important",
+      "title": "Winter Weather Advisory: Mineral, Colorado, Rio Grande, Colorado, Saguache, Colorado, Conejos, Colorado",
+      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 8:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "08079",
+        "08105",
+        "08109",
+        "08021"
+      ],
+      "states": [
+        "Colorado"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-23T12:05",
+      "rule": 8
+    },
+    {
+      "severity": "Important",
+      "title": "Winter Weather Advisory: Saguache, Colorado",
+      "detail": "Winter Weather Advisory issued November 23 at 12:05PM MST until November 23 at 11:00PM MST by NWS Pueblo CO Weather service severity: Moderate.",
+      "who": "County officials and anyone working outdoors",
+      "where": [
+        "08109"
+      ],
+      "states": [
+        "Colorado"
+      ],
+      "district": "",
+      "source": "National Weather Service, active alerts",
+      "as_of": "2026-11-23T12:05",
       "rule": 8
     },
     {
       "severity": "Context",
-      "title": "No real rain forecast this week for 4 of 7 Warning counties",
-      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Webb, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
+      "title": "No real rain forecast this week for 6 of 7 Warning counties",
+      "detail": "Under 0.1 inch in the next 7 days at the county center: Saguache, Colorado, Dimmit, Texas, Starr, Texas, Webb, Texas, Willacy, Texas, Zapata, Texas. A week's forecast says nothing about the season. It only means no relief is on the way right now.",
       "who": "Everyone planning water for the next week",
       "where": [
         "08109",
         "48127",
+        "48427",
         "48479",
+        "48489",
         "48505"
       ],
       "states": [
@@ -191,13 +229,13 @@
       ],
       "district": "",
       "source": "National Weather Service, gridded 7-day forecast",
-      "as_of": "2026-11-22T20:45",
+      "as_of": "2026-11-24T01:45",
       "rule": 9
     },
     {
       "severity": "Context",
       "title": "Live river flow in Big Bend",
-      "detail": "Rio Grande near Castolon: 41 cubic feet per second; Rio Grande at Rio Grande Village: 176 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
+      "detail": "Rio Grande near Castolon: 41 cubic feet per second; Rio Grande at Rio Grande Village: 170 cubic feet per second. Both gauges are upstream of the canal districts. Flow near the districts is measured by the boundary commission, which has no open data service.",
       "who": "Water allocators",
       "where": [
         "48043"
@@ -207,7 +245,7 @@
       ],
       "district": "",
       "source": "USGS Water Data, provisional readings",
-      "as_of": "2026-11-22T20:15",
+      "as_of": "2026-11-24T01:15",
       "rule": 10
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "refreshed_at": "2026-11-22T20:55:28+00:00",
+  "refreshed_at": "2026-11-24T01:59:22+00:00",
   "sources": {
     "drought_monitor": {
       "updates": "weekly",
@@ -15,7 +15,7 @@
     },
     "reservoirs": {
       "updates": "daily",
-      "newest": "2026-11-22",
+      "newest": "2026-11-23",
       "changed": true,
       "ok": true
     },
