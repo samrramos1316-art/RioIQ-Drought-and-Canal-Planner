@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-11-26T23:28:52+00:00",
+  "generated_at": "2026-11-27T23:12:49+00:00",
   "latest_week": "2026-11-24",
   "reservoir_systems": [
     {
       "name": "Amistad-Falcon",
       "counties": 10,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-26"
+      "last_date": "2026-11-27"
     },
     {
       "name": "Elephant Butte",
       "counties": 4,
       "first_date": "1990-01-01",
-      "last_date": "2026-11-26"
+      "last_date": "2026-11-27"
     }
   ],
   "canals": {

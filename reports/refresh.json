@@ -1,10 +1,10 @@
 {
-  "refreshed_at": "2026-11-26T23:28:35+00:00",
+  "refreshed_at": "2026-11-27T23:11:56+00:00",
   "sources": {
     "drought_monitor": {
       "updates": "weekly",
       "newest": "2026-11-24",
-      "changed": true,
+      "changed": false,
       "ok": true
     },
     "el_nino_index": {
@@ -15,7 +15,7 @@
     },
     "reservoirs": {
       "updates": "daily",
-      "newest": "2026-11-26",
+      "newest": "2026-11-27",
       "changed": true,
       "ok": true
     },
@@ -26,9 +26,6 @@
       "ok": true
     }
   },
-  "forecast_inputs_changed": true,
-  "outputs_rebuilt": true,
-  "quarter_m": {
-    "ok": true
-  }
+  "forecast_inputs_changed": false,
+  "outputs_rebuilt": true
 }
